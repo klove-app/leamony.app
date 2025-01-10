@@ -278,4 +278,66 @@
     .stats-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.instruction-steps-additional.hidden {
+    display: none;
+}
+
+.show-more-container {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.show-more-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    color: #2c3e50;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.show-more-button:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.show-more-icon {
+    font-size: 0.8em;
+    transition: transform 0.2s ease;
+}
+
+.show-more-button.active .show-more-icon {
+    transform: rotate(180deg);
+}
+
+/* Анимация для появления блоков */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.instruction-steps-additional:not(.hidden) {
+    animation: slideDown 0.4s ease forwards;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .show-more-button {
+        padding: 10px 20px;
+        font-size: 0.95em;
+    }
 } 
