@@ -1,7 +1,7 @@
 /* Базовые стили */
 :root {
-    --primary-color: #FFB100;
-    --secondary-color: #FF9300;
+    --primary-color: #635BFF;
+    --secondary-color: #4B44C2;
     --text-color: #1A1A1A;
     --bg-color: #FFFFFF;
     --gray-100: #F5F5F5;
@@ -27,23 +27,30 @@ body {
 
 /* Навигация */
 .navbar {
+    padding: 1.5rem 0;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 0;
 }
 
 .logo {
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    text-decoration: none;
+    color: var(--text-color);
 }
 
 .nav-links {
     display: flex;
-    gap: 32px;
+    gap: 2rem;
     align-items: center;
 }
 
@@ -51,63 +58,72 @@ body {
     color: var(--text-color);
     text-decoration: none;
     font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    transition: all 0.2s ease;
 }
 
 .nav-link:hover {
     color: var(--primary-color);
 }
 
+.nav-link.active {
+    background: rgba(99, 91, 255, 0.1);
+    color: var(--primary-color);
+}
+
 .nav-link.support-link {
-    background-color: #635BFF;
+    background-color: var(--primary-color);
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    margin-left: 1rem;
+    padding: 0.75rem 1.5rem;
 }
 
 .nav-link.support-link:hover {
-    background-color: #4B44C2;
+    background-color: var(--secondary-color);
 }
 
 /* Герой */
 .hero-wrapper {
     background: linear-gradient(180deg, var(--gray-100) 0%, var(--bg-color) 100%);
-    padding: 40px 0 80px;
+    padding: 80px 0;
 }
 
 .hero-content {
     text-align: center;
     max-width: 800px;
-    margin: 60px auto 0;
+    margin: 0 auto;
 }
 
 h1 {
-    font-size: 48px;
+    font-size: 3.5rem;
     line-height: 1.2;
-    margin: 0 0 24px;
+    margin: 0 0 1.5rem;
     color: var(--text-color);
+    font-weight: 700;
 }
 
 .hero-description {
-    font-size: 20px;
+    font-size: 1.25rem;
     color: var(--gray-600);
-    margin: 0 0 40px;
+    margin: 0 0 2.5rem;
+    line-height: 1.6;
 }
 
 /* Кнопки */
 .cta-group {
     display: flex;
-    gap: 16px;
+    gap: 1rem;
     justify-content: center;
 }
 
 .cta-button {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 16px 32px;
-    border-radius: 12px;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
     font-weight: 600;
+    font-size: 1.125rem;
     text-decoration: none;
     transition: all 0.2s ease;
 }
@@ -119,6 +135,7 @@ h1 {
 
 .cta-button.primary:hover {
     background: var(--secondary-color);
+    transform: translateY(-2px);
 }
 
 .cta-button.secondary {
@@ -128,6 +145,7 @@ h1 {
 
 .cta-button.secondary:hover {
     background: var(--gray-300);
+    transform: translateY(-2px);
 }
 
 .button-icon {
@@ -137,60 +155,73 @@ h1 {
 
 /* Возможности */
 .features {
-    padding: 80px 0;
+    padding: 100px 0;
 }
 
 .section-title {
-    font-size: 36px;
+    font-size: 2.5rem;
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 4rem;
+    font-weight: 700;
 }
 
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 40px;
-    margin-bottom: 60px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
 }
 
 .feature-card {
     text-align: center;
-    padding: 32px;
-    border-radius: 16px;
+    padding: 2rem;
+    border-radius: 1rem;
     background: var(--gray-100);
+    transition: transform 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
 }
 
 .feature-icon {
-    font-size: 48px;
-    margin-bottom: 24px;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .feature-title {
-    font-size: 24px;
-    margin-bottom: 16px;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
 
 .feature-description {
     color: var(--gray-600);
+    line-height: 1.6;
 }
 
 /* Примеры */
 .examples {
-    padding: 80px 0;
+    padding: 100px 0;
     background: var(--gray-100);
 }
 
 .example-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 32px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
 }
 
 .example-card {
     background: white;
-    border-radius: 16px;
+    border-radius: 1rem;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.example-card:hover {
+    transform: translateY(-5px);
 }
 
 .example-image {
@@ -200,40 +231,47 @@ h1 {
 }
 
 .example-content {
-    padding: 24px;
+    padding: 1.5rem;
 }
 
 .example-title {
-    font-size: 20px;
-    margin-bottom: 12px;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
 }
 
 /* Отзывы */
 .testimonials {
-    padding: 80px 0;
+    padding: 100px 0;
 }
 
 .testimonial-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 32px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
 }
 
 .testimonial-card {
-    padding: 32px;
-    border-radius: 16px;
+    padding: 2rem;
+    border-radius: 1rem;
     background: var(--gray-100);
+    transition: transform 0.2s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
 }
 
 .testimonial-text {
-    font-size: 18px;
-    margin-bottom: 24px;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
 }
 
 .testimonial-author {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 1rem;
 }
 
 .author-avatar {
@@ -244,29 +282,31 @@ h1 {
 
 .author-name {
     font-weight: 600;
+    font-size: 1.125rem;
 }
 
 .author-title {
     color: var(--gray-600);
-    font-size: 14px;
+    font-size: 0.875rem;
 }
 
 /* Подвал */
 .footer {
     background: var(--gray-100);
-    padding: 60px 0 40px;
+    padding: 80px 0 40px;
 }
 
 .footer-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
-    margin-bottom: 40px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4rem;
+    margin-bottom: 3rem;
 }
 
 .footer-column h3 {
-    font-size: 18px;
-    margin-bottom: 20px;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
 }
 
 .footer-links {
@@ -276,12 +316,13 @@ h1 {
 }
 
 .footer-links li {
-    margin-bottom: 12px;
+    margin-bottom: 0.75rem;
 }
 
 .footer-links a {
     color: var(--gray-600);
     text-decoration: none;
+    transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
@@ -290,46 +331,75 @@ h1 {
 
 .footer-bottom {
     text-align: center;
-    padding-top: 40px;
+    padding-top: 2rem;
     border-top: 1px solid var(--gray-300);
     color: var(--gray-600);
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
-    h1 {
-        font-size: 36px;
+    .navbar .container {
+        flex-direction: column;
+        align-items: stretch;
     }
     
-    .hero-description {
-        font-size: 18px;
+    .logo {
+        margin-bottom: 1rem;
+        justify-content: center;
     }
     
     .nav-links {
-        display: none;
-    }
-    
-    .cta-group {
         flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
     }
     
-    .section-title {
-        font-size: 30px;
+    .nav-link {
+        text-align: center;
+        padding: 0.75rem;
     }
     
     .nav-link.support-link {
         order: -1;
-        margin: 0.5rem 0;
-        text-align: center;
-        width: 100%;
+        margin: 0;
     }
     
-    .nav-links {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+    .language-switcher {
+        justify-content: center;
+        margin: 1rem 0 0;
     }
-} 
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-description {
+        font-size: 1.125rem;
+        padding: 0 1rem;
+    }
+    
+    .cta-group {
+        flex-direction: column;
+        padding: 0 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+        padding: 0 1rem;
+    }
+    
+    .features-grid,
+    .example-grid,
+    .testimonial-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
 
 /* Страница авторизации */
 .login-wrapper {
