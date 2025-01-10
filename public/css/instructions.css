@@ -8,12 +8,15 @@
     margin: 0 auto;
 }
 
-.instruction-steps-initial,
-.instruction-steps-additional {
+.instruction-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 30px;
+}
+
+.instruction-row.hidden {
+    display: none;
 }
 
 .instruction-step {
@@ -340,21 +343,19 @@
     }
 }
 
-.instruction-steps-additional:not(.hidden) {
+.instruction-row:not(.hidden) {
     animation: slideDown 0.4s ease forwards;
 }
 
 /* Адаптивность */
 @media (max-width: 1024px) {
-    .instruction-steps-initial,
-    .instruction-steps-additional {
+    .instruction-row {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 768px) {
-    .instruction-steps-initial,
-    .instruction-steps-additional {
+    .instruction-row {
         grid-template-columns: 1fr;
     }
     
