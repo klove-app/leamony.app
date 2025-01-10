@@ -6,6 +6,32 @@
     <title>RunTracker Bot - Умный помощник для бега</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .language-switcher {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 1rem;
+            padding: 0.25rem;
+            background: rgba(99, 91, 255, 0.1);
+            border-radius: 2rem;
+        }
+        .lang-link {
+            padding: 0.25rem 0.5rem;
+            text-decoration: none;
+            border-radius: 1rem;
+            font-size: 0.9em;
+        }
+        .lang-link.active {
+            background: #635BFF;
+            color: white;
+        }
+        .lang-link:not(.active) {
+            opacity: 0.7;
+        }
+        .lang-link:not(.active):hover {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -20,6 +46,11 @@
                 <a href="#examples" class="nav-link">Примеры</a>
                 <a href="docs/user_guide.html" class="nav-link">Инструкция</a>
                 <a href="#donate" class="nav-link">Поддержать</a>
+                <div class="language-switcher">
+                    <a href="/" class="lang-link active">🇷🇺</a>
+                    <a href="/en" class="lang-link">🇬🇧</a>
+                    <a href="/fr" class="lang-link">🇫🇷</a>
+                </div>
             </div>
         </div>
     </nav>

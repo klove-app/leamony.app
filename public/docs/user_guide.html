@@ -78,6 +78,50 @@
             margin-right: 1rem;
             font-size: 0.9em;
         }
+        .interactive-demo {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .chat-demo {
+            margin-top: 1rem;
+        }
+        .message-input {
+            display: flex;
+            gap: 1rem;
+        }
+        .message-input input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .message-input button {
+            background: #635BFF;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .message-input button:hover {
+            background: #524ccc;
+        }
+        .format-feedback {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .format-feedback.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .format-feedback.error {
+            background: #ffebee;
+            color: #c62828;
+        }
     </style>
 </head>
 <body>
@@ -121,8 +165,8 @@
 
             <div class="command">
                 <div class="command-name">Запись пробежки</div>
-                <div class="command-description">Для записи пробежки просто отправьте сообщение с дистанцией в групповой чат, где есть бот.</div>
-                <div class="command-example">Пример: 5.2</div>
+                <div class="command-description">Для записи пробежки упомяните бота (@sl_run_bot) и укажите дистанцию в групповом чате.</div>
+                <div class="command-example">Пример: @sl_run_bot 5.2</div>
             </div>
 
             <div class="command">
@@ -147,21 +191,35 @@
 
         <section>
             <h2>Запись пробежки</h2>
-            <p>Для записи пробежки просто отправьте сообщение с дистанцией в групповой чат в следующем формате:</p>
+            <p>Для записи пробежки необходимо:</p>
+            <ol class="feature-list">
+                <li>Убедиться, что бот добавлен в групповой чат</li>
+                <li>Упомянуть бота через @ (@sl_run_bot)</li>
+                <li>Указать дистанцию в километрах</li>
+            </ol>
             <div class="command">
-                <div class="command-name">[дистанция]</div>
+                <div class="command-name">@sl_run_bot [дистанция]</div>
                 <div class="command-description">
                     - Дистанция указывается в километрах<br>
                     - Можно использовать точку или запятую для дробных значений
                 </div>
                 <div class="command-example">
                     Примеры:<br>
-                    5 - пробежка на 5 км<br>
-                    10.5 - пробежка на 10.5 км<br>
-                    3,7 - пробежка на 3.7 км
+                    @sl_run_bot 5 - пробежка на 5 км<br>
+                    @sl_run_bot 10.5 - пробежка на 10.5 км<br>
+                    @sl_run_bot 3,7 - пробежка на 3.7 км
                 </div>
             </div>
-            <p class="note">Важно: бот должен быть добавлен в групповой чат для регистрации пробежек.</p>
+            <div class="interactive-demo">
+                <h3>Попробуйте сами:</h3>
+                <div class="chat-demo">
+                    <div class="message-input">
+                        <input type="text" placeholder="@sl_run_bot 5.2" id="runDemo">
+                        <button onclick="checkRunFormat()">Проверить формат</button>
+                    </div>
+                    <div class="format-feedback" id="runFeedback"></div>
+                </div>
+            </div>
         </section>
 
         <section>
@@ -207,5 +265,21 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        function checkRunFormat() {
+            const input = document.getElementById('runDemo').value.trim();
+            const feedback = document.getElementById('runFeedback');
+            const regex = /^@sl_run_bot\s+\d+([.,]\d+)?$/;
+            
+            if (regex.test(input)) {
+                feedback.innerHTML = '✅ Правильный формат!';
+                feedback.className = 'format-feedback success';
+            } else {
+                feedback.innerHTML = '❌ Неправильный формат. Пример: @sl_run_bot 5.2';
+                feedback.className = 'format-feedback error';
+            }
+        }
+    </script>
 </body>
 </html> 
