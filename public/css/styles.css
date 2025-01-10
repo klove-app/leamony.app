@@ -1,13 +1,13 @@
 /* Базовые стили */
 :root {
-    --primary-color: #FFB100;
-    --secondary-color: #FF9300;
-    --text-color: #1A1A1A;
+    --primary-color: #8A2BE2;
+    --secondary-color: #635BFF;
+    --text-color: #1E1B4B;
     --bg-color: #FFFFFF;
-    --gray-100: #F5F5F5;
-    --gray-200: #EEEEEE;
-    --gray-300: #E0E0E0;
-    --gray-600: #757575;
+    --gray-100: #F8F7FF;
+    --gray-200: #EEEBFF;
+    --gray-300: #E0E7FF;
+    --gray-600: #6B7280;
 }
 
 body {
@@ -22,14 +22,14 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 24px;
 }
 
 /* Навигация */
 .navbar {
-    padding: 1.5rem 0;
+    padding: 1rem 0;
     background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -59,7 +59,7 @@ body {
     text-decoration: none;
     font-weight: 500;
     padding: 0.5rem 1rem;
-    border-radius: 2rem;
+    border-radius: 0.5rem;
     transition: all 0.2s ease;
 }
 
@@ -68,7 +68,7 @@ body {
 }
 
 .nav-link.active {
-    background: rgba(255, 177, 0, 0.1);
+    background: var(--gray-200);
     color: var(--primary-color);
 }
 
@@ -80,33 +80,97 @@ body {
 
 .nav-link.support-link:hover {
     background-color: var(--secondary-color);
+    transform: translateY(-1px);
 }
 
 /* Герой */
 .hero-wrapper {
     background: linear-gradient(180deg, var(--gray-100) 0%, var(--bg-color) 100%);
     padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/images/grid.svg') center/cover;
+    opacity: 0.1;
+    pointer-events: none;
 }
 
 .hero-content {
     text-align: center;
     max-width: 800px;
     margin: 0 auto;
+    position: relative;
 }
 
 h1 {
-    font-size: 3.5rem;
-    line-height: 1.2;
+    font-size: 4rem;
+    line-height: 1.1;
     margin: 0 0 1.5rem;
     color: var(--text-color);
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .hero-description {
     font-size: 1.25rem;
     color: var(--gray-600);
-    margin: 0 0 2.5rem;
+    margin: 0 0 3rem;
     line-height: 1.6;
+}
+
+/* Инструкция */
+.instructions {
+    margin: 4rem 0;
+    padding: 2rem;
+    background: var(--gray-100);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.instruction-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.instruction-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.step-number {
+    background: var(--primary-color);
+    color: white;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-content h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    color: var(--text-color);
+}
+
+.step-content p {
+    margin: 0;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 
 /* Кнопки */
@@ -119,9 +183,9 @@ h1 {
 .cta-button {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     padding: 1rem 2rem;
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
     font-weight: 600;
     font-size: 1.125rem;
     text-decoration: none;
