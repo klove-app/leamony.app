@@ -57,7 +57,7 @@
             <div class="container">
                 <h2 class="section-title">Как начать использовать бота</h2>
                 <div class="instruction-steps">
-                    <!-- Первый ряд -->
+                    <!-- Первый ряд (2 модуля) -->
                     <div class="instruction-row">
                         <div class="instruction-step">
                             <div class="step-number">1</div>
@@ -98,6 +98,18 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Кнопка "Показать ещё" -->
+                    <div class="show-more-container">
+                        <button class="show-more-button">
+                            <span class="show-more-text">Показать ещё</span>
+                            <span class="show-more-icon">▼</span>
+                        </button>
+                    </div>
+
+                    <!-- Второй ряд (2 модуля, скрытый) -->
+                    <div class="instruction-row hidden">
                         <div class="instruction-step">
                             <div class="step-number">3</div>
                             <div class="step-content">
@@ -105,7 +117,7 @@
                                 <div class="step-details">
                                     <p>Записывайте свои тренировки в свободной форме. Примеры сообщений:</p>
                                     <div class="message-examples">
-                                        <div class="message-example">🏃‍♂️ "Пробежал 5 км за 30 минут"</div>
+                                        <div class="message-example">🏆‍♂️ "Пробежал 5 км за 30 минут"</div>
                                         <div class="message-example">🏃‍♀️ "Сегодня бегала 40 минут, 6.5 км"</div>
                                         <div class="message-example">🎯 "Утренняя пробежка 8 км, темп 5:30"</div>
                                     </div>
@@ -121,22 +133,10 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Кнопка "Показать ещё" -->
-                    <div class="show-more-container">
-                        <button class="show-more-button">
-                            <span class="show-more-text">Показать ещё</span>
-                            <span class="show-more-icon">▼</span>
-                        </button>
-                    </div>
-
-                    <!-- Второй ряд (скрытый) -->
-                    <div class="instruction-row hidden">
                         <div class="instruction-step">
                             <div class="step-number">4</div>
                             <div class="step-content">
-                                <h3>Просмотр статистики</h3>
+                                <h3>Анализ прогресса</h3>
                                 <div class="step-details">
                                     <p>Используйте команду /me для просмотра ваших результатов:</p>
                                     <ul class="feature-list">
@@ -147,41 +147,6 @@
                                     </ul>
                                     <div class="instruction-tip">
                                         <p>💡 Совет: Регулярно проверяйте статистику, чтобы отслеживать свой прогресс</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="instruction-step">
-                            <div class="step-number">5</div>
-                            <div class="step-content">
-                                <h3>Достижения и рекорды</h3>
-                                <div class="step-details">
-                                    <p>В разделе /me вы также найдете свои достижения:</p>
-                                    <div class="message-examples">
-                                        <div class="message-example">🏆 Личные рекорды по темпу и дистанции</div>
-                                        <div class="message-example">🌟 Медали за регулярные тренировки</div>
-                                        <div class="message-example">⭐️ Достижения за выполнение целей</div>
-                                    </div>
-                                    <div class="instruction-tip">
-                                        <p>💡 Совет: Ставьте новые цели, когда достигаете текущих</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="instruction-step">
-                            <div class="step-number">6</div>
-                            <div class="step-content">
-                                <h3>Сообщество бегунов</h3>
-                                <div class="step-details">
-                                    <p>Присоединяйтесь к сообществу единомышленников:</p>
-                                    <ul class="feature-list">
-                                        <li>👥 Делитесь успехами в общем чате</li>
-                                        <li>🤝 Находите партнеров для пробежек</li>
-                                        <li>🏃‍♂️ Участвуйте в челленджах</li>
-                                        <li>💬 Обсуждайте тренировки</li>
-                                    </ul>
-                                    <div class="instruction-tip">
-                                        <p>💡 Совет: Общение с другими бегунами - отличный способ оставаться мотивированным</p>
                                     </div>
                                 </div>
                             </div>
@@ -327,7 +292,6 @@
     </footer>
 
     <script>
-        // Обработка открытия ссылок в Telegram на мобильных устройствах
         document.addEventListener('DOMContentLoaded', function() {
             // Telegram links handler
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -347,19 +311,26 @@
 
             // Show more button handler
             const showMoreButton = document.querySelector('.show-more-button');
-            const additionalRow = document.querySelector('.instruction-row.hidden');
+            const hiddenRow = document.querySelector('.instruction-row.hidden');
             
-            if (showMoreButton && additionalRow) {
+            if (showMoreButton && hiddenRow) {
                 showMoreButton.addEventListener('click', function() {
-                    additionalRow.classList.toggle('hidden');
+                    hiddenRow.classList.toggle('show');
                     this.classList.toggle('active');
                     
-                    if (additionalRow.classList.contains('hidden')) {
-                        this.querySelector('.show-more-text').textContent = 'Показать ещё';
-                        // Плавно прокручиваем к началу инструкций
-                        document.querySelector('#instructions').scrollIntoView({ behavior: 'smooth' });
+                    const showMoreText = this.querySelector('.show-more-text');
+                    const showMoreIcon = this.querySelector('.show-more-icon');
+                    
+                    if (hiddenRow.classList.contains('show')) {
+                        showMoreText.textContent = 'Свернуть';
+                        showMoreIcon.style.transform = 'rotate(180deg)';
+                        // Плавно прокручиваем к началу скрытого ряда
+                        hiddenRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     } else {
-                        this.querySelector('.show-more-text').textContent = 'Свернуть';
+                        showMoreText.textContent = 'Показать ещё';
+                        showMoreIcon.style.transform = 'rotate(0deg)';
+                        // Прокручиваем к началу инструкций
+                        document.querySelector('#instructions').scrollIntoView({ behavior: 'smooth' });
                     }
                 });
             }
