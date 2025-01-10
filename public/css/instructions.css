@@ -113,141 +113,135 @@
     transform: scale(1.02);
 }
 
-.stats-grid {
+.stats-section {
+    margin: 20px 0;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.stats-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin: 16px 0;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
-.stat-item {
+.stats-row:last-child {
+    margin-bottom: 0;
+}
+
+.stat-block {
     background: #ffffff;
-    padding: 14px;
     border-radius: 8px;
-    text-align: left;
-    transition: all 0.3s ease;
+    padding: 16px;
     border: 1px solid #e9ecef;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    transition: all 0.2s ease;
 }
 
-.stat-item:hover {
+.stat-block:hover {
+    border-color: #007bff;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    border-color: #007bff;
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.stat-header h4 {
+    margin: 0;
+    font-size: 1em;
+    color: #2c3e50;
+    font-weight: 600;
 }
 
 .stat-icon {
-    font-size: 1.25em;
+    font-size: 1.2em;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: #f8f9fa;
     border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.stat-list {
+    list-style: none;
+    padding: 0;
     margin: 0;
-    padding: 6px;
 }
 
-.stat-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.stat-title {
-    font-weight: 600;
-    color: #2c3e50;
-    display: block;
-    margin-bottom: 2px;
-    font-size: 0.95em;
-}
-
-.stat-desc {
+.stat-list li {
+    font-size: 0.9em;
     color: #666;
-    font-size: 0.85em;
-    line-height: 1.3;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 4px 0;
+    position: relative;
+    padding-left: 16px;
 }
 
-/* Специальные стили для каждого типа статистики */
-.stat-item.general .stat-icon {
+.stat-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #007bff;
+}
+
+/* Цветовые акценты для разных блоков */
+.stat-block:nth-child(1) .stat-icon {
     background: rgba(0, 123, 255, 0.1);
     color: #007bff;
 }
 
-.stat-item.progress .stat-icon {
+.stat-block:nth-child(2) .stat-icon {
     background: rgba(40, 167, 69, 0.1);
     color: #28a745;
 }
 
-.stat-item.achievements .stat-icon {
+.stat-block:nth-child(3) .stat-icon {
     background: rgba(255, 193, 7, 0.1);
     color: #ffc107;
 }
 
-.stat-item.calendar .stat-icon {
+.stat-block:nth-child(4) .stat-icon {
     background: rgba(111, 66, 193, 0.1);
     color: #6f42c1;
 }
 
-/* Адаптивность для статистики */
+/* Адаптивность */
 @media (max-width: 768px) {
-    .stats-grid {
+    .stats-section {
+        padding: 12px;
+    }
+
+    .stats-row {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
-    .stat-item {
+
+    .stat-block {
         padding: 12px;
     }
-    
-    .stat-icon {
-        min-width: 32px;
-        height: 32px;
-        font-size: 1.2em;
-    }
-    
-    .stat-title {
+
+    .stat-header h4 {
         font-size: 0.95em;
     }
-    
-    .stat-desc {
+
+    .stat-list li {
         font-size: 0.85em;
     }
 }
 
-/* Анимация появления для статистики */
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.stat-item {
-    animation: slideIn 0.4s ease forwards;
-    opacity: 0;
-}
-
-.stat-item:nth-child(1) { animation-delay: 0.1s; }
-.stat-item:nth-child(2) { animation-delay: 0.15s; }
-.stat-item:nth-child(3) { animation-delay: 0.2s; }
-.stat-item:nth-child(4) { animation-delay: 0.25s; }
-
 /* Анимации */
-@keyframes fadeIn {
+@keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(10px);
     }
     to {
         opacity: 1;
@@ -255,15 +249,15 @@
     }
 }
 
-.instruction-step {
-    animation: fadeIn 0.6s ease forwards;
+.stat-block {
+    animation: fadeInUp 0.4s ease forwards;
     opacity: 0;
 }
 
-.instruction-step:nth-child(1) { animation-delay: 0.1s; }
-.instruction-step:nth-child(2) { animation-delay: 0.3s; }
-.instruction-step:nth-child(3) { animation-delay: 0.5s; }
-.instruction-step:nth-child(4) { animation-delay: 0.7s; }
+.stats-row:first-child .stat-block:nth-child(1) { animation-delay: 0.1s; }
+.stats-row:first-child .stat-block:nth-child(2) { animation-delay: 0.2s; }
+.stats-row:last-child .stat-block:nth-child(1) { animation-delay: 0.3s; }
+.stats-row:last-child .stat-block:nth-child(2) { animation-delay: 0.4s; }
 
 /* Адаптивность */
 @media (max-width: 768px) {
