@@ -58,7 +58,7 @@
                 <h2 class="section-title">Как начать использовать бота</h2>
                 <div class="instruction-steps">
                     <!-- Первый ряд (2 модуля) -->
-                    <div class="instruction-row">
+                    <div class="instruction-row visible">
                         <div class="instruction-step">
                             <div class="step-number">1</div>
                             <div class="step-content">
@@ -315,22 +315,28 @@
             
             if (showMoreButton && hiddenRow) {
                 showMoreButton.addEventListener('click', function() {
-                    hiddenRow.classList.toggle('show');
-                    this.classList.toggle('active');
+                    const isHidden = !hiddenRow.classList.contains('show');
                     
-                    const showMoreText = this.querySelector('.show-more-text');
-                    const showMoreIcon = this.querySelector('.show-more-icon');
-                    
-                    if (hiddenRow.classList.contains('show')) {
-                        showMoreText.textContent = 'Свернуть';
-                        showMoreIcon.style.transform = 'rotate(180deg)';
-                        // Плавно прокручиваем к началу скрытого ряда
-                        hiddenRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (isHidden) {
+                        // Показываем скрытый ряд
+                        hiddenRow.classList.add('show');
+                        this.classList.add('active');
+                        this.querySelector('.show-more-text').textContent = 'Свернуть';
+                        this.querySelector('.show-more-icon').style.transform = 'rotate(180deg)';
+                        
+                        // Плавно прокручиваем к началу нового ряда
+                        setTimeout(() => {
+                            hiddenRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
                     } else {
-                        showMoreText.textContent = 'Показать ещё';
-                        showMoreIcon.style.transform = 'rotate(0deg)';
-                        // Прокручиваем к началу инструкций
-                        document.querySelector('#instructions').scrollIntoView({ behavior: 'smooth' });
+                        // Скрываем ряд
+                        hiddenRow.classList.remove('show');
+                        this.classList.remove('active');
+                        this.querySelector('.show-more-text').textContent = 'Показать ещё';
+                        this.querySelector('.show-more-icon').style.transform = 'rotate(0deg)';
+                        
+                        // Прокручиваем к кнопке
+                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 });
             }

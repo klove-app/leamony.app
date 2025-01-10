@@ -18,11 +18,19 @@
 
 .instruction-row.hidden {
     display: none;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.instruction-row.visible {
+    display: grid;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .instruction-row.hidden.show {
     display: grid;
-    animation: fadeIn 0.5s ease;
+    animation: fadeInUp 0.5s ease forwards;
 }
 
 .instruction-step {
@@ -258,7 +266,7 @@
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -303,7 +311,8 @@
 
 .show-more-container {
     text-align: center;
-    margin: 2rem 0;
+    margin: 1rem 0 3rem;
+    position: relative;
 }
 
 .show-more-button {
@@ -326,19 +335,17 @@
 }
 
 .show-more-icon {
-    font-size: 0.8em;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
 }
 
 .show-more-button.active .show-more-icon {
     transform: rotate(180deg);
 }
 
-/* Анимация для появления блоков */
-@keyframes slideDown {
+@keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -346,17 +353,7 @@
     }
 }
 
-.instruction-row:not(.hidden) {
-    animation: slideDown 0.4s ease forwards;
-}
-
 /* Адаптивность */
-@media (max-width: 1024px) {
-    .instruction-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
 @media (max-width: 768px) {
     .instruction-row {
         grid-template-columns: 1fr;
@@ -367,8 +364,8 @@
     }
 
     .show-more-button {
-        padding: 10px 20px;
-        font-size: 0.95em;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
     }
 }
 
