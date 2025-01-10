@@ -67,16 +67,26 @@
         
         <section>
             <h2>Начало работы</h2>
-            <p>Чтобы начать использовать RunTracker Bot, просто перейдите по ссылке <a href="https://t.me/sl_run_bot">@sl_run_bot</a> и нажмите кнопку "Старт".</p>
+            <p>Чтобы начать использовать RunTracker Bot:</p>
+            <ol class="feature-list">
+                <li>Перейдите по ссылке <a href="https://t.me/sl_run_bot">@sl_run_bot</a></li>
+                <li>Отправьте команду /start для активации бота</li>
+                <li>Добавьте бота в ваш беговой чат (если вы администратор)</li>
+            </ol>
         </section>
 
         <section>
             <h2>Основные команды</h2>
             
             <div class="command">
-                <div class="command-name">/run - Запись пробежки</div>
-                <div class="command-description">Используйте эту команду для записи вашей пробежки. Просто введите дистанцию и время.</div>
-                <div class="command-example">Пример: /run 5.2 30:15</div>
+                <div class="command-name">/start - Начало работы</div>
+                <div class="command-description">Активирует бота и показывает приветственное сообщение с основными командами.</div>
+            </div>
+
+            <div class="command">
+                <div class="command-name">Запись пробежки</div>
+                <div class="command-description">Для записи пробежки просто отправьте сообщение с дистанцией и временем в групповой чат, где есть бот.</div>
+                <div class="command-example">Пример: 5.2 30:15</div>
             </div>
 
             <div class="command">
@@ -101,19 +111,20 @@
 
         <section>
             <h2>Запись пробежки</h2>
-            <p>Для записи пробежки используйте команду /run в следующем формате:</p>
+            <p>Для записи пробежки просто отправьте сообщение в групповой чат в следующем формате:</p>
             <div class="command">
-                <div class="command-name">/run [дистанция] [время]</div>
+                <div class="command-name">[дистанция] [время]</div>
                 <div class="command-description">
                     - Дистанция указывается в километрах (можно использовать точку)<br>
                     - Время указывается в формате ЧЧ:ММ:СС или ММ:СС
                 </div>
                 <div class="command-example">
                     Примеры:<br>
-                    /run 5 25:30 - пробежка на 5 км за 25 минут 30 секунд<br>
-                    /run 10.5 1:02:15 - пробежка на 10.5 км за 1 час 2 минуты 15 секунд
+                    5 25:30 - пробежка на 5 км за 25 минут 30 секунд<br>
+                    10.5 1:02:15 - пробежка на 10.5 км за 1 час 2 минуты 15 секунд
                 </div>
             </div>
+            <p class="note">Важно: бот должен быть добавлен в групповой чат для регистрации пробежек.</p>
         </section>
 
         <section>
