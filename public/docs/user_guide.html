@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Руководство пользователя - RunTracker Bot</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .docs-content {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .command {
+            background: #f5f5ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .command-name {
+            color: #635BFF;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .command-description {
+            margin-bottom: 0.5rem;
+        }
+        .command-example {
+            color: #666;
+            font-family: monospace;
+        }
+        .section-subtitle {
+            color: #635BFF;
+            font-size: 1.25rem;
+            margin: 2rem 0 1rem;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #635BFF;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="../images/telegram.svg" alt="Telegram" class="button-icon">
+                RunTracker Bot
+            </a>
+        </div>
+    </nav>
+
+    <div class="docs-content">
+        <h1>Руководство пользователя RunTracker Bot</h1>
+        
+        <section>
+            <h2>Начало работы</h2>
+            <p>Чтобы начать использовать RunTracker Bot, просто перейдите по ссылке <a href="https://t.me/sl_run_bot">@sl_run_bot</a> и нажмите кнопку "Старт".</p>
+        </section>
+
+        <section>
+            <h2>Основные команды</h2>
+            
+            <div class="command">
+                <div class="command-name">/run - Запись пробежки</div>
+                <div class="command-description">Используйте эту команду для записи вашей пробежки. Просто введите дистанцию и время.</div>
+                <div class="command-example">Пример: /run 5.2 30:15</div>
+            </div>
+
+            <div class="command">
+                <div class="command-name">/me - Личный кабинет</div>
+                <div class="command-description">Ваш личный кабинет со всеми функциями и статистикой.</div>
+                <h3 class="section-subtitle">В личном кабинете доступно:</h3>
+                <ul class="feature-list">
+                    <li>Просмотр личной статистики за разные периоды</li>
+                    <li>Участие в челленджах и соревнованиях</li>
+                    <li>Установка целей и отслеживание прогресса</li>
+                    <li>История ваших пробежек</li>
+                    <li>Сравнение результатов с другими участниками</li>
+                    <li>Настройка уведомлений</li>
+                </ul>
+            </div>
+
+            <div class="command">
+                <div class="command-name">/help - Помощь</div>
+                <div class="command-description">Показывает список всех доступных команд и их описание.</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Запись пробежки</h2>
+            <p>Для записи пробежки используйте команду /run в следующем формате:</p>
+            <div class="command">
+                <div class="command-name">/run [дистанция] [время]</div>
+                <div class="command-description">
+                    - Дистанция указывается в километрах (можно использовать точку)<br>
+                    - Время указывается в формате ЧЧ:ММ:СС или ММ:СС
+                </div>
+                <div class="command-example">
+                    Примеры:<br>
+                    /run 5 25:30 - пробежка на 5 км за 25 минут 30 секунд<br>
+                    /run 10.5 1:02:15 - пробежка на 10.5 км за 1 час 2 минуты 15 секунд
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Работа с личным кабинетом</h2>
+            <p>После ввода команды /me вы получите доступ к меню с кнопками для:</p>
+            <ul class="feature-list">
+                <li>📊 Статистика - просмотр ваших результатов за разные периоды</li>
+                <li>🎯 Цели - установка и отслеживание личных целей</li>
+                <li>🏆 Челленджи - участие в текущих соревнованиях</li>
+                <li>📅 История - просмотр истории ваших пробежек</li>
+                <li>⚙️ Настройки - настройка уведомлений и предпочтений</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Дополнительная информация</h2>
+            <p>Если у вас возникли вопросы или нужна помощь, вы можете:</p>
+            <ul class="feature-list">
+                <li>Использовать команду /help для получения списка всех команд</li>
+                <li>Связаться с администратором: <a href="https://t.me/IvanAKazakov">@IvanAKazakov</a></li>
+                <li>Посетить наш <a href="https://github.com/klove-app/sl_tg_bot">GitHub</a> для технической информации</li>
+            </ul>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 RunTracker Bot. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 
