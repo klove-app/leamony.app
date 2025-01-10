@@ -31,6 +31,17 @@
         .lang-link:not(.active):hover {
             opacity: 1;
         }
+        .nav-link.donate {
+            color: #635BFF;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            background: rgba(99, 91, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .nav-link.donate:hover {
+            background: rgba(99, 91, 255, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -45,11 +56,10 @@
                 <a href="#features" class="nav-link">Возможности</a>
                 <a href="#examples" class="nav-link">Примеры</a>
                 <a href="docs/user_guide.html" class="nav-link">Инструкция</a>
-                <a href="#donate" class="nav-link">Поддержать</a>
+                <a href="#donate" class="nav-link donate">Поддержать</a>
                 <div class="language-switcher">
                     <a href="/" class="lang-link active">🇷🇺</a>
                     <a href="/en" class="lang-link">🇬🇧</a>
-                    <a href="/fr" class="lang-link">🇫🇷</a>
                 </div>
             </div>
         </div>
