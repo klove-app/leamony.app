@@ -8,20 +8,15 @@
     margin: 0 auto;
 }
 
-.instruction-steps-initial {
+.instruction-steps-initial,
+.instruction-steps-additional {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 30px;
 }
 
-.instruction-steps-additional {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
 .instruction-step {
-    margin-bottom: 30px;
     padding: 24px;
     background: #fff;
     border-radius: 16px;
@@ -30,10 +25,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-}
-
-.instruction-steps-initial .instruction-step {
-    margin-bottom: 0;
 }
 
 .instruction-step:hover {
@@ -305,7 +296,7 @@
 
 .show-more-container {
     text-align: center;
-    margin: 30px 0;
+    margin: 0 0 30px;
 }
 
 .show-more-button {
@@ -354,27 +345,25 @@
 }
 
 /* Адаптивность */
-@media (max-width: 768px) {
-    .show-more-button {
-        padding: 10px 20px;
-        font-size: 0.95em;
-    }
-}
-
-/* Адаптивность */
 @media (max-width: 1024px) {
-    .instruction-steps-initial {
+    .instruction-steps-initial,
+    .instruction-steps-additional {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 768px) {
-    .instruction-steps-initial {
+    .instruction-steps-initial,
+    .instruction-steps-additional {
         grid-template-columns: 1fr;
     }
     
     .instruction-step {
         padding: 20px;
-        margin-bottom: 20px;
+    }
+
+    .show-more-button {
+        padding: 10px 20px;
+        font-size: 0.95em;
     }
 } 
