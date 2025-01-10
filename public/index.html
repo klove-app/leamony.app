@@ -57,44 +57,42 @@
             <div class="container">
                 <h2 class="section-title">Как начать использовать бота</h2>
                 <div class="instruction-steps">
-                    <!-- Первый ряд (2 модуля) -->
-                    <div class="instruction-row visible">
-                        <div class="instruction-step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h3>Начало работы с ботом</h3>
-                                <div class="step-details">
-                                    <p>Найдите бота @sl_run_bot в Telegram или нажмите кнопку ниже:</p>
-                                    <a href="https://t.me/sl_run_bot" class="action-button" target="_blank" rel="noopener">
-                                        <img src="/images/telegram.svg" alt="Telegram" class="button-icon">
-                                        Открыть бота
-                                    </a>
-                                    <div class="instruction-tip">
-                                        <p>💡 После открытия бота:</p>
-                                        <ol>
-                                            <li>Нажмите кнопку "Start" или отправьте команду /start</li>
-                                            <li>Бот поприветствует вас и предложит начать</li>
-                                            <li>Следуйте инструкциям бота для первичной настройки</li>
-                                        </ol>
-                                    </div>
+                    <!-- Первые два модуля -->
+                    <div class="instruction-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Начало работы с ботом</h3>
+                            <div class="step-details">
+                                <p>Найдите бота @sl_run_bot в Telegram или нажмите кнопку ниже:</p>
+                                <a href="https://t.me/sl_run_bot" class="action-button" target="_blank" rel="noopener">
+                                    <img src="/images/telegram.svg" alt="Telegram" class="button-icon">
+                                    Открыть бота
+                                </a>
+                                <div class="instruction-tip">
+                                    <p>💡 После открытия бота:</p>
+                                    <ol>
+                                        <li>Нажмите кнопку "Start" или отправьте команду /start</li>
+                                        <li>Бот поприветствует вас и предложит начать</li>
+                                        <li>Следуйте инструкциям бота для первичной настройки</li>
+                                    </ol>
                                 </div>
                             </div>
                         </div>
-                        <div class="instruction-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h3>Настройка профиля</h3>
-                                <div class="step-details">
-                                    <p>Используйте команду /me для доступа к вашему профилю. В профиле вы можете:</p>
-                                    <ul class="feature-list">
-                                        <li>📊 Установить цели по дистанции и темпу</li>
-                                        <li>📅 Настроить график тренировок</li>
-                                        <li>📈 Просматривать статистику и прогресс</li>
-                                        <li>⚙️ Настроить уведомления и напоминания</li>
-                                    </ul>
-                                    <div class="instruction-tip">
-                                        <p>💡 Совет: Регулярно обновляйте свои цели, чтобы поддерживать мотивацию!</p>
-                                    </div>
+                    </div>
+                    <div class="instruction-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Настройка профиля</h3>
+                            <div class="step-details">
+                                <p>Используйте команду /me для доступа к вашему профилю. В профиле вы можете:</p>
+                                <ul class="feature-list">
+                                    <li>📊 Установить цели по дистанции и темпу</li>
+                                    <li>📅 Настроить график тренировок</li>
+                                    <li>📈 Просматривать статистику и прогресс</li>
+                                    <li>⚙️ Настроить уведомления и напоминания</li>
+                                </ul>
+                                <div class="instruction-tip">
+                                    <p>💡 Совет: Регулярно обновляйте свои цели, чтобы поддерживать мотивацию!</p>
                                 </div>
                             </div>
                         </div>
@@ -108,8 +106,8 @@
                         </button>
                     </div>
 
-                    <!-- Второй ряд (2 модуля, скрытый) -->
-                    <div class="instruction-row hidden">
+                    <!-- Скрытые модули -->
+                    <div class="hidden-steps">
                         <div class="instruction-step">
                             <div class="step-number">3</div>
                             <div class="step-content">
@@ -311,26 +309,26 @@
 
             // Show more button handler
             const showMoreButton = document.querySelector('.show-more-button');
-            const hiddenRow = document.querySelector('.instruction-row.hidden');
+            const hiddenSteps = document.querySelector('.hidden-steps');
             
-            if (showMoreButton && hiddenRow) {
+            if (showMoreButton && hiddenSteps) {
                 showMoreButton.addEventListener('click', function() {
-                    const isHidden = !hiddenRow.classList.contains('show');
+                    const isHidden = !hiddenSteps.classList.contains('show');
                     
                     if (isHidden) {
-                        // Показываем скрытый ряд
-                        hiddenRow.classList.add('show');
+                        // Показываем скрытые модули
+                        hiddenSteps.classList.add('show');
                         this.classList.add('active');
                         this.querySelector('.show-more-text').textContent = 'Свернуть';
                         this.querySelector('.show-more-icon').style.transform = 'rotate(180deg)';
                         
-                        // Плавно прокручиваем к началу нового ряда
+                        // Плавно прокручиваем к новым модулям
                         setTimeout(() => {
-                            hiddenRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            hiddenSteps.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }, 100);
                     } else {
-                        // Скрываем ряд
-                        hiddenRow.classList.remove('show');
+                        // Скрываем модули
+                        hiddenSteps.classList.remove('show');
                         this.classList.remove('active');
                         this.querySelector('.show-more-text').textContent = 'Показать ещё';
                         this.querySelector('.show-more-icon').style.transform = 'rotate(0deg)';

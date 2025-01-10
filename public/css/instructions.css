@@ -7,6 +7,9 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
 }
 
 .instruction-row {
@@ -310,9 +313,9 @@
 }
 
 .show-more-container {
+    grid-column: 1 / -1;
     text-align: center;
-    margin: 1rem 0 3rem;
-    position: relative;
+    margin: 1rem 0;
 }
 
 .show-more-button {
@@ -342,6 +345,20 @@
     transform: rotate(180deg);
 }
 
+.hidden-steps {
+    display: none;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hidden-steps.show {
+    display: grid;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -355,7 +372,11 @@
 
 /* Адаптивность */
 @media (max-width: 768px) {
-    .instruction-row {
+    .instruction-steps {
+        grid-template-columns: 1fr;
+    }
+    
+    .hidden-steps {
         grid-template-columns: 1fr;
     }
     
