@@ -15,6 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
         .language-switcher {
             display: inline-flex;
@@ -29,6 +30,7 @@
             text-decoration: none;
             border-radius: 1rem;
             font-size: 0.9em;
+            transition: all 0.3s ease;
         }
         .lang-link.active {
             background: #635BFF;
@@ -39,6 +41,170 @@
         }
         .lang-link:not(.active):hover {
             opacity: 1;
+            transform: translateY(-1px);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(99, 91, 255, 0.1);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(99, 91, 255, 0.1);
+            border-color: #635BFF;
+        }
+        
+        .cta-button {
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 91, 255, 0.2);
+        }
+        
+        .testimonial-card {
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .faq-item {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 91, 255, 0.1);
+        }
+        
+        .faq-question {
+            color: #2D2D2D;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        /* Statistics Styles */
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #635BFF 0%, #504ACC 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(99, 91, 255, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        /* Blog Styles */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .blog-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(99, 91, 255, 0.1);
+        }
+        
+        .blog-image {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .blog-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .blog-card:hover .blog-image img {
+            transform: scale(1.05);
+        }
+        
+        .blog-content {
+            padding: 1.5rem;
+        }
+        
+        .blog-content h3 {
+            color: #2D2D2D;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .blog-content p {
+            color: #666;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .blog-link {
+            color: #635BFF;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .blog-link:hover {
+            color: #504ACC;
+            transform: translateX(5px);
         }
     </style>
 </head>
@@ -59,7 +225,7 @@
     </nav>
 
     <main>
-        <section class="hero-wrapper">
+        <section class="hero-wrapper" data-aos="fade-up">
             <div class="container">
                 <div class="hero-content">
                     <h1>Smart Running Assistant</h1>
@@ -77,7 +243,7 @@
             </div>
         </section>
 
-        <section class="instructions">
+        <section class="instructions" data-aos="fade-up" data-aos-delay="100">
             <div class="container">
                 <h2 class="section-title">How to Start Using the Bot</h2>
                 <div class="instruction-steps">
@@ -106,7 +272,7 @@
             </div>
         </section>
 
-        <section id="features" class="features">
+        <section id="features" class="features" data-aos="fade-up" data-aos-delay="100">
             <div class="container">
                 <h2 class="section-title">Bot Features</h2>
                 <div class="features-grid">
@@ -135,7 +301,7 @@
             </div>
         </section>
 
-        <section class="examples">
+        <section class="examples" data-aos="fade-up" data-aos-delay="100">
             <div class="container">
                 <h2 class="section-title">How It Works</h2>
                 <div class="example-grid">
@@ -164,7 +330,7 @@
             </div>
         </section>
 
-        <section class="testimonials">
+        <section class="testimonials" data-aos="fade-up" data-aos-delay="100">
             <div class="container">
                 <h2 class="section-title">User Reviews</h2>
                 <div class="testimonial-grid">
@@ -207,40 +373,134 @@
                 </div>
             </div>
         </section>
+
+        <section class="statistics" data-aos="fade-up" data-aos-delay="100">
+            <div class="container">
+                <h2 class="section-title">Bot Statistics</h2>
+                <div class="statistics-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Active Runners</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">50,000+</div>
+                        <div class="stat-label">Kilometers Run</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">10,000+</div>
+                        <div class="stat-label">Training Sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Goals Achieved</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="blog" data-aos="fade-up" data-aos-delay="100">
+            <div class="container">
+                <h2 class="section-title">Running Tips & Articles</h2>
+                <div class="blog-grid">
+                    <article class="blog-card">
+                        <div class="blog-image">
+                            <img src="/images/placeholder.svg" alt="Running Tips">
+                        </div>
+                        <div class="blog-content">
+                            <h3>Beginner's Guide to Running</h3>
+                            <p>Essential tips for those who are just starting their running journey.</p>
+                            <a href="#" class="blog-link">Read More →</a>
+                        </div>
+                    </article>
+                    <article class="blog-card">
+                        <div class="blog-image">
+                            <img src="/images/placeholder.svg" alt="Marathon Training">
+                        </div>
+                        <div class="blog-content">
+                            <h3>Marathon Training Plan</h3>
+                            <p>How to prepare for your first marathon with our bot.</p>
+                            <a href="#" class="blog-link">Read More →</a>
+                        </div>
+                    </article>
+                    <article class="blog-card">
+                        <div class="blog-image">
+                            <img src="/images/placeholder.svg" alt="Running Analytics">
+                        </div>
+                        <div class="blog-content">
+                            <h3>Understanding Your Running Stats</h3>
+                            <p>Learn how to analyze your running data for better results.</p>
+                            <a href="#" class="blog-link">Read More →</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq" data-aos="fade-up" data-aos-delay="100">
+            <div class="container">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h3 class="faq-question">How do I start using the bot?</h3>
+                        <p class="faq-answer">Simply join our Telegram group, use the /register command, and you're ready to start tracking your runs!</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">Is the bot free to use?</h3>
+                        <p class="faq-answer">Yes, the bot is completely free! However, you can support our project to help us maintain and improve it.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">What data does the bot track?</h3>
+                        <p class="faq-answer">The bot tracks your running distance, time, pace, and can calculate various statistics based on this data.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">Can I export my running data?</h3>
+                        <p class="faq-answer">Yes, you can export your running history and statistics using the /export command in the bot.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-column">
+                        <h3>About</h3>
+                        <ul class="footer-links">
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#examples">How It Works</a></li>
+                            <li><a href="#testimonials">Reviews</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Support</h3>
+                        <ul class="footer-links">
+                            <li><a href="https://t.me/sl_run_bot" target="_blank" rel="noopener">Telegram Bot</a></li>
+                            <li><a href="https://t.me/sl_run_support" target="_blank" rel="noopener">Support</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Help the Project</h3>
+                        <ul class="footer-links">
+                            <li><a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener">Support the Project</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 RunTracker Bot. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
     </main>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-column">
-                    <h3>About</h3>
-                    <ul class="footer-links">
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#examples">How It Works</a></li>
-                        <li><a href="#testimonials">Reviews</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Support</h3>
-                    <ul class="footer-links">
-                        <li><a href="https://t.me/sl_run_bot" target="_blank" rel="noopener">Telegram Bot</a></li>
-                        <li><a href="https://t.me/sl_run_support" target="_blank" rel="noopener">Support</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Help the Project</h3>
-                    <ul class="footer-links">
-                        <li><a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener">Support the Project</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 RunTracker Bot. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
         // Handle Telegram links on mobile devices
         document.addEventListener('DOMContentLoaded', function() {
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
