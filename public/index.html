@@ -313,10 +313,18 @@
             
             if (showMoreButton && hiddenSteps) {
                 showMoreButton.addEventListener('click', function() {
-                    const isHidden = !hiddenSteps.classList.contains('show');
+                    console.log('Button clicked'); // Добавим для отладки
                     
-                    if (isHidden) {
-                        // Показываем скрытые модули
+                    if (hiddenSteps.style.display === 'grid') {
+                        // Скрываем модули
+                        hiddenSteps.style.display = 'none';
+                        hiddenSteps.classList.remove('show');
+                        this.classList.remove('active');
+                        this.querySelector('.show-more-text').textContent = 'Показать ещё';
+                        this.querySelector('.show-more-icon').style.transform = 'rotate(0deg)';
+                    } else {
+                        // Показываем модули
+                        hiddenSteps.style.display = 'grid';
                         hiddenSteps.classList.add('show');
                         this.classList.add('active');
                         this.querySelector('.show-more-text').textContent = 'Свернуть';
@@ -326,15 +334,6 @@
                         setTimeout(() => {
                             hiddenSteps.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }, 100);
-                    } else {
-                        // Скрываем модули
-                        hiddenSteps.classList.remove('show');
-                        this.classList.remove('active');
-                        this.querySelector('.show-more-text').textContent = 'Показать ещё';
-                        this.querySelector('.show-more-icon').style.transform = 'rotate(0deg)';
-                        
-                        // Прокручиваем к кнопке
-                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 });
             }
