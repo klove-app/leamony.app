@@ -115,40 +115,113 @@
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
     margin: 20px 0;
 }
 
 .stat-item {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    transition: transform 0.3s ease;
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    text-align: left;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
 }
 
 .stat-item:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-color: #007bff;
 }
 
 .stat-icon {
     font-size: 2em;
-    display: block;
-    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin: 0;
+}
+
+.stat-content {
+    flex: 1;
 }
 
 .stat-title {
-    font-weight: bold;
+    font-weight: 600;
     color: #2c3e50;
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-size: 1.1em;
 }
 
 .stat-desc {
     color: #666;
-    font-size: 0.9em;
+    font-size: 0.95em;
+    line-height: 1.5;
 }
+
+/* Добавляем специальные стили для каждого типа статистики */
+.stat-item.general .stat-icon {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
+.stat-item.progress .stat-icon {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.stat-item.achievements .stat-icon {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.stat-item.calendar .stat-icon {
+    background: rgba(111, 66, 193, 0.1);
+    color: #6f42c1;
+}
+
+/* Адаптивность для статистики */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .stat-item {
+        padding: 20px;
+    }
+}
+
+/* Анимация появления для статистики */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.stat-item {
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+.stat-item:nth-child(1) { animation-delay: 0.1s; }
+.stat-item:nth-child(2) { animation-delay: 0.2s; }
+.stat-item:nth-child(3) { animation-delay: 0.3s; }
+.stat-item:nth-child(4) { animation-delay: 0.4s; }
 
 /* Анимации */
 @keyframes fadeIn {
