@@ -57,7 +57,6 @@
             <div class="container">
                 <h2 class="section-title">Как начать использовать бота</h2>
                 <div class="instruction-steps">
-                    <!-- Первые два модуля -->
                     <div class="instruction-step">
                         <div class="step-number">1</div>
                         <div class="step-content">
@@ -97,55 +96,59 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Кнопка "Показать ещё" -->
-                    <div class="show-more-container">
-                        <button class="show-more-button">
-                            <span class="show-more-text">Показать ещё</span>
-                            <span class="show-more-icon">▼</span>
-                        </button>
-                    </div>
-
-                    <!-- Скрытые модули -->
-                    <div class="hidden-steps">
-                        <div class="instruction-step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <h3>Регистрация пробежек</h3>
-                                <div class="step-details">
-                                    <p>Записывайте свои тренировки в свободной форме. Примеры сообщений:</p>
-                                    <div class="message-examples">
-                                        <div class="message-example">🏆‍♂️ "Пробежал 5 км за 30 минут"</div>
-                                        <div class="message-example">🏃‍♀️ "Сегодня бегала 40 минут, 6.5 км"</div>
-                                        <div class="message-example">🎯 "Утренняя пробежка 8 км, темп 5:30"</div>
-                                    </div>
-                                    <div class="instruction-tip">
-                                        <p>💡 Бот понимает:</p>
-                                        <ul>
-                                            <li>Расстояние в км</li>
-                                            <li>Время в минутах</li>
-                                            <li>Темп в формате мин/км</li>
-                                            <li>Дополнительные заметки</li>
-                                        </ul>
-                                    </div>
+                    <div class="instruction-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Регистрация пробежек</h3>
+                            <div class="step-details">
+                                <p>Записывайте свои тренировки в свободной форме. Примеры сообщений:</p>
+                                <div class="message-examples">
+                                    <div class="message-example">🏃‍♂️ "Пробежал 5 км за 30 минут"</div>
+                                    <div class="message-example">🏃‍♀️ "Сегодня бегала 40 минут, 6.5 км"</div>
+                                    <div class="message-example">🎯 "Утренняя пробежка 8 км, темп 5:30"</div>
+                                </div>
+                                <div class="instruction-tip">
+                                    <p>💡 Бот понимает:</p>
+                                    <ul>
+                                        <li>Расстояние в км</li>
+                                        <li>Время в минутах</li>
+                                        <li>Темп в формате мин/км</li>
+                                        <li>Дополнительные заметки</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="instruction-step">
-                            <div class="step-number">4</div>
-                            <div class="step-content">
-                                <h3>Анализ прогресса</h3>
-                                <div class="step-details">
-                                    <p>Используйте команду /me для просмотра ваших результатов:</p>
-                                    <ul class="feature-list">
-                                        <li>📊 Общий километраж и время тренировок</li>
-                                        <li>📅 История и календарь пробежек</li>
-                                        <li>📈 Средний темп и дистанция</li>
-                                        <li>🎯 Прогресс по целям</li>
-                                    </ul>
-                                    <div class="instruction-tip">
-                                        <p>💡 Совет: Регулярно проверяйте статистику, чтобы отслеживать свой прогресс</p>
+                    </div>
+                    <div class="instruction-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Анализ прогресса</h3>
+                            <div class="step-details">
+                                <p>В разделе /me доступна подробная статистика:</p>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-icon">📊</span>
+                                        <span class="stat-title">Общая статистика</span>
+                                        <span class="stat-desc">Километраж, время, тренировки</span>
                                     </div>
+                                    <div class="stat-item">
+                                        <span class="stat-icon">📈</span>
+                                        <span class="stat-title">Прогресс</span>
+                                        <span class="stat-desc">Динамика темпа и дистанций</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-icon">🎯</span>
+                                        <span class="stat-title">Достижения</span>
+                                        <span class="stat-desc">Медали и рекорды</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-icon">📅</span>
+                                        <span class="stat-title">Календарь</span>
+                                        <span class="stat-desc">История тренировок</span>
+                                    </div>
+                                </div>
+                                <div class="instruction-tip">
+                                    <p>💡 Совет: Регулярно просматривайте статистику для отслеживания прогресса и корректировки целей</p>
                                 </div>
                             </div>
                         </div>
@@ -255,6 +258,68 @@
                 </div>
             </div>
         </section>
+
+        <section class="statistics" data-aos="fade-up" data-aos-delay="100">
+            <div class="container">
+                <h2 class="section-title">Статистика бота</h2>
+                <div class="statistics-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Активных бегунов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">50,000+</div>
+                        <div class="stat-label">Километров пробега</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">10,000+</div>
+                        <div class="stat-label">Тренировок</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Достигнутых целей</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="blog" data-aos="fade-up" data-aos-delay="100">
+            <div class="container">
+                <h2 class="section-title">Советы по бегу</h2>
+                <div class="blog-grid">
+                    <article class="blog-card">
+                        <div class="blog-image">
+                            <img src="/images/blog-1.jpg" alt="Советы для начинающих">
+                        </div>
+                        <div class="blog-content">
+                            <h3>Руководство для начинающих</h3>
+                            <p>Основные советы для тех, кто только начинает свой путь в беге.</p>
+                            <a href="#" class="blog-link">Читать далее →</a>
+                        </div>
+                    </article>
+                    <article class="blog-card">
+                        <div class="blog-image">
+                            <img src="/images/blog-2.jpg" alt="Подготовка к марафону">
+                        </div>
+                        <div class="blog-content">
+                            <h3>План подготовки к марафону</h3>
+                            <p>Как подготовиться к своему первому марафону с помощью нашего бота.</p>
+                            <a href="#" class="blog-link">Читать далее →</a>
+                        </div>
+                    </article>
+                    <article class="blog-card">
+                        <div class="blog-image">
+                            <img src="/images/blog-3.jpg" alt="Анализ бега">
+                        </div>
+                        <div class="blog-content">
+                            <h3>Понимание статистики бега</h3>
+                            <p>Учимся анализировать данные о беге для улучшения результатов.</p>
+                            <a href="#" class="blog-link">Читать далее →</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">
@@ -290,8 +355,8 @@
     </footer>
 
     <script>
+        // Обработка открытия ссылок в Telegram на мобильных устройствах
         document.addEventListener('DOMContentLoaded', function() {
-            // Telegram links handler
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             if (isMobile) {
                 const telegramLinks = document.querySelectorAll('a[href^="https://t.me/"]');
@@ -299,42 +364,13 @@
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
                         const url = this.href;
+                        // Пробуем открыть в приложении Telegram
                         window.location.href = url.replace('https://', 'tg://');
+                        // Если не получилось, открываем в браузере через небольшую задержку
                         setTimeout(() => {
                             window.location.href = url;
                         }, 500);
                     });
-                });
-            }
-
-            // Show more button handler
-            const showMoreButton = document.querySelector('.show-more-button');
-            const hiddenSteps = document.querySelector('.hidden-steps');
-            
-            if (showMoreButton && hiddenSteps) {
-                showMoreButton.addEventListener('click', function() {
-                    console.log('Button clicked'); // Добавим для отладки
-                    
-                    if (hiddenSteps.style.display === 'grid') {
-                        // Скрываем модули
-                        hiddenSteps.style.display = 'none';
-                        hiddenSteps.classList.remove('show');
-                        this.classList.remove('active');
-                        this.querySelector('.show-more-text').textContent = 'Показать ещё';
-                        this.querySelector('.show-more-icon').style.transform = 'rotate(0deg)';
-                    } else {
-                        // Показываем модули
-                        hiddenSteps.style.display = 'grid';
-                        hiddenSteps.classList.add('show');
-                        this.classList.add('active');
-                        this.querySelector('.show-more-text').textContent = 'Свернуть';
-                        this.querySelector('.show-more-icon').style.transform = 'rotate(180deg)';
-                        
-                        // Плавно прокручиваем к новым модулям
-                        setTimeout(() => {
-                            hiddenSteps.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 100);
-                    }
                 });
             }
         });
