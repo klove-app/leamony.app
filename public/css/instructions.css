@@ -4,17 +4,36 @@
 }
 
 .instruction-steps {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.instruction-steps-initial {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.instruction-steps-additional {
     max-width: 800px;
     margin: 0 auto;
 }
 
 .instruction-step {
-    margin-bottom: 40px;
-    padding: 30px;
+    margin-bottom: 30px;
+    padding: 24px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.instruction-steps-initial .instruction-step {
+    margin-bottom: 0;
 }
 
 .instruction-step:hover {
@@ -339,5 +358,23 @@
     .show-more-button {
         padding: 10px 20px;
         font-size: 0.95em;
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .instruction-steps-initial {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .instruction-steps-initial {
+        grid-template-columns: 1fr;
+    }
+    
+    .instruction-step {
+        padding: 20px;
+        margin-bottom: 20px;
     }
 } 
