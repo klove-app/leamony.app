@@ -1,7 +1,7 @@
 /* Базовые стили */
 :root {
-    --primary-color: #635BFF;
-    --secondary-color: #4B44C2;
+    --primary-color: #FFB100;
+    --secondary-color: #FF9300;
     --text-color: #1A1A1A;
     --bg-color: #FFFFFF;
     --gray-100: #F5F5F5;
@@ -68,7 +68,7 @@ body {
 }
 
 .nav-link.active {
-    background: rgba(99, 91, 255, 0.1);
+    background: rgba(255, 177, 0, 0.1);
     color: var(--primary-color);
 }
 
