@@ -1,0 +1,22 @@
+# Игнорируем файлы бота
+main.py
+bot_instance.py
+handlers/
+utils/
+database/
+migrations/
+running_bot.db
+
+# Игнорируем временные файлы
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.db
+
+# Игнорируем конфиги разработки
+.env
+.venv/
+venv/
+ENV/ 
