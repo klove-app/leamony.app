@@ -15,6 +15,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Telegram
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+ADMIN_IDS = list(map(int, os.getenv("ADMIN_IDS", "").split(","))) if os.getenv("ADMIN_IDS") else []
 
 # Stability AI
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
