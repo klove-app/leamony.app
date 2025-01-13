@@ -7,32 +7,37 @@ from config.config import ADMIN_IDS
 from database.db import get_connection
 from database.models.user import User
 from database.models.challenge import Challenge
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AdminHandler(BaseHandler):
-    def register(self):
+    @staticmethod
+    def register_handlers(bot):
         """Регистрирует обработчики администратора"""
-        self.logger.info("Registering admin handlers")
+        logger.info("Registering admin handlers")
         
-        self.bot.register_message_handler(
-            self.handle_delete_test_data,
+        bot.register_message_handler(
+            handle_delete_test_data,
             commands=['delete_test_data'],
             func=lambda message: str(message.from_user.id) in ADMIN_IDS
         )
         
-        self.bot.register_message_handler(
-            self.handle_report,
+        bot.register_message_handler(
+            handle_report,
             commands=['report'],
             func=lambda message: str(message.from_user.id) in ADMIN_IDS
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_text_report,
+        bot.register_callback_query_handler(
+            handle_text_report,
             func=lambda call: call.data == "text_report"
         )
         
-        self.logger.info("Admin handlers registered successfully")
+        logger.info("Admin handlers registered successfully")
         
-    def handle_delete_test_data(self, message: Message):
+    @staticmethod
+    def handle_delete_test_data(message: Message):
         """Удаляет тестовые данные за 7-8 января 2025"""
         try:
             user_id = str(message.from_user.id)
@@ -286,9 +291,4 @@ class AdminHandler(BaseHandler):
                     report += "├────────────────────────────────────┤\n"
             report += "└────────────────────────────────────┘</pre>\n"
         
-        return report
-
-def register_handlers(bot):
-    """Регистрирует обработчики администратора"""
-    handler = AdminHandler(bot)
-    handler.register() 
+        return report 
