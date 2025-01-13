@@ -1,4 +1,7 @@
-from telebot import TeleBot
-from config.config import TOKEN
+"""
+Инициализация пакета обработчиков
+"""
+from config.config import TELEGRAM_BOT_TOKEN as TOKEN
 
-bot = TeleBot(TOKEN)
+# Экспортируем TOKEN для использования в обработчиках
+__all__ = ['TOKEN']
