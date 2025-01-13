@@ -24,6 +24,8 @@ from handlers.challenge_handlers import ChallengeHandler
 from handlers.stats_handlers import StatsHandler
 from handlers.achievement_handlers import AchievementHandler
 from handlers.auth_handlers import AuthHandler
+from handlers.message_handlers import register_handlers as register_message_handlers
+from handlers.private_handlers import register_handlers as register_private_handlers
 
 # Настройка логирования
 logging.basicConfig(
@@ -39,8 +41,8 @@ def main():
             logger.info("Запуск бота...")
             
             # Регистрация хендлеров
-            message_handlers.register_handlers(bot)
-            private_handlers.register_handlers(bot)
+            register_message_handlers(bot)
+            register_private_handlers(bot)
             AdminHandler.register_handlers(bot)
             ChatHandler.register_handlers(bot)
             ChallengeHandler.register_handlers(bot)
