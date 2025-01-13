@@ -66,39 +66,21 @@ class RunningLog(Base):
                 db.close()
 
     @classmethod
-    def get_user_total_km(cls, user_id: str, chat_type: str = None, db = None) -> float:
-        """Получить общую дистанцию пользователя за текущий год"""
-        logger.info(f"Getting total km for user {user_id}, chat_type: {chat_type}")
-        
-        if db is None:
-            logger.debug("Creating new database session")
-            db = SessionLocal()
-            should_close = True
-        else:
-            logger.debug("Using existing database session")
-            should_close = False
-            
+    def get_user_total_km(cls, user_id: str) -> float:
+        """Получить общее количество километров пользователя за год"""
+        logger.info(f"Getting total km for user {user_id}")
+        db = next(get_db())
         try:
-            current_year = datetime.now().year
-            query = db.query(cls).with_entities(
-                func.sum(cls.km)
+            result = db.query(cls).with_entities(
+                func.sum(cls.km).label('total_km')
             ).filter(
                 cls.user_id == user_id,
-                extract('year', cls.date_added) == current_year
-            )
-            
-            logger.debug(f"Executing query: {query}")
-            result = query.scalar()
-            logger.info(f"Total km for user {user_id}: {result or 0.0}")
-            return result or 0.0
+                extract('year', cls.date_added) == datetime.now().year
+            ).first()
+            return result.total_km or 0.0
         except Exception as e:
             logger.error(f"Error getting total km: {e}")
-            logger.error(f"Full traceback: {traceback.format_exc()}")
             return 0.0
-        finally:
-            if should_close:
-                logger.debug("Closing database session")
-                db.close()
 
     @classmethod
     def get_top_runners(cls, limit: int = 10, year: int = None) -> list:
@@ -262,13 +244,9 @@ class RunningLog(Base):
         logger.info(f"Getting stats for user {user_id}, year: {year}, month: {month}")
         
         if db is None:
-            logger.debug("Creating new database session")
-            db = SessionLocal()
-            should_close = True
-        else:
-            logger.debug("Using existing database session")
-            should_close = False
-            
+            logger.debug("Getting database session from get_db()")
+            db = next(get_db())
+        
         try:
             query = db.query(cls).with_entities(
                 func.count(cls.log_id).label('runs_count'),
@@ -300,8 +278,4 @@ class RunningLog(Base):
                 'runs_count': 0,
                 'total_km': 0.0,
                 'avg_km': 0.0
-            }
-        finally:
-            if should_close:
-                logger.debug("Closing database session")
-                db.close() 
+            } 

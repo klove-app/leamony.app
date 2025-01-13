@@ -161,6 +161,8 @@ class MessageHandler(BaseHandler):
             
             # Генерируем изображение для любой дистанции
             self.logger.info("=== Starting image generation ===")
+            username = message.from_user.username or message.from_user.first_name or str(message.from_user.id)
+            date = datetime.now().strftime('%d.%m.%Y')
             self.logger.info(f"Parameters: km={km}, username={username}, date={date}")
             self.logger.info("Attempting to generate image...")
             

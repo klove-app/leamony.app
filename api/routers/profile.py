@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from ..schemas.profile import ProfileUpdate, PasswordChange, NotificationSettings, ProfileResponse
-from ..models.user import ExtendedUser
-from ..services.auth import AuthService
-from ..dependencies.database import get_db
-from ..dependencies.auth import get_current_user
+from api.schemas.profile import ProfileUpdate, PasswordChange, NotificationSettings, ProfileResponse
+from database.models.extended_user import ExtendedUser
+from services.auth_service import AuthService
+from api.dependencies.database import get_db
+from api.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["profile"])
 
