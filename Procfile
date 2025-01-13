@@ -1,1 +1,2 @@
-web: cd /app && PYTHONPATH=/app python -m uvicorn api_app:app --host 0.0.0.0 --port $PORT --workers 4 
+web: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+worker: python bot.py 
