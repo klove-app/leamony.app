@@ -1,12 +1,15 @@
-from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+import logging
+from datetime import datetime
+from telebot import types
 from database.models.user import User
 from database.models.running_log import RunningLog
-from datetime import datetime
+from database.base import SessionLocal
 import traceback
 from handlers.base_handler import BaseHandler
 import calendar
-from database.base import SessionLocal
 from telebot.apihelper import ApiTelegramException
+
+logger = logging.getLogger(__name__)
 
 class StatsHandler(BaseHandler):
     @staticmethod
@@ -82,7 +85,7 @@ class StatsHandler(BaseHandler):
         logger.info("Stats handlers registered successfully")
 
     @staticmethod
-    def handle_stats(message: Message):
+    def handle_stats(message: types.Message):
         """Показывает статистику пользователя"""
         logger.info(f"Stats command from user {message.from_user.id}")
         try:
@@ -125,7 +128,7 @@ class StatsHandler(BaseHandler):
             bot.reply_to(message, "❌ Произошла ошибка при получении статистики")
 
     @staticmethod
-    def handle_top(message: Message):
+    def handle_top(message: types.Message):
         """Показывает топ бегунов и статистику чата"""
         logger.info(f"Top command from user {message.from_user.id}")
         try:
@@ -154,7 +157,7 @@ class StatsHandler(BaseHandler):
                 logger.info(f"Got month stats: {month_stats}")
                 
                 response += f"Общая статистика чата:\n"
-                response += f"�� Участников: {year_stats['users_count']}\n"
+                response += f"👥 Участников: {year_stats['users_count']}\n"
                 response += f"🏃‍♂️ Пробежек: {year_stats['runs_count']}\n"
                 response += f"📏 Общая дистанция: {year_stats['total_km']:.2f} км\n"
                 response += f"💪 Лучшая пробежка: {year_stats['best_run']:.2f} км\n\n"
@@ -186,7 +189,7 @@ class StatsHandler(BaseHandler):
             bot.reply_to(message, "❌ Произошла ошибка при получении топа бегунов")
 
     @staticmethod
-    def handle_profile(message: Message, user_id=None, db=None):
+    def handle_profile(message: types.Message, user_id=None, db=None):
         """Показывает личный кабинет пользователя"""
         logger.info(f"Profile command from user {message.from_user.id}")
         try:
@@ -274,19 +277,19 @@ class StatsHandler(BaseHandler):
                 logger.debug(f"Generated response: {response}")
                 
                 # Создаем клавиатуру
-                markup = InlineKeyboardMarkup()
+                markup = types.InlineKeyboardMarkup()
                 
                 # Основные действия
                 markup.row(
-                    InlineKeyboardButton("📝 Подробная статистика", callback_data="show_detailed_stats"),
-                    InlineKeyboardButton("✏️ Редактировать пробежки", callback_data="edit_runs")
+                    types.InlineKeyboardButton("📝 Подробная статистика", callback_data="show_detailed_stats"),
+                    types.InlineKeyboardButton("✏️ Редактировать пробежки", callback_data="edit_runs")
                 )
                 
                 # Кнопка установки цели
                 if user.goal_km == 0:
-                    markup.row(InlineKeyboardButton("🎯 Установить цель", callback_data="set_goal_0"))
+                    markup.row(types.InlineKeyboardButton("🎯 Установить цель", callback_data="set_goal_0"))
                 else:
-                    markup.row(InlineKeyboardButton("🎯 Изменить цель", callback_data="set_goal_0"))
+                    markup.row(types.InlineKeyboardButton("🎯 Изменить цель", callback_data="set_goal_0"))
                 
                 # Отправляем сообщение с клавиатурой
                 logger.info("Sending profile message")
@@ -311,7 +314,7 @@ class StatsHandler(BaseHandler):
         return '▰' * filled + '▱' * empty
 
     @staticmethod
-    def handle_detailed_stats(message: Message, user_id: str = None):
+    def handle_detailed_stats(message: types.Message, user_id: str = None):
         """Показывает расширенную статистику пользователя в виде статьи"""
         try:
             if not user_id:
@@ -405,25 +408,25 @@ class StatsHandler(BaseHandler):
                     last_year = datetime.now().year - 1
                     last_year_stats = RunningLog.get_user_stats(user_id, last_year, db=db)
                     
-                    markup = InlineKeyboardMarkup()
+                    markup = types.InlineKeyboardMarkup()
                     
                     # Если есть статистика за прошлый год, предлагаем цели на её основе
                     if last_year_stats['total_km'] > 0:
                         last_year_km = last_year_stats['total_km']
                         markup.row(
-                            InlineKeyboardButton(
+                            types.InlineKeyboardButton(
                                 f"🎯 Как в {last_year} году: {last_year_km:.0f} км",
                                 callback_data=f"set_goal_{last_year_km}"
                             )
                         )
                         markup.row(
-                            InlineKeyboardButton(
+                            types.InlineKeyboardButton(
                                 f"🔥 +10% к {last_year}: {last_year_km * 1.1:.0f} км",
                                 callback_data=f"set_goal_{last_year_km * 1.1}"
                             )
                         )
                         markup.row(
-                            InlineKeyboardButton(
+                            types.InlineKeyboardButton(
                                 f"💪 +25% к {last_year}: {last_year_km * 1.25:.0f} км",
                                 callback_data=f"set_goal_{last_year_km * 1.25}"
                             )
@@ -431,14 +434,14 @@ class StatsHandler(BaseHandler):
                     
                     # Стандартные варианты целей
                     markup.row(
-                        InlineKeyboardButton("500 км", callback_data="set_goal_500"),
-                        InlineKeyboardButton("1000 км", callback_data="set_goal_1000"),
-                        InlineKeyboardButton("1500 км", callback_data="set_goal_1500")
+                        types.InlineKeyboardButton("500 км", callback_data="set_goal_500"),
+                        types.InlineKeyboardButton("1000 км", callback_data="set_goal_1000"),
+                        types.InlineKeyboardButton("1500 км", callback_data="set_goal_1500")
                     )
                     
                     # Кнопка для точной настройки
                     markup.row(
-                        InlineKeyboardButton(
+                        types.InlineKeyboardButton(
                             "🎯 Точная настройка",
                             callback_data="set_goal_precise"
                         )
@@ -446,7 +449,7 @@ class StatsHandler(BaseHandler):
                     
                     # Кнопка возврата
                     markup.row(
-                        InlineKeyboardButton(
+                        types.InlineKeyboardButton(
                             "◀️ Вернуться к профилю",
                             callback_data="back_to_profile"
                         )
@@ -475,24 +478,24 @@ class StatsHandler(BaseHandler):
                 elif call.data == "set_goal_precise":
                     # Показываем интерактивный выбор с кнопками +/-
                     current_goal = user.goal_km if user.goal_km else 1000
-                    markup = InlineKeyboardMarkup()
+                    markup = types.InlineKeyboardMarkup()
                     
                     # Кнопки изменения значения
                     markup.row(
-                        InlineKeyboardButton("➖ 100", callback_data=f"adjust_goal_{current_goal - 100}"),
-                        InlineKeyboardButton("➖ 50", callback_data=f"adjust_goal_{current_goal - 50}"),
-                        InlineKeyboardButton("➖ 10", callback_data=f"adjust_goal_{current_goal - 10}")
+                        types.InlineKeyboardButton("➖ 100", callback_data=f"adjust_goal_{current_goal - 100}"),
+                        types.InlineKeyboardButton("➖ 50", callback_data=f"adjust_goal_{current_goal - 50}"),
+                        types.InlineKeyboardButton("➖ 10", callback_data=f"adjust_goal_{current_goal - 10}")
                     )
                     markup.row(
-                        InlineKeyboardButton("➕ 10", callback_data=f"adjust_goal_{current_goal + 10}"),
-                        InlineKeyboardButton("➕ 50", callback_data=f"adjust_goal_{current_goal + 50}"),
-                        InlineKeyboardButton("➕ 100", callback_data=f"adjust_goal_{current_goal + 100}")
+                        types.InlineKeyboardButton("➕ 10", callback_data=f"adjust_goal_{current_goal + 10}"),
+                        types.InlineKeyboardButton("➕ 50", callback_data=f"adjust_goal_{current_goal + 50}"),
+                        types.InlineKeyboardButton("➕ 100", callback_data=f"adjust_goal_{current_goal + 100}")
                     )
                     
                     # Кнопки подтверждения и отмены
                     markup.row(
-                        InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_goal_{current_goal}"),
-                        InlineKeyboardButton("◀️ Назад", callback_data="set_goal_custom")
+                        types.InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_goal_{current_goal}"),
+                        types.InlineKeyboardButton("◀️ Назад", callback_data="set_goal_custom")
                     )
                     
                     response = f"🎯 Настройка цели на год\n\n"
@@ -521,20 +524,20 @@ class StatsHandler(BaseHandler):
                         )
                         return
                     
-                    markup = InlineKeyboardMarkup()
+                    markup = types.InlineKeyboardMarkup()
                     markup.row(
-                        InlineKeyboardButton("➖ 100", callback_data=f"adjust_goal_{new_goal - 100}"),
-                        InlineKeyboardButton("➖ 50", callback_data=f"adjust_goal_{new_goal - 50}"),
-                        InlineKeyboardButton("➖ 10", callback_data=f"adjust_goal_{new_goal - 10}")
+                        types.InlineKeyboardButton("➖ 100", callback_data=f"adjust_goal_{new_goal - 100}"),
+                        types.InlineKeyboardButton("➖ 50", callback_data=f"adjust_goal_{new_goal - 50}"),
+                        types.InlineKeyboardButton("➖ 10", callback_data=f"adjust_goal_{new_goal - 10}")
                     )
                     markup.row(
-                        InlineKeyboardButton("➕ 10", callback_data=f"adjust_goal_{new_goal + 10}"),
-                        InlineKeyboardButton("➕ 50", callback_data=f"adjust_goal_{new_goal + 50}"),
-                        InlineKeyboardButton("➕ 100", callback_data=f"adjust_goal_{new_goal + 100}")
+                        types.InlineKeyboardButton("➕ 10", callback_data=f"adjust_goal_{new_goal + 10}"),
+                        types.InlineKeyboardButton("➕ 50", callback_data=f"adjust_goal_{new_goal + 50}"),
+                        types.InlineKeyboardButton("➕ 100", callback_data=f"adjust_goal_{new_goal + 100}")
                     )
                     markup.row(
-                        InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_goal_{new_goal}"),
-                        InlineKeyboardButton("◀️ Назад", callback_data="set_goal_custom")
+                        types.InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm_goal_{new_goal}"),
+                        types.InlineKeyboardButton("◀️ Назад", callback_data="set_goal_custom")
                     )
                     
                     response = f"🎯 Настройка цели на год\n\n"
@@ -605,21 +608,21 @@ class StatsHandler(BaseHandler):
                         response += "🎯 Цель на год не установлена\n"
                     
                     # Создаем клавиатуру
-                    markup = InlineKeyboardMarkup()
+                    markup = types.InlineKeyboardMarkup()
                     markup.row(
-                        InlineKeyboardButton(
+                        types.InlineKeyboardButton(
                             "📝 Изменить цель на 2025",
                             callback_data="set_goal_custom"
                         )
                     )
                     markup.row(
-                        InlineKeyboardButton(
+                        types.InlineKeyboardButton(
                             "📊 Расширенная статистика",
                             callback_data="show_detailed_stats"
                         )
                     )
                     markup.row(
-                        InlineKeyboardButton(
+                        types.InlineKeyboardButton(
                             "✏️ Редактировать пробежки",
                             callback_data="edit_runs"
                         )
@@ -653,9 +656,9 @@ class StatsHandler(BaseHandler):
             article = StatsHandler.handle_detailed_stats(call.message, user_id)
             
             # Создаем кнопку возврата к профилю
-            markup = InlineKeyboardMarkup()
+            markup = types.InlineKeyboardMarkup()
             markup.row(
-                InlineKeyboardButton(
+                types.InlineKeyboardButton(
                     "◀️ Вернуться к профилю",
                     callback_data="back_to_profile"
                 )
@@ -696,24 +699,24 @@ class StatsHandler(BaseHandler):
             
             response = "🏃‍♂️ Ваши последние пробежки:\n\n"
             
-            markup = InlineKeyboardMarkup()
+            markup = types.InlineKeyboardMarkup()
             
             for run in runs:
                 run_date = run.date_added.strftime("%d.%m")
                 response += f"📅 {run_date}: {run.km:.2f} км\n"
                 markup.row(
-                    InlineKeyboardButton(
+                    types.InlineKeyboardButton(
                         f"✏️ {run_date} ({run.km:.2f} км)",
                         callback_data=f"edit_run_{run.log_id}"
                     ),
-                    InlineKeyboardButton(
+                    types.InlineKeyboardButton(
                         "❌",
                         callback_data=f"delete_run_{run.log_id}"
                     )
                 )
             
             markup.row(
-                InlineKeyboardButton(
+                types.InlineKeyboardButton(
                     "◀️ Вернуться к профилю",
                     callback_data="back_to_profile"
                 )
@@ -757,25 +760,25 @@ class StatsHandler(BaseHandler):
                     return
                 
                 # Создаем клавиатуру с кнопками изменения дистанции
-                markup = InlineKeyboardMarkup()
+                markup = types.InlineKeyboardMarkup()
                 current_km = run.km
                 
                 # Кнопки для изменения на ±0.5, ±1, ±2 км
                 markup.row(
-                    InlineKeyboardButton(f"➖ 2км", callback_data=f"adjust_run_{run_id}_{current_km - 2}"),
-                    InlineKeyboardButton(f"➖ 1км", callback_data=f"adjust_run_{run_id}_{current_km - 1}"),
-                    InlineKeyboardButton(f"➖ 0.5км", callback_data=f"adjust_run_{run_id}_{current_km - 0.5}")
+                    types.InlineKeyboardButton(f"➖ 2км", callback_data=f"adjust_run_{run_id}_{current_km - 2}"),
+                    types.InlineKeyboardButton(f"➖ 1км", callback_data=f"adjust_run_{run_id}_{current_km - 1}"),
+                    types.InlineKeyboardButton(f"➖ 0.5км", callback_data=f"adjust_run_{run_id}_{current_km - 0.5}")
                 )
                 markup.row(
-                    InlineKeyboardButton(f"➕ 0.5км", callback_data=f"adjust_run_{run_id}_{current_km + 0.5}"),
-                    InlineKeyboardButton(f"➕ 1км", callback_data=f"adjust_run_{run_id}_{current_km + 1}"),
-                    InlineKeyboardButton(f"➕ 2км", callback_data=f"adjust_run_{run_id}_{current_km + 2}")
+                    types.InlineKeyboardButton(f"➕ 0.5км", callback_data=f"adjust_run_{run_id}_{current_km + 0.5}"),
+                    types.InlineKeyboardButton(f"➕ 1км", callback_data=f"adjust_run_{run_id}_{current_km + 1}"),
+                    types.InlineKeyboardButton(f"➕ 2км", callback_data=f"adjust_run_{run_id}_{current_km + 2}")
                 )
                 
                 # Кнопки навигации
                 markup.row(
-                    InlineKeyboardButton("◀️ Назад", callback_data="edit_runs"),
-                    InlineKeyboardButton("❌ Удалить", callback_data=f"delete_run_{run_id}")
+                    types.InlineKeyboardButton("◀️ Назад", callback_data="edit_runs"),
+                    types.InlineKeyboardButton("❌ Удалить", callback_data=f"delete_run_{run_id}")
                 )
                 
                 response = (
@@ -873,13 +876,13 @@ class StatsHandler(BaseHandler):
             run_id = int(call.data.split('_')[2])
             
             # Создаем клавиатуру для подтверждения удаления
-            markup = InlineKeyboardMarkup()
+            markup = types.InlineKeyboardMarkup()
             markup.row(
-                InlineKeyboardButton(
+                types.InlineKeyboardButton(
                     "✅ Да, удалить",
                     callback_data=f"confirm_delete_{run_id}"
                 ),
-                InlineKeyboardButton(
+                types.InlineKeyboardButton(
                     "❌ Нет, отмена",
                     callback_data="edit_runs"
                 )
@@ -968,23 +971,23 @@ class StatsHandler(BaseHandler):
         """Обрабатывает нажатие на кнопку новой пробежки"""
         try:
             if call.data == 'new_run':
-                markup = InlineKeyboardMarkup()
+                markup = types.InlineKeyboardMarkup()
                 
                 # Популярные дистанции
                 markup.row(
-                    InlineKeyboardButton("5 км", callback_data="quick_run_5"),
-                    InlineKeyboardButton("7.5 км", callback_data="quick_run_7.5"),
-                    InlineKeyboardButton("10 км", callback_data="quick_run_10")
+                    types.InlineKeyboardButton("5 км", callback_data="quick_run_5"),
+                    types.InlineKeyboardButton("7.5 км", callback_data="quick_run_7.5"),
+                    types.InlineKeyboardButton("10 км", callback_data="quick_run_10")
                 )
                 markup.row(
-                    InlineKeyboardButton("15 км", callback_data="quick_run_15"),
-                    InlineKeyboardButton("21.1 км", callback_data="quick_run_21.1"),
-                    InlineKeyboardButton("42.2 км", callback_data="quick_run_42.2")
+                    types.InlineKeyboardButton("15 км", callback_data="quick_run_15"),
+                    types.InlineKeyboardButton("21.1 км", callback_data="quick_run_21.1"),
+                    types.InlineKeyboardButton("42.2 км", callback_data="quick_run_42.2")
                 )
                 
                 # Кнопка возврата
                 markup.row(
-                    InlineKeyboardButton("◀️ Назад", callback_data="back_to_profile")
+                    types.InlineKeyboardButton("◀️ Назад", callback_data="back_to_profile")
                 )
                 
                 response = (
