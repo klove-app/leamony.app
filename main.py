@@ -22,7 +22,6 @@ from handlers.admin_handlers import AdminHandler
 from handlers.chat_handlers import ChatHandler
 from handlers.challenge_handlers import ChallengeHandler
 from handlers.stats_handlers import StatsHandler
-from handlers.achievement_handlers import AchievementHandler
 from handlers.auth_handlers import AuthHandler
 from handlers.message_handlers import register_handlers as register_message_handlers
 from handlers.private_handlers import register_handlers as register_private_handlers
@@ -47,7 +46,6 @@ def main():
             ChatHandler.register_handlers(bot)
             ChallengeHandler.register_handlers(bot)
             StatsHandler.register_handlers(bot)
-            AchievementHandler.register_handlers(bot)
             AuthHandler.register_handlers(bot)
             
             # Запуск бота
