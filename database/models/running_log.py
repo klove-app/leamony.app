@@ -255,3 +255,53 @@ class RunningLog(Base):
             logger.error(f"Error getting user runs: {e}")
             logger.error(f"Full traceback: {traceback.format_exc()}")
             return [] 
+
+    @classmethod
+    def get_user_stats(cls, user_id: str, year: int, month: int = None, db = None) -> dict:
+        """Получить статистику пользователя за год или месяц"""
+        logger.info(f"Getting stats for user {user_id}, year: {year}, month: {month}")
+        
+        if db is None:
+            logger.debug("Creating new database session")
+            db = SessionLocal()
+            should_close = True
+        else:
+            logger.debug("Using existing database session")
+            should_close = False
+            
+        try:
+            query = db.query(cls).with_entities(
+                func.count(cls.log_id).label('runs_count'),
+                func.sum(cls.km).label('total_km'),
+                func.avg(cls.km).label('avg_km')
+            ).filter(
+                cls.user_id == user_id,
+                extract('year', cls.date_added) == year
+            )
+            
+            if month is not None:
+                query = query.filter(extract('month', cls.date_added) == month)
+            
+            logger.debug(f"Executing query: {query}")
+            result = query.first()
+            
+            stats = {
+                'runs_count': result.runs_count or 0,
+                'total_km': result.total_km or 0.0,
+                'avg_km': result.avg_km or 0.0
+            }
+            
+            logger.info(f"Stats for user {user_id}: {stats}")
+            return stats
+        except Exception as e:
+            logger.error(f"Error getting user stats: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            return {
+                'runs_count': 0,
+                'total_km': 0.0,
+                'avg_km': 0.0
+            }
+        finally:
+            if should_close:
+                logger.debug("Closing database session")
+                db.close() 
