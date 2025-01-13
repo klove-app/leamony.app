@@ -140,8 +140,53 @@ def migrate_extended_users():
         sqlite_conn.close()
         pg_conn.close()
 
+def migrate_running_log():
+    """Мигрирует данные из таблицы running_log"""
+    sqlite_conn = get_sqlite_connection()
+    pg_conn = get_postgres_connection()
+    
+    try:
+        # Получаем данные из SQLite
+        sqlite_cur = sqlite_conn.cursor()
+        sqlite_cur.execute("""
+            SELECT log_id, user_id, km, date_added, notes, chat_id, chat_type
+            FROM running_log
+        """)
+        rows = sqlite_cur.fetchall()
+        
+        if not rows:
+            print("No running logs to migrate")
+            return
+        
+        # Вставляем данные в PostgreSQL
+        pg_cur = pg_conn.cursor()
+        for row in rows:
+            log_id, user_id, km, date_added, notes, chat_id, chat_type = row
+            pg_cur.execute("""
+                INSERT INTO running_log (log_id, user_id, km, date_added, notes, chat_id, chat_type)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (log_id) DO UPDATE SET
+                    user_id = EXCLUDED.user_id,
+                    km = EXCLUDED.km,
+                    date_added = EXCLUDED.date_added,
+                    notes = EXCLUDED.notes,
+                    chat_id = EXCLUDED.chat_id,
+                    chat_type = EXCLUDED.chat_type
+            """, (log_id, user_id, float(km), date_added, notes, chat_id, chat_type))
+        
+        pg_conn.commit()
+        print(f"Migrated {len(rows)} running logs")
+        
+    except Exception as e:
+        print(f"Error during migration: {str(e)}")
+        pg_conn.rollback()
+    finally:
+        sqlite_conn.close()
+        pg_conn.close()
+
 if __name__ == "__main__":
     print("Starting migration...")
     migrate_users()
     migrate_extended_users()
+    migrate_running_log()
     print("Migration completed") 
