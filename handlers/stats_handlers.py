@@ -9,95 +9,97 @@ from database.base import SessionLocal
 from telebot.apihelper import ApiTelegramException
 
 class StatsHandler(BaseHandler):
-    def register(self):
+    @staticmethod
+    def register_handlers(bot):
         """Регистрирует обработчики статистики"""
-        self.logger.info("Registering stats handlers")
+        logger.info("Registering stats handlers")
         
         # Регистрируем обработчики команд напрямую
-        self.bot.register_message_handler(
-            self.handle_stats,
+        bot.register_message_handler(
+            StatsHandler.handle_stats,
             commands=['stats', 'mystats']
         )
         
-        self.bot.register_message_handler(
-            self.handle_top,
+        bot.register_message_handler(
+            StatsHandler.handle_top,
             commands=['top']
         )
         
-        self.bot.register_message_handler(
-            self.handle_profile,
+        bot.register_message_handler(
+            StatsHandler.handle_profile,
             commands=['me', 'profile']
         )
         
         # Регистрируем обработчики callback-ов от кнопок
-        self.bot.register_callback_query_handler(
-            self.handle_set_goal_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_set_goal_callback,
             func=lambda call: call.data.startswith('set_goal_') or 
                             call.data.startswith('adjust_goal_') or 
                             call.data.startswith('confirm_goal_') or
                             call.data == 'set_goal_precise'
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_detailed_stats_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_detailed_stats_callback,
             func=lambda call: call.data == 'show_detailed_stats'
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_edit_runs_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_edit_runs_callback,
             func=lambda call: call.data == 'edit_runs'
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_back_to_profile_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_back_to_profile_callback,
             func=lambda call: call.data == 'back_to_profile'
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_edit_run_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_edit_run_callback,
             func=lambda call: call.data.startswith('edit_run_')
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_delete_run_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_delete_run_callback,
             func=lambda call: call.data.startswith('delete_run_')
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_confirm_delete_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_confirm_delete_callback,
             func=lambda call: call.data.startswith('confirm_delete_')
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_adjust_run_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_adjust_run_callback,
             func=lambda call: call.data.startswith('adjust_run_')
         )
         
-        self.bot.register_callback_query_handler(
-            self.handle_new_run_callback,
+        bot.register_callback_query_handler(
+            StatsHandler.handle_new_run_callback,
             func=lambda call: call.data == 'new_run' or call.data.startswith('quick_run_')
         )
         
-        self.logger.info("Stats handlers registered successfully")
+        logger.info("Stats handlers registered successfully")
 
-    def handle_stats(self, message: Message):
+    @staticmethod
+    def handle_stats(message: Message):
         """Показывает статистику пользователя"""
-        self.log_message(message, "stats")
+        logger.info(f"Stats command from user {message.from_user.id}")
         try:
             user_id = str(message.from_user.id)
-            self.logger.info(f"Getting user {user_id} from database")
+            logger.info(f"Getting user {user_id} from database")
             user = User.get_by_id(user_id)
             if not user:
-                self.logger.info(f"User {user_id} not found")
-                self.bot.reply_to(message, "❌ Вы еще не зарегистрированы. Отправьте боту свою первую пробежку!")
+                logger.info(f"User {user_id} not found")
+                bot.reply_to(message, "❌ Вы еще не зарегистрированы. Отправьте боту свою первую пробежку!")
                 return
 
             current_year = datetime.now().year
-            self.logger.info(f"Getting stats for user {user_id} for year {current_year}")
+            logger.info(f"Getting stats for user {user_id} for year {current_year}")
             stats = RunningLog.get_user_stats(user_id, current_year)
-            self.logger.info(f"Got stats: {stats}")
+            logger.info(f"Got stats: {stats}")
             best_stats = RunningLog.get_best_stats(user_id)
-            self.logger.info(f"Got best stats: {best_stats}")
+            logger.info(f"Got best stats: {best_stats}")
 
             response = f"📊 Статистика {user.username}\n\n"
             response += f"За {current_year} год:\n"
@@ -114,27 +116,28 @@ class StatsHandler(BaseHandler):
             response += f"💪 Лучшая пробежка: {best_stats['best_run']:.2f} км\n"
             response += f"🌟 Общая дистанция: {best_stats['total_km']:.2f} км"
 
-            self.logger.info(f"Sending response: {response}")
-            self.bot.reply_to(message, response)
-            self.logger.info(f"Sent stats to user {user_id}")
+            logger.info(f"Sending response: {response}")
+            bot.reply_to(message, response)
+            logger.info(f"Sent stats to user {user_id}")
         except Exception as e:
-            self.logger.error(f"Error in handle_stats: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.reply_to(message, "❌ Произошла ошибка при получении статистики")
+            logger.error(f"Error in handle_stats: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.reply_to(message, "❌ Произошла ошибка при получении статистики")
 
-    def handle_top(self, message: Message):
+    @staticmethod
+    def handle_top(message: Message):
         """Показывает топ бегунов и статистику чата"""
-        self.log_message(message, "top")
+        logger.info(f"Top command from user {message.from_user.id}")
         try:
             current_year = datetime.now().year
             current_month = datetime.now().month
             
             # Получаем топ бегунов
             top_runners = RunningLog.get_top_runners(limit=10, year=current_year)
-            self.logger.info(f"Got top runners: {top_runners}")
+            logger.info(f"Got top runners: {top_runners}")
             
             if not top_runners:
-                self.bot.reply_to(message, "📊 Пока нет данных о пробежках")
+                bot.reply_to(message, "📊 Пока нет данных о пробежках")
                 return
             
             response = f"📊 Статистика за {current_year} год\n\n"
@@ -142,16 +145,16 @@ class StatsHandler(BaseHandler):
             # Если сообщение из группового чата, добавляем статистику чата
             if message.chat.type in ['group', 'supergroup']:
                 chat_id = str(message.chat.id)
-                self.logger.info(f"Getting stats for chat {chat_id}")
+                logger.info(f"Getting stats for chat {chat_id}")
                 
                 year_stats = RunningLog.get_chat_stats(chat_id, year=current_year)
-                self.logger.info(f"Got year stats: {year_stats}")
+                logger.info(f"Got year stats: {year_stats}")
                 
                 month_stats = RunningLog.get_chat_stats(chat_id, year=current_year, month=current_month)
-                self.logger.info(f"Got month stats: {month_stats}")
+                logger.info(f"Got month stats: {month_stats}")
                 
                 response += f"Общая статистика чата:\n"
-                response += f"👥 Участников: {year_stats['users_count']}\n"
+                response += f"�� Участников: {year_stats['users_count']}\n"
                 response += f"🏃‍♂️ Пробежек: {year_stats['runs_count']}\n"
                 response += f"📏 Общая дистанция: {year_stats['total_km']:.2f} км\n"
                 response += f"💪 Лучшая пробежка: {year_stats['best_run']:.2f} км\n\n"
@@ -174,40 +177,41 @@ class StatsHandler(BaseHandler):
                 response += f"├ Средняя: {runner['avg_km']:.2f} км\n"
                 response += f"└ Лучшая: {runner['best_run']:.2f} км\n\n"
             
-            self.logger.info(f"Sending response: {response}")
-            self.bot.reply_to(message, response)
+            logger.info(f"Sending response: {response}")
+            bot.reply_to(message, response)
             
         except Exception as e:
-            self.logger.error(f"Error in handle_top: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.reply_to(message, "❌ Произошла ошибка при получении топа бегунов")
+            logger.error(f"Error in handle_top: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.reply_to(message, "❌ Произошла ошибка при получении топа бегунов")
 
-    def handle_profile(self, message: Message, user_id=None, db=None):
+    @staticmethod
+    def handle_profile(message: Message, user_id=None, db=None):
         """Показывает личный кабинет пользователя"""
-        self.log_message(message, "profile")
+        logger.info(f"Profile command from user {message.from_user.id}")
         try:
             # Если user_id не передан, берем из сообщения
             if user_id is None:
                 user_id = str(message.from_user.id)
             
-            self.logger.info(f"Getting profile for user {user_id}")
+            logger.info(f"Getting profile for user {user_id}")
             
             # Используем переданную сессию или создаем новую
             if db is None:
-                self.logger.debug("Creating new database session")
+                logger.debug("Creating new database session")
                 db = SessionLocal()
             else:
-                self.logger.debug("Using existing database session")
+                logger.debug("Using existing database session")
             
             try:
                 # Получаем или создаем пользователя
                 user = db.query(User).filter(User.user_id == user_id).first()
-                self.logger.debug(f"Found user in database: {user is not None}")
+                logger.debug(f"Found user in database: {user is not None}")
                 
                 if not user:
                     username = message.from_user.username or message.from_user.first_name
                     chat_type = message.chat.type if message.chat else 'private'
-                    self.logger.info(f"Creating new user: {username}, chat_type: {chat_type}")
+                    logger.info(f"Creating new user: {username}, chat_type: {chat_type}")
                     user = User(user_id=user_id, username=username, chat_type=chat_type)
                     db.add(user)
                     db.commit()
@@ -216,17 +220,17 @@ class StatsHandler(BaseHandler):
                 current_month = datetime.now().month
                 
                 # Получаем статистику
-                self.logger.debug(f"Getting year stats for user {user_id}")
+                logger.debug(f"Getting year stats for user {user_id}")
                 year_stats = RunningLog.get_user_stats(user_id, current_year, db=db)
-                self.logger.debug(f"Year stats: {year_stats}")
+                logger.debug(f"Year stats: {year_stats}")
                 
-                self.logger.debug(f"Getting month stats for user {user_id}")
+                logger.debug(f"Getting month stats for user {user_id}")
                 month_stats = RunningLog.get_user_stats(user_id, current_year, current_month, db=db)
-                self.logger.debug(f"Month stats: {month_stats}")
+                logger.debug(f"Month stats: {month_stats}")
                 
-                self.logger.debug(f"Getting best stats for user {user_id}")
+                logger.debug(f"Getting best stats for user {user_id}")
                 best_stats = RunningLog.get_best_stats(user_id, db=db)
-                self.logger.debug(f"Best stats: {best_stats}")
+                logger.debug(f"Best stats: {best_stats}")
                 
                 # Формируем профиль с HTML-форматированием
                 response = f"<b>👤 Профиль {user.username}</b>\n\n"
@@ -234,7 +238,7 @@ class StatsHandler(BaseHandler):
                 # Прогресс к цели
                 if user.goal_km > 0:
                     progress = (year_stats['total_km'] / user.goal_km * 100)
-                    progress_bar = self._generate_progress_bar(progress)
+                    progress_bar = StatsHandler._generate_progress_bar(progress)
                     response += f"🎯 Цель на {current_year}: {user.goal_km:.2f} км\n"
                     response += f"{progress_bar} {progress:.2f}%\n"
                     response += f"📊 Пройдено: {year_stats['total_km']:.2f} км\n"
@@ -267,7 +271,7 @@ class StatsHandler(BaseHandler):
                 response += f"├ Пробежка: {best_stats['best_run']:.2f} км\n"
                 response += f"└ Всего: {best_stats['total_runs']} пробежек\n"
                 
-                self.logger.debug(f"Generated response: {response}")
+                logger.debug(f"Generated response: {response}")
                 
                 # Создаем клавиатуру
                 markup = InlineKeyboardMarkup()
@@ -285,27 +289,29 @@ class StatsHandler(BaseHandler):
                     markup.row(InlineKeyboardButton("🎯 Изменить цель", callback_data="set_goal_0"))
                 
                 # Отправляем сообщение с клавиатурой
-                self.logger.info("Sending profile message")
-                self.bot.reply_to(message, response, reply_markup=markup, parse_mode='HTML')
-                self.logger.info("Profile message sent successfully")
+                logger.info("Sending profile message")
+                bot.reply_to(message, response, reply_markup=markup, parse_mode='HTML')
+                logger.info("Profile message sent successfully")
                 
             finally:
                 if db is not None:
-                    self.logger.debug("Closing database session")
+                    logger.debug("Closing database session")
                     db.close()
                     
         except Exception as e:
-            self.logger.error(f"Error in handle_profile: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.reply_to(message, "❌ Произошла ошибка при получении профиля")
+            logger.error(f"Error in handle_profile: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.reply_to(message, "❌ Произошла ошибка при получении профиля")
 
-    def _generate_progress_bar(self, percentage: float, length: int = 10) -> str:
+    @staticmethod
+    def _generate_progress_bar(percentage: float, length: int = 10) -> str:
         """Генерирует прогресс-бар"""
         filled = int(percentage / (100 / length))
         empty = length - filled
         return '▰' * filled + '▱' * empty
 
-    def handle_detailed_stats(self, message: Message, user_id: str = None):
+    @staticmethod
+    def handle_detailed_stats(message: Message, user_id: str = None):
         """Показывает расширенную статистику пользователя в виде статьи"""
         try:
             if not user_id:
@@ -373,11 +379,12 @@ class StatsHandler(BaseHandler):
             return article
             
         except Exception as e:
-            self.logger.error(f"Error in handle_detailed_stats: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
+            logger.error(f"Error in handle_detailed_stats: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return "❌ Произошла ошибка при получении расширенной статистики"
 
-    def handle_set_goal_callback(self, call):
+    @staticmethod
+    def handle_set_goal_callback(call):
         """Обрабатывает нажатия на кнопки установки цели"""
         try:
             user_id = str(call.from_user.id)
@@ -454,7 +461,7 @@ class StatsHandler(BaseHandler):
                     response += "Выберите один из вариантов или настройте точное значение:"
                     
                     try:
-                        self.bot.edit_message_text(
+                        bot.edit_message_text(
                             chat_id=call.message.chat.id,
                             message_id=call.message.message_id,
                             text=response,
@@ -493,7 +500,7 @@ class StatsHandler(BaseHandler):
                     response += "Используйте кнопки для изменения значения:"
                     
                     try:
-                        self.bot.edit_message_text(
+                        bot.edit_message_text(
                             chat_id=call.message.chat.id,
                             message_id=call.message.message_id,
                             text=response,
@@ -508,7 +515,7 @@ class StatsHandler(BaseHandler):
                     # Обрабатываем изменение значения цели
                     new_goal = float(call.data.split('_')[2])
                     if new_goal <= 0:
-                        self.bot.answer_callback_query(
+                        bot.answer_callback_query(
                             call.id,
                             "❌ Цель должна быть больше 0"
                         )
@@ -535,7 +542,7 @@ class StatsHandler(BaseHandler):
                     response += "Используйте кнопки для изменения значения:"
                     
                     try:
-                        self.bot.edit_message_text(
+                        bot.edit_message_text(
                             chat_id=call.message.chat.id,
                             message_id=call.message.message_id,
                             text=response,
@@ -558,7 +565,7 @@ class StatsHandler(BaseHandler):
                     db.commit()
                     
                     # Отправляем подтверждение
-                    self.bot.answer_callback_query(
+                    bot.answer_callback_query(
                         call.id,
                         "✅ Цель успешно установлена"
                     )
@@ -566,7 +573,7 @@ class StatsHandler(BaseHandler):
                     # Создаем новое сообщение
                     try:
                         # Сначала удаляем старое сообщение
-                        self.bot.delete_message(
+                        bot.delete_message(
                             chat_id=call.message.chat.id,
                             message_id=call.message.message_id
                         )
@@ -619,7 +626,7 @@ class StatsHandler(BaseHandler):
                     )
                     
                     # Отправляем новое сообщение
-                    self.bot.send_message(
+                    bot.send_message(
                         chat_id=call.message.chat.id,
                         text=response,
                         reply_markup=markup
@@ -628,21 +635,22 @@ class StatsHandler(BaseHandler):
                 db.close()
             
         except Exception as e:
-            self.logger.error(f"Error in handle_set_goal_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
+            logger.error(f"Error in handle_set_goal_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             try:
-                self.bot.answer_callback_query(
+                bot.answer_callback_query(
                     call.id,
                     "❌ Произошла ошибка при установке цели"
                 )
             except:
                 pass
 
-    def handle_detailed_stats_callback(self, call):
+    @staticmethod
+    def handle_detailed_stats_callback(call):
         """Обрабатывает нажатие на кнопку расширенной статистики"""
         try:
             user_id = str(call.from_user.id)
-            article = self.handle_detailed_stats(call.message, user_id)
+            article = StatsHandler.handle_detailed_stats(call.message, user_id)
             
             # Создаем кнопку возврата к профилю
             markup = InlineKeyboardMarkup()
@@ -654,7 +662,7 @@ class StatsHandler(BaseHandler):
             )
             
             # Отправляем статью с расширенной статистикой
-            self.bot.edit_message_text(
+            bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text=article,
@@ -663,14 +671,15 @@ class StatsHandler(BaseHandler):
             )
             
         except Exception as e:
-            self.logger.error(f"Error in handle_detailed_stats_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_detailed_stats_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при получении расширенной статистики"
             )
     
-    def handle_edit_runs_callback(self, call):
+    @staticmethod
+    def handle_edit_runs_callback(call):
         """Обрабатывает нажатие на кнопку редактирования пробежек"""
         try:
             user_id = str(call.from_user.id)
@@ -679,7 +688,7 @@ class StatsHandler(BaseHandler):
             runs = RunningLog.get_user_runs(user_id, limit=5)
             
             if not runs:
-                self.bot.answer_callback_query(
+                bot.answer_callback_query(
                     call.id,
                     "У вас пока нет пробежек для редактирования"
                 )
@@ -710,7 +719,7 @@ class StatsHandler(BaseHandler):
                 )
             )
             
-            self.bot.edit_message_text(
+            bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text=response,
@@ -718,14 +727,15 @@ class StatsHandler(BaseHandler):
             )
             
         except Exception as e:
-            self.logger.error(f"Error in handle_edit_runs_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_edit_runs_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при получении списка пробежек"
             )
 
-    def handle_edit_run_callback(self, call):
+    @staticmethod
+    def handle_edit_run_callback(call):
         """Обрабатывает нажатие на кнопку редактирования конкретной пробежки"""
         try:
             run_id = int(call.data.split('_')[2])
@@ -740,7 +750,7 @@ class StatsHandler(BaseHandler):
                 ).first()
                 
                 if not run:
-                    self.bot.answer_callback_query(
+                    bot.answer_callback_query(
                         call.id,
                         "❌ Пробежка не найдена"
                     )
@@ -775,7 +785,7 @@ class StatsHandler(BaseHandler):
                     f"Выберите изменение дистанции:"
                 )
                 
-                self.bot.edit_message_text(
+                bot.edit_message_text(
                     chat_id=call.message.chat.id,
                     message_id=call.message.message_id,
                     text=response,
@@ -786,14 +796,15 @@ class StatsHandler(BaseHandler):
                 db.close()
             
         except Exception as e:
-            self.logger.error(f"Error in handle_edit_run_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_edit_run_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при редактировании пробежки"
             )
 
-    def handle_adjust_run_callback(self, call):
+    @staticmethod
+    def handle_adjust_run_callback(call):
         """Обрабатывает нажатие на кнопку изменения дистанции пробежки"""
         try:
             # Формат: adjust_run_ID_DISTANCE
@@ -803,7 +814,7 @@ class StatsHandler(BaseHandler):
             user_id = str(call.from_user.id)
             
             if new_distance <= 0:
-                self.bot.answer_callback_query(
+                bot.answer_callback_query(
                     call.id,
                     "❌ Дистанция должна быть больше 0"
                 )
@@ -811,7 +822,7 @@ class StatsHandler(BaseHandler):
             
             # Проверяем максимальную дистанцию
             if new_distance > 100:
-                self.bot.answer_callback_query(
+                bot.answer_callback_query(
                     call.id,
                     "❌ Максимальная дистанция - 100 км"
                 )
@@ -826,7 +837,7 @@ class StatsHandler(BaseHandler):
                 ).first()
                 
                 if not run:
-                    self.bot.answer_callback_query(
+                    bot.answer_callback_query(
                         call.id,
                         "❌ Пробежка не найдена"
                     )
@@ -836,26 +847,27 @@ class StatsHandler(BaseHandler):
                 run.km = new_distance
                 db.commit()
                 
-                self.bot.answer_callback_query(
+                bot.answer_callback_query(
                     call.id,
                     f"✅ Дистанция изменена: {old_distance:.2f} → {new_distance:.2f} км"
                 )
                 
                 # Возвращаемся к списку пробежек
-                self.handle_edit_runs_callback(call)
+                StatsHandler.handle_edit_runs_callback(call)
                 
             finally:
                 db.close()
             
         except Exception as e:
-            self.logger.error(f"Error in handle_adjust_run_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_adjust_run_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при изменении дистанции"
             )
 
-    def handle_delete_run_callback(self, call):
+    @staticmethod
+    def handle_delete_run_callback(call):
         """Обрабатывает нажатие на кнопку удаления пробежки"""
         try:
             run_id = int(call.data.split('_')[2])
@@ -873,7 +885,7 @@ class StatsHandler(BaseHandler):
                 )
             )
             
-            self.bot.edit_message_text(
+            bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text="❗️ Вы уверены, что хотите удалить эту пробежку?",
@@ -881,33 +893,35 @@ class StatsHandler(BaseHandler):
             )
             
         except Exception as e:
-            self.logger.error(f"Error in handle_delete_run_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_delete_run_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при удалении пробежки"
             )
 
-    def handle_back_to_profile_callback(self, call):
+    @staticmethod
+    def handle_back_to_profile_callback(call):
         """Обрабатывает нажатие на кнопку возврата к профилю"""
         try:
             # Создаем новое сообщение профиля
             db = SessionLocal()
             try:
                 user_id = str(call.from_user.id)
-                self.handle_profile(call.message, user_id, db)
+                StatsHandler.handle_profile(call.message, user_id, db)
             finally:
                 db.close()
             
         except Exception as e:
-            self.logger.error(f"Error in handle_back_to_profile_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_back_to_profile_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при возврате к профилю"
             )
 
-    def handle_confirm_delete_callback(self, call):
+    @staticmethod
+    def handle_confirm_delete_callback(call):
         """Обрабатывает подтверждение удаления пробежки"""
         try:
             run_id = int(call.data.split('_')[2])
@@ -922,7 +936,7 @@ class StatsHandler(BaseHandler):
                 ).first()
                 
                 if not run:
-                    self.bot.answer_callback_query(
+                    bot.answer_callback_query(
                         call.id,
                         "❌ Пробежка не найдена"
                     )
@@ -933,23 +947,24 @@ class StatsHandler(BaseHandler):
             finally:
                 db.close()
             
-            self.bot.answer_callback_query(
+            bot.answer_callback_query(
                 call.id,
                 "✅ Пробежка успешно удалена"
             )
             
             # Возвращаемся к списку пробежек
-            self.handle_edit_runs_callback(call)
+            StatsHandler.handle_edit_runs_callback(call)
             
         except Exception as e:
-            self.logger.error(f"Error in handle_confirm_delete_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_confirm_delete_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при удалении пробежки"
             )
 
-    def handle_new_run_callback(self, call):
+    @staticmethod
+    def handle_new_run_callback(call):
         """Обрабатывает нажатие на кнопку новой пробежки"""
         try:
             if call.data == 'new_run':
@@ -980,7 +995,7 @@ class StatsHandler(BaseHandler):
                     "• Фото с подписью, содержащей километраж"
                 )
                 
-                self.bot.edit_message_text(
+                bot.edit_message_text(
                     chat_id=call.message.chat.id,
                     message_id=call.message.message_id,
                     text=response,
@@ -994,8 +1009,8 @@ class StatsHandler(BaseHandler):
                 chat_id = str(call.message.chat.id) if call.message.chat.type != 'private' else None
                 chat_type = call.message.chat.type if call.message.chat else 'private'
                 
-                self.logger.info(f"Adding quick run: {km} km for user {user_id}")
-                self.logger.debug(f"Chat info - id: {chat_id}, type: {chat_type}")
+                logger.info(f"Adding quick run: {km} km for user {user_id}")
+                logger.debug(f"Chat info - id: {chat_id}, type: {chat_type}")
                 
                 # Добавляем пробежку
                 if RunningLog.add_entry(
@@ -1005,47 +1020,42 @@ class StatsHandler(BaseHandler):
                     chat_id=chat_id,
                     chat_type=chat_type
                 ):
-                    self.logger.info("Run entry added successfully")
+                    logger.info("Run entry added successfully")
                     
                     # Получаем статистику пользователя
-                    self.logger.debug("Getting user information")
+                    logger.debug("Getting user information")
                     user = User.get_by_id(user_id)
                     
-                    self.logger.debug("Getting total km")
+                    logger.debug("Getting total km")
                     total_km = RunningLog.get_user_total_km(user_id)
-                    self.logger.debug(f"Total km: {total_km}")
+                    logger.debug(f"Total km: {total_km}")
                     
                     response = f"✅ Записана пробежка {km:.2f} км!\n"
                     if user and user.goal_km > 0:
                         progress = (total_km / user.goal_km * 100)
                         response += f"📊 Прогресс: {total_km:.2f} из {user.goal_km:.2f} км ({progress:.2f}%)"
                     
-                    self.logger.debug(f"Generated response: {response}")
+                    logger.debug(f"Generated response: {response}")
                     
-                    self.bot.answer_callback_query(
+                    bot.answer_callback_query(
                         call.id,
                         "✅ Пробежка успешно записана"
                     )
                     
                     # Возвращаемся к профилю
-                    self.logger.info("Updating profile view")
-                    self.handle_profile(call.message)
+                    logger.info("Updating profile view")
+                    StatsHandler.handle_profile(call.message)
                 else:
-                    self.logger.error("Failed to add run entry")
-                    self.bot.answer_callback_query(
+                    logger.error("Failed to add run entry")
+                    bot.answer_callback_query(
                         call.id,
                         "❌ Не удалось сохранить пробежку"
                     )
             
         except Exception as e:
-            self.logger.error(f"Error in handle_new_run_callback: {e}")
-            self.logger.error(f"Full traceback: {traceback.format_exc()}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_new_run_callback: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при добавлении пробежки"
-            )
-
-def register_handlers(bot):
-    """Регистрирует обработчики статистики"""
-    handler = StatsHandler(bot)
-    handler.register() 
+            ) 
