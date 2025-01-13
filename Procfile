@@ -1,1 +1,1 @@
-web: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 4 
+web: cd /app && PYTHONPATH=/app python -m uvicorn fastapi_app:app --host 0.0.0.0 --port $PORT --workers 4 
