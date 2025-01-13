@@ -1,191 +1,122 @@
 # API Documentation
 
-## Аутентификация и авторизация
+## Общая информация
+- Base URL: `http://localhost:8080`
+- Все запросы к защищенным эндпоинтам должны содержать заголовок `Authorization: Bearer {token}`
+- Ответы возвращаются в формате JSON
+- Даты передаются в формате ISO 8601
+
+## Аутентификация
 
 ### Регистрация пользователя
 ```http
 POST /auth/register
-```
+Content-Type: application/json
 
-**Request Body:**
-```json
 {
     "email": "user@example.com",
-    "password": "strongpassword",
+    "password": "strongpassword123",
     "telegram_id": "123456789"  // опционально
 }
 ```
 
-**Response:**
-```json
-{
-    "user_id": "email_user@example.com",
-    "email": "user@example.com",
-    "auth_type": "email",
-    "language": "ru",
-    "created_at": "2024-01-13T12:00:00",
-    "updated_at": "2024-01-13T12:00:00"
-}
-```
-
-### Получение токена (вход)
+### Получение токена
 ```http
 POST /auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=user@example.com&password=strongpassword123
 ```
 
-**Request Body (form-data):**
-```
-username: user@example.com
-password: strongpassword
-```
-
-**Response:**
+Ответ:
 ```json
 {
     "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-    "token_type": "bearer",
-    "expires_in": 1800
+    "token_type": "bearer"
 }
 ```
 
-### Получение профиля
+### Получение данных профиля
 ```http
 GET /auth/me
-Authorization: Bearer <token>
+Authorization: Bearer {token}
 ```
 
-**Response:**
+Ответ:
 ```json
 {
-    "user_id": "email_user@example.com",
+    "id": 1,
     "email": "user@example.com",
-    "auth_type": "email",
-    "last_login": "2024-01-13T12:00:00",
-    "language": "ru",
-    "timezone": "Europe/Moscow",
-    "created_at": "2024-01-13T12:00:00",
-    "updated_at": "2024-01-13T12:00:00"
+    "telegram_id": "123456789",
+    "created_at": "2024-01-13T12:00:00Z",
+    "is_active": true
 }
 ```
 
-### Выход из системы
-```http
-POST /auth/logout
-Authorization: Bearer <token>
-```
-
-**Response:**
-```json
-{
-    "message": "Успешный выход из системы"
-}
-```
+## Управление профилем
 
 ### Обновление профиля
 ```http
 PATCH /auth/profile
-Authorization: Bearer <token>
-```
+Authorization: Bearer {token}
+Content-Type: application/json
 
-**Request Body:**
-```json
 {
-    "language": "en",
-    "timezone": "UTC",
-    "notification_settings": {
-        "email_notifications": true,
-        "telegram_notifications": true
-    }
-}
-```
-
-**Response:**
-```json
-{
-    "user_id": "email_user@example.com",
-    "email": "user@example.com",
-    "language": "en",
-    "timezone": "UTC",
-    "notification_settings": {
-        "email_notifications": true,
-        "telegram_notifications": true
-    },
-    "updated_at": "2024-01-13T12:00:00"
+    "language": "ru",
+    "timezone": "Europe/Moscow",
+    "email_notifications": true,
+    "telegram_notifications": true
 }
 ```
 
 ### Смена пароля
 ```http
 POST /auth/change-password
-Authorization: Bearer <token>
-```
+Authorization: Bearer {token}
+Content-Type: application/json
 
-**Request Body:**
-```json
 {
-    "current_password": "oldpassword",
-    "new_password": "newstrongpassword"
-}
-```
-
-**Response:**
-```json
-{
-    "message": "Пароль успешно изменен"
+    "current_password": "oldpassword123",
+    "new_password": "newpassword123"
 }
 ```
 
 ### Настройка уведомлений
 ```http
 PUT /auth/notifications
-Authorization: Bearer <token>
-```
+Authorization: Bearer {token}
+Content-Type: application/json
 
-**Request Body:**
-```json
 {
     "email_notifications": true,
     "telegram_notifications": true,
-    "notification_time": "18:00",
-    "notification_timezone": "Europe/Moscow"
-}
-```
-
-**Response:**
-```json
-{
-    "email_notifications": true,
-    "telegram_notifications": true,
-    "notification_time": "18:00",
-    "notification_timezone": "Europe/Moscow",
-    "updated_at": "2024-01-13T12:00:00"
+    "notification_time": "09:00",
+    "timezone": "Europe/Moscow"
 }
 ```
 
 ## Коды ошибок
 
-- `400 Bad Request` - Неверные данные в запросе
-- `401 Unauthorized` - Требуется аутентификация
-- `403 Forbidden` - Доступ запрещен (аккаунт заблокирован)
+- `400 Bad Request` - Неверный формат запроса
+- `401 Unauthorized` - Отсутствует или неверный токен
+- `403 Forbidden` - Недостаточно прав
 - `404 Not Found` - Ресурс не найден
 - `422 Unprocessable Entity` - Ошибка валидации данных
+- `429 Too Many Requests` - Превышен лимит попыток входа
+- `500 Internal Server Error` - Внутренняя ошибка сервера
+
+## CORS
+API поддерживает CORS для следующих источников:
+- `http://localhost:8080`
+- `http://127.0.0.1:8080`
 
 ## Безопасность
+- Все пароли хешируются с использованием bcrypt
+- JWT токены имеют ограниченный срок действия
+- Реализована защита от перебора паролей
+- Поддерживается блокировка аккаунта после множества неудачных попыток входа
 
-### Аутентификация
-- Используется JWT (JSON Web Tokens) для аутентификации
-- Токены имеют срок действия 30 минут
-- Все защищенные эндпоинты требуют заголовок `Authorization: Bearer <token>`
-
-### Ограничения
-- Минимальная длина пароля: 8 символов
-- Блокировка аккаунта после 5 неудачных попыток входа
-- Время блокировки: 30 минут
-
-## Дополнительно
-
-### CORS
-API настроено для работы с cross-origin запросами. В продакшене необходимо настроить список разрешенных доменов.
-
-### Формат дат
-Все даты возвращаются в формате ISO 8601: `YYYY-MM-DDTHH:mm:ss` 
+## Примечания
+- Все даты возвращаются в UTC
+- Размер JSON-ответов ограничен 10MB
+- Rate limiting: 100 запросов в минуту 
