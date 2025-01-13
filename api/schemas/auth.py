@@ -23,6 +23,11 @@ class Token(BaseModel):
     token_type: str = "bearer"
     expires_in: int
 
+class AuthCodeVerification(BaseModel):
+    """Схема для проверки кода авторизации"""
+    auth_code: str = Field(..., min_length=6, max_length=6)
+    telegram_id: str
+
 class UserProfile(UserBase):
     """Схема профиля пользователя"""
     user_id: str

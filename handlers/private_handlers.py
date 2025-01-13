@@ -4,6 +4,9 @@ from database.models.running_log import RunningLog
 from datetime import datetime
 from handlers.base_handler import BaseHandler
 from typing import Optional
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+from services.auth_code_service import AuthCodeService
 
 class PrivateHandler(BaseHandler):
     def register(self):
@@ -157,7 +160,24 @@ class PrivateHandler(BaseHandler):
         
         self.bot.reply_to(message, response)
 
+async def cmd_link(message: types.Message):
+    """Обработчик команды /link для получения кода авторизации"""
+    user_id = str(message.from_user.id)
+    code = AuthCodeService.create_auth_code(user_id)
+    
+    response = (
+        "🔗 Код для связывания аккаунтов:\n\n"
+        f"<code>{code}</code>\n\n"
+        "⚠️ Код действителен в течение 15 минут\n"
+        "Используйте его для подключения вашего веб-аккаунта к боту"
+    )
+    
+    await message.reply(response, parse_mode=types.ParseMode.HTML)
+
 def register_handlers(bot):
     """Регистрирует обработчики личных сообщений"""
     handler = PrivateHandler(bot)
     handler.register() 
+
+def register_private_handlers(dp):
+    dp.register_message_handler(cmd_link, commands=['link'], state='*') 

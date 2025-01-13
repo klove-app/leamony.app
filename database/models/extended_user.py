@@ -20,6 +20,10 @@ class ExtendedUser(Base):
     password_hash = Column(String, nullable=True)
     auth_type = Column(String, default='telegram')  # telegram/email
     
+    # Поля для кода авторизации
+    auth_code = Column(String, nullable=True)
+    auth_code_expires = Column(DateTime, nullable=True)
+    
     # Поля для безопасности
     last_login = Column(DateTime, nullable=True)
     last_password_change = Column(DateTime, nullable=True)
