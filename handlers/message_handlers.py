@@ -3,7 +3,7 @@ from database.models.user import User
 from database.models.running_log import RunningLog
 from datetime import datetime
 from handlers.base_handler import BaseHandler
-from main import generate_achievement_image, add_watermark
+from utils.image_utils import generate_achievement_image, add_watermark
 from io import BytesIO
 import traceback
 import re
