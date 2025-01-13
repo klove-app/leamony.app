@@ -1,29 +1,30 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
 class ProfileUpdate(BaseModel):
-    language: Optional[str] = Field(None, pattern="^[a-z]{2}$")
-    timezone: Optional[str]
-    notification_settings: Optional[dict] = None
+    """Схема для обновления профиля"""
+    email: Optional[EmailStr] = None
+    telegram_id: Optional[str] = None
 
 class PasswordChange(BaseModel):
-    current_password: str = Field(..., min_length=8)
-    new_password: str = Field(..., min_length=8)
+    """Схема для смены пароля"""
+    current_password: str
+    new_password: str
 
 class NotificationSettings(BaseModel):
+    """Схема настроек уведомлений"""
     email_notifications: bool = True
     telegram_notifications: bool = True
-    notification_time: str = Field(..., pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
-    notification_timezone: str
 
 class ProfileResponse(BaseModel):
+    """Схема ответа с данными профиля"""
     user_id: str
     email: EmailStr
-    language: str
-    timezone: str
-    notification_settings: Optional[dict]
-    updated_at: datetime
+    telegram_id: Optional[str] = None
+    auth_type: str
+    last_login: Optional[datetime] = None
+    notification_settings: Optional[NotificationSettings] = None
 
     class Config:
         from_attributes = True 

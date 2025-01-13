@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from services.auth_service import AuthService
-from database.models.extended_user import ExtendedUser
+from api_service.services.auth_service import AuthService
+from api_service.database.models.extended_user import ExtendedUser
 from typing import Optional
 import jwt
 

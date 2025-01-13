@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import auth, profile
+from routers import auth, profile
 import uvicorn
+import os
 
 app = FastAPI(
     title="RunTracker API",
@@ -10,21 +11,28 @@ app = FastAPI(
 )
 
 # Настройка CORS
+origins = [
+    "http://localhost:3000",     # React development
+    "http://localhost:5000",     # Flask development
+    "https://runtracker.app",    # Production domain (пример)
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # В продакшене заменить на список разрешенных доменов
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
+                  "Access-Control-Allow-Origin", "Authorization"],
 )
 
 # Подключаем роутеры
 app.include_router(auth.router)
 app.include_router(profile.router)
 
-@app.get("/")
-async def root():
-    """Корневой эндпоинт для проверки работоспособности API"""
+@app.get("/health")
+async def health_check():
+    """Эндпоинт для проверки работоспособности API"""
     return {
         "status": "ok",
         "message": "RunTracker API работает",
@@ -32,4 +40,5 @@ async def root():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True) 

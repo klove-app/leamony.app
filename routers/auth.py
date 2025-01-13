@@ -1,16 +1,36 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from api_service.schemas.auth import UserCreate, UserLogin, Token, UserProfile
-from api_service.dependencies.auth import get_current_user
-from api_service.services.auth_service import AuthService
-from api_service.database.models.extended_user import ExtendedUser
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from typing import Optional
 from datetime import datetime
+
+from database.models.user import User
+from services.auth_service import AuthService
+from schemas.auth import UserCreate, Token, UserProfile
+from database.base import get_db
 
 router = APIRouter(
     prefix="/auth",
-    tags=["auth"],
-    responses={404: {"description": "Not found"}},
+    tags=["auth"]
 )
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Неверные учетные данные",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    user_id = AuthService.verify_token(token)
+    if not user_id:
+        raise credentials_exception
+        
+    user = User.get_by_id(user_id)
+    if not user:
+        raise credentials_exception
+        
+    return user
 
 @router.post("/register", response_model=UserProfile)
 async def register(user_data: UserCreate):
@@ -31,7 +51,7 @@ async def register(user_data: UserCreate):
 @router.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Получение токена доступа"""
-    user = await AuthService.authenticate_user(form_data.username, form_data.password)
+    user = AuthService.authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -45,17 +65,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     
     return {
         "access_token": access_token,
-        "token_type": "bearer",
-        "expires_in": AuthService.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "token_type": "bearer"
     }
 
 @router.get("/me", response_model=UserProfile)
-async def get_current_user_profile(current_user: ExtendedUser = Depends(get_current_user)):
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
     """Получение профиля текущего пользователя"""
-    return current_user
-
-@router.post("/logout")
-async def logout(current_user: ExtendedUser = Depends(get_current_user)):
-    """Выход из системы"""
-    # В будущем здесь можно добавить инвалидацию токена
-    return {"message": "Успешный выход из системы"} 
+    return current_user 

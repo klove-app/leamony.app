@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, JSON, Foreign
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
-from api.database.base import Base
+from database.base import Base
 
 class ExtendedUser(Base):
     __tablename__ = 'extended_users'

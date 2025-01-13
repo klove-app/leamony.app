@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from api.schemas.auth import UserCreate, UserLogin, Token, UserProfile
+from api.schemas.auth import UserCreate, UserLogin, Token, UserProfile, AuthCodeVerification
 from api.dependencies.auth import get_current_user
 from services.auth_service import AuthService
+from services.auth_code_service import AuthCodeService
 from database.models.extended_user import ExtendedUser
 from datetime import datetime
+from sqlalchemy.orm import Session
+from typing import Optional
 
 router = APIRouter(
     prefix="/auth",
@@ -28,26 +31,38 @@ async def register(user_data: UserCreate):
             detail=str(e)
         )
 
-@router.post("/token", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Получение токена доступа"""
-    user = await AuthService.authenticate_user(form_data.username, form_data.password)
+@router.post("/login", response_model=Token)
+async def login(user_data: UserLogin, db: Session = Depends(get_db)):
+    """Авторизация пользователя по email и паролю"""
+    user = AuthService.authenticate_user(user_data.email, user_data.password)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный email или пароль",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=401,
+            detail="Incorrect email or password"
         )
     
-    access_token = AuthService.create_access_token(
-        data={"sub": user.user_id}
+    access_token = AuthService.create_access_token({"sub": user.user_id})
+    return Token(access_token=access_token, token_type="bearer")
+
+@router.post("/verify-code", response_model=Token)
+async def verify_auth_code(
+    verification_data: AuthCodeVerification,
+    db: Session = Depends(get_db)
+):
+    """Проверка кода авторизации и связывание аккаунтов"""
+    user = AuthCodeService.verify_code(
+        verification_data.telegram_id,
+        verification_data.auth_code
     )
     
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "expires_in": AuthService.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-    }
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired authorization code"
+        )
+    
+    access_token = AuthService.create_access_token({"sub": user.user_id})
+    return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/me", response_model=UserProfile)
 async def get_current_user_profile(current_user: ExtendedUser = Depends(get_current_user)):

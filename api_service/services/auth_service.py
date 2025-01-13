@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import jwt
 from passlib.context import CryptContext
-from api_service.models.user import ExtendedUser
+from api_service.database.models.extended_user import ExtendedUser
 from api_service.config.config import (
     AUTH_SECRET_KEY,
     AUTH_ALGORITHM,
@@ -68,15 +68,16 @@ class AuthService:
         return user
 
     @classmethod
-    def register_user(cls, email: str, password: str) -> ExtendedUser:
+    def register_user(cls, email: str, password: str, telegram_id: str = None) -> ExtendedUser:
         """Регистрация нового пользователя"""
         # Проверяем, существует ли пользователь
         if ExtendedUser.get_by_email(email):
             raise ValueError("User with this email already exists")
 
         # Создаем расширенный профиль
+        user_id = telegram_id if telegram_id else f"email_{email}"
         extended_user = ExtendedUser.create(
-            user_id=f"email_{email}",
+            user_id=user_id,
             email=email,
             password_hash=cls.get_password_hash(password),
             auth_type='email'

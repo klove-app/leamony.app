@@ -1,98 +1,87 @@
 from datetime import datetime, timedelta
-import jwt
+from typing import Optional
+from jose import JWTError, jwt
 from passlib.context import CryptContext
-from database.models.extended_user import ExtendedUser
 from database.models.user import User
+from database.base import get_db
 import config.config as cfg
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthService:
-    SECRET_KEY = cfg.AUTH_SECRET_KEY
-    ALGORITHM = cfg.AUTH_ALGORITHM
-    ACCESS_TOKEN_EXPIRE_MINUTES = cfg.ACCESS_TOKEN_EXPIRE_MINUTES
-    MAX_LOGIN_ATTEMPTS = cfg.MAX_LOGIN_ATTEMPTS
-    LOCKOUT_MINUTES = cfg.LOCKOUT_MINUTES
-
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
-        """Проверка пароля"""
         return pwd_context.verify(plain_password, hashed_password)
 
     @staticmethod
     def get_password_hash(password: str) -> str:
-        """Хеширование пароля"""
         return pwd_context.hash(password)
 
-    @classmethod
-    def create_access_token(cls, data: dict) -> str:
-        """Создание JWT токена"""
-        to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=cls.ACCESS_TOKEN_EXPIRE_MINUTES)
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
-
-    @classmethod
-    def decode_token(cls, token: str) -> dict:
-        """Декодирование JWT токена"""
-        try:
-            payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
-            return payload
-        except jwt.ExpiredSignatureError:
-            raise ValueError("Token has expired")
-        except jwt.JWTError:
-            raise ValueError("Invalid token")
-
-    @classmethod
-    async def authenticate_user(cls, email: str, password: str) -> ExtendedUser:
-        """Аутентификация пользователя по email и паролю"""
-        user = ExtendedUser.get_by_email(email)
-        if not user:
-            return None
-
-        # Проверяем, не заблокирован ли аккаунт
-        if user.is_account_locked():
-            raise ValueError("Account is locked due to too many failed attempts")
-
-        # Проверяем пароль
-        if not cls.verify_password(password, user.password_hash):
-            user.record_login(successful=False)
-            return None
-
-        user.record_login(successful=True)
-        return user
-
-    @classmethod
-    def register_user(cls, email: str, password: str, telegram_id: str = None) -> ExtendedUser:
-        """Регистрация нового пользователя"""
-        # Проверяем, существует ли пользователь
-        if ExtendedUser.get_by_email(email):
-            raise ValueError("User with this email already exists")
-
-        # Если есть telegram_id, проверяем базового пользователя
-        base_user = None
-        if telegram_id:
-            base_user = User.get_by_id(telegram_id)
-            if not base_user:
-                base_user = User.create(telegram_id, email.split('@')[0], 'private')
-
-        # Создаем расширенный профиль
-        extended_user = ExtendedUser.create(
-            user_id=telegram_id or f"email_{email}",
-            email=email,
-            password_hash=cls.get_password_hash(password),
-            auth_type='email' if not telegram_id else 'telegram'
-        )
-
-        return extended_user
+    @staticmethod
+    def get_user_by_email(email: str) -> Optional[User]:
+        db = next(get_db())
+        return db.query(User).filter(User.email == email).first()
 
     @staticmethod
-    def change_password(user: ExtendedUser, new_password: str) -> bool:
-        """Изменение пароля пользователя"""
+    def register_user(email: str, password: str, telegram_id: Optional[str] = None) -> User:
+        db = next(get_db())
+        
+        # Проверяем, существует ли пользователь с таким email
+        if AuthService.get_user_by_email(email):
+            raise ValueError("Email уже зарегистрирован")
+
+        # Если указан telegram_id, проверяем существует ли пользователь
+        if telegram_id:
+            existing_user = User.get_by_id(telegram_id)
+            if existing_user:
+                # Обновляем существующего пользователя
+                existing_user.email = email
+                existing_user.password_hash = AuthService.get_password_hash(password)
+                existing_user.auth_type = 'both'  # и telegram и email
+                existing_user.save()
+                return existing_user
+
+        # Создаем нового пользователя
+        user = User(
+            user_id=telegram_id or str(datetime.utcnow().timestamp()),
+            email=email,
+            password_hash=AuthService.get_password_hash(password),
+            auth_type='email',
+            username=email.split('@')[0]  # временное решение
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+
+    @staticmethod
+    def authenticate_user(email: str, password: str) -> Optional[User]:
+        user = AuthService.get_user_by_email(email)
+        if not user or not user.password_hash:
+            return None
+        if not AuthService.verify_password(password, user.password_hash):
+            return None
+        
+        # Обновляем время последнего входа
+        user.last_login = datetime.utcnow()
+        user.save()
+        return user
+
+    @staticmethod
+    def create_access_token(data: dict) -> str:
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(minutes=cfg.ACCESS_TOKEN_EXPIRE_MINUTES)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, cfg.SECRET_KEY, algorithm=cfg.ALGORITHM)
+        return encoded_jwt
+
+    @staticmethod
+    def verify_token(token: str) -> Optional[str]:
         try:
-            user.password_hash = pwd_context.hash(new_password)
-            user.last_password_change = datetime.utcnow()
-            user.update()
-            return True
-        except Exception:
-            return False 
+            payload = jwt.decode(token, cfg.SECRET_KEY, algorithms=[cfg.ALGORITHM])
+            user_id: str = payload.get("sub")
+            if user_id is None:
+                return None
+            return user_id
+        except JWTError:
+            return None 
