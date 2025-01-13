@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from api.schemas.auth import UserCreate, UserLogin, Token, UserProfile, AuthCodeVerification
 from api.dependencies.auth import get_current_user
+from api.dependencies.database import get_db
 from services.auth_service import AuthService
 from services.auth_code_service import AuthCodeService
 from database.models.extended_user import ExtendedUser
