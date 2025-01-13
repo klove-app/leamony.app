@@ -18,19 +18,19 @@ class AdminHandler(BaseHandler):
         logger.info("Registering admin handlers")
         
         bot.register_message_handler(
-            handle_delete_test_data,
+            AdminHandler.handle_delete_test_data,
             commands=['delete_test_data'],
             func=lambda message: str(message.from_user.id) in ADMIN_IDS
         )
         
         bot.register_message_handler(
-            handle_report,
+            AdminHandler.handle_report,
             commands=['report'],
             func=lambda message: str(message.from_user.id) in ADMIN_IDS
         )
         
         bot.register_callback_query_handler(
-            handle_text_report,
+            AdminHandler.handle_text_report,
             func=lambda call: call.data == "text_report"
         )
         
@@ -44,7 +44,7 @@ class AdminHandler(BaseHandler):
             
             # Проверяем, что команду вызвал администратор
             if user_id not in ADMIN_IDS:
-                self.bot.reply_to(message, "❌ У вас нет прав для выполнения этой команды")
+                bot.reply_to(message, "❌ У вас нет прав для выполнения этой команды")
                 return
             
             # Проверяем записи за 7-8 января 2025
@@ -64,7 +64,7 @@ class AdminHandler(BaseHandler):
                 records = cursor.fetchall()
                 
                 if not records:
-                    self.bot.reply_to(message, "❌ Записей за 7-8 января 2025 не найдено")
+                    bot.reply_to(message, "❌ Записей за 7-8 января 2025 не найдено")
                     return
                 
                 # Формируем сообщение с найденными записями
@@ -75,12 +75,12 @@ class AdminHandler(BaseHandler):
                     preview += f"📅 Дата: {date_added}\n\n"
                 
                 # Отправляем предварительный просмотр
-                self.bot.reply_to(message, preview)
+                bot.reply_to(message, preview)
                 
                 # Удаляем записи
                 deleted_count = RunningLog.delete_entries_by_date_range(start_date, end_date)
                 
-                self.bot.reply_to(
+                bot.reply_to(
                     message,
                     f"✅ Удалено {deleted_count} тестовых записей за период 7-8 января 2025"
                 )
@@ -89,23 +89,24 @@ class AdminHandler(BaseHandler):
                 conn.close()
             
         except Exception as e:
-            self.logger.error(f"Error in handle_delete_test_data: {e}")
-            self.bot.reply_to(message, "❌ Произошла ошибка при удалении тестовых данных")
+            logger.error(f"Error in handle_delete_test_data: {e}")
+            bot.reply_to(message, "❌ Произошла ошибка при удалении тестовых данных")
 
-    def handle_report(self, message: Message):
+    @staticmethod
+    def handle_report(message: Message):
         """Генерирует и отправляет подробный отчет"""
         try:
             user_id = str(message.from_user.id)
             
             # Проверяем, что команду вызвал администратор
             if user_id not in ADMIN_IDS:
-                self.bot.reply_to(message, "❌ У вас нет прав для выполнения этой команды")
+                bot.reply_to(message, "❌ У вас нет прав для выполнения этой команды")
                 return
 
             # Создаем клавиатуру с кнопкой WebApp
             keyboard = InlineKeyboardMarkup()
             webapp_btn = InlineKeyboardButton(
-                text="📊 Открыть интерактивный отчет",
+                text="�� Открыть интерактивный отчет",
                 web_app=WebAppInfo(url="https://your-webapp-url.com")
             )
             text_btn = InlineKeyboardButton(
@@ -115,24 +116,25 @@ class AdminHandler(BaseHandler):
             keyboard.add(webapp_btn)
             keyboard.add(text_btn)
 
-            self.bot.reply_to(
+            bot.reply_to(
                 message,
                 "Выберите формат отчета:",
                 reply_markup=keyboard
             )
             
         except Exception as e:
-            self.logger.error(f"Error in handle_report: {e}")
-            self.bot.reply_to(message, "❌ Произошла ошибка при генерации отчета")
+            logger.error(f"Error in handle_report: {e}")
+            bot.reply_to(message, "❌ Произошла ошибка при генерации отчета")
 
-    def handle_text_report(self, call):
+    @staticmethod
+    def handle_text_report(call):
         """Отправляет текстовый отчет"""
         try:
             user_id = str(call.from_user.id)
             
             # Проверяем, что команду вызвал администратор
             if user_id not in ADMIN_IDS:
-                self.bot.answer_callback_query(
+                bot.answer_callback_query(
                     call.id,
                     "❌ У вас нет прав для выполнения этой команды"
                 )
@@ -143,10 +145,10 @@ class AdminHandler(BaseHandler):
             current_month = datetime.now().month
             
             # Формируем HTML отчет
-            report = self.generate_report(current_year, current_month)
+            report = AdminHandler.generate_report(current_year, current_month)
             
             # Отправляем отчет
-            self.bot.edit_message_text(
+            bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text=report,
@@ -155,13 +157,14 @@ class AdminHandler(BaseHandler):
             )
             
         except Exception as e:
-            self.logger.error(f"Error in handle_text_report: {e}")
-            self.bot.answer_callback_query(
+            logger.error(f"Error in handle_text_report: {e}")
+            bot.answer_callback_query(
                 call.id,
                 "❌ Произошла ошибка при генерации отчета"
             )
 
-    def generate_report(self, year: int, month: int) -> str:
+    @staticmethod
+    def generate_report(year: int, month: int) -> str:
         """Генерирует подробный HTML-отчет"""
         def progress_bar(value, max_value, width=20):
             """Создает графический прогресс-бар с цветовыми акцентами"""
