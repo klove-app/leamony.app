@@ -74,4 +74,20 @@ async def get_current_user_profile(current_user: ExtendedUser = Depends(get_curr
 async def logout(current_user: ExtendedUser = Depends(get_current_user)):
     """Выход из системы"""
     # В будущем здесь можно добавить инвалидацию токена
-    return {"message": "Успешный выход из системы"} 
+    return {"message": "Успешный выход из системы"}
+
+@router.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    """Стандартный OAuth2 эндпоинт для получения токена"""
+    user = AuthService.authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password"
+        )
+    
+    access_token = AuthService.create_access_token({"sub": user.user_id})
+    return Token(access_token=access_token, token_type="bearer") 
