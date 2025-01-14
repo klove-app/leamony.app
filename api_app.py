@@ -16,7 +16,8 @@ origins = [
     "http://localhost:5000",
     "http://127.0.0.1:5000",
     "https://runconnect.app",
-    "https://*.railway.app"
+    "https://*.railway.app",
+    "https://api-server-production-39f0.up.railway.app"
 ]
 
 app.add_middleware(
@@ -27,13 +28,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключаем роутеры
-app.include_router(auth.router)
-app.include_router(profile.router)
-app.include_router(auth_code.router)
+# Создаем подприложение для API
+api_app = FastAPI(title="API")
 
-# Подключаем статические файлы
-app.mount("/", StaticFiles(directory="website/public", html=True), name="static")
+# Подключаем роутеры к API приложению
+api_app.include_router(auth.router)
+api_app.include_router(profile.router)
+api_app.include_router(auth_code.router)
+
+# Добавляем API как подприложение
+app.mount("/api", api_app)
 
 @app.get("/health")
 async def health_check():
@@ -41,4 +45,7 @@ async def health_check():
         "status": "healthy",
         "message": "Running Bot API is working",
         "environment": os.getenv("ENVIRONMENT", "development")
-    } 
+    }
+
+# Монтируем статические файлы после API
+app.mount("/", StaticFiles(directory="website/public", html=True), name="static") 
