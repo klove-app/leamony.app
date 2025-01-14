@@ -28,16 +28,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Создаем подприложение для API
-api_app = FastAPI(title="API")
-
-# Подключаем роутеры к API приложению
-api_app.include_router(auth.router)
-api_app.include_router(profile.router)
-api_app.include_router(auth_code.router)
-
-# Добавляем API как подприложение
-app.mount("/api", api_app)
+# Подключаем роутеры с префиксом /api
+app.include_router(auth.router, prefix="/api")
+app.include_router(profile.router, prefix="/api")
+app.include_router(auth_code.router, prefix="/api")
 
 @app.get("/health")
 async def health_check():
