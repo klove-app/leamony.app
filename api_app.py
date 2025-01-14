@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from api.routers import auth, profile, auth_code
 import os
 
@@ -28,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключаем роутеры с префиксом /api
+# Подключаем роутеры
 app.include_router(auth.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
 app.include_router(auth_code.router, prefix="/api")
@@ -39,7 +38,4 @@ async def health_check():
         "status": "healthy",
         "message": "Running Bot API is working",
         "environment": os.getenv("ENVIRONMENT", "development")
-    }
-
-# Монтируем статические файлы после API
-app.mount("/", StaticFiles(directory="website/public", html=True), name="static") 
+    } 
