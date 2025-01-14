@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import auth, profile, auth_code
 import os
@@ -27,10 +27,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключаем роутеры
-app.include_router(auth.router, prefix="/api")
-app.include_router(profile.router, prefix="/api")
-app.include_router(auth_code.router, prefix="/api")
+# Создаем API роутер
+api_router = APIRouter(prefix="/api")
+
+# Подключаем роутеры к API роутеру
+api_router.include_router(auth.router)
+api_router.include_router(profile.router)
+api_router.include_router(auth_code.router)
+
+# Подключаем API роутер к приложению
+app.include_router(api_router)
 
 @app.get("/health")
 async def health_check():
