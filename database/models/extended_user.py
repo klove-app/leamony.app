@@ -17,6 +17,7 @@ class ExtendedUser(Base):
 
     # Дополнительные поля для аутентификации
     email = Column(String, unique=True, nullable=True, index=True)
+    username = Column(String, nullable=True)
     password_hash = Column(String, nullable=True)
     auth_type = Column(String, default='telegram')  # telegram/email
     
