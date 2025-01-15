@@ -53,7 +53,7 @@ class AuthService:
     @staticmethod
     def authenticate_user(email: str, password: str) -> Optional[ExtendedUser]:
         db = next(get_db())
-        user = AuthService.get_user_by_email(email)
+        user = db.query(ExtendedUser).filter(ExtendedUser.email == email).first()
         if not user or not user.password_hash:
             return None
         if not AuthService.verify_password(password, user.password_hash):
@@ -61,7 +61,6 @@ class AuthService:
         
         # Обновляем время последнего входа
         user.record_login(successful=True)
-        db.add(user)
         db.commit()
         db.refresh(user)
         return user
