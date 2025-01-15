@@ -18,6 +18,8 @@ class User(Base):
     chat_type = Column(String, default='group')  # 'private' или 'group'
     auth_type = Column(String, default='email')  # 'email', 'telegram' или 'both'
     last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Отношение к пробежкам
     runs = relationship("RunningLog", back_populates="user")
