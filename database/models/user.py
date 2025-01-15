@@ -10,12 +10,14 @@ class User(Base):
     user_id = Column(String, primary_key=True, index=True)
     username = Column(String)
     email = Column(String, unique=True, index=True)
-    password = Column(String)
+    password_hash = Column(String)
     yearly_goal = Column(REAL, nullable=True)
     yearly_progress = Column(REAL, nullable=True)
     goal_km = Column(Float, default=0)
     is_active = Column(Boolean, default=True)
     chat_type = Column(String, default='group')  # 'private' или 'group'
+    auth_type = Column(String, default='email')  # 'email', 'telegram' или 'both'
+    last_login = Column(DateTime, nullable=True)
 
     # Отношение к пробежкам
     runs = relationship("RunningLog", back_populates="user")
@@ -38,4 +40,8 @@ class User(Base):
         db = next(get_db())
         db.add(self)
         db.commit()
-        db.refresh(self) 
+        db.refresh(self)
+
+    def save(self):
+        """Алиас для метода update для совместимости с кодом"""
+        self.update() 
