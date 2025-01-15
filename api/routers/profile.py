@@ -7,8 +7,19 @@ from database.models.extended_user import ExtendedUser
 from services.auth_service import AuthService
 from api.dependencies.database import get_db
 from api.dependencies.auth import get_current_user
+from api.schemas.user import UserProfile
 
-router = APIRouter(prefix="/auth", tags=["profile"])
+router = APIRouter(
+    prefix="/profile",
+    tags=["profile"]
+)
+
+@router.get("/me", response_model=UserProfile)
+async def get_current_user_profile(current_user: ExtendedUser = Depends(get_current_user)):
+    """
+    Получить профиль текущего пользователя
+    """
+    return current_user
 
 @router.patch("/profile", response_model=ProfileResponse)
 async def update_profile(
