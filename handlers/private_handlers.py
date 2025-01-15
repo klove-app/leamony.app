@@ -38,6 +38,12 @@ class PrivateHandler(BaseHandler):
             func=lambda message: message.chat.type == 'private'
         )
         
+        self.bot.register_message_handler(
+            self.handle_me,
+            commands=['me'],
+            func=lambda message: message.chat.type == 'private'
+        )
+        
         self.logger.info("Private message handlers registered successfully")
 
     def handle_start(self, message: Message):
@@ -157,6 +163,34 @@ class PrivateHandler(BaseHandler):
                     user = User.get_by_id(runner['user_id'])
                     username = user.username if user else f"user_{runner['user_id']}"
                     response += f"{i}. {username}: {runner['total_km']:.2f} км\n"
+        
+        self.bot.reply_to(message, response)
+
+    def handle_me(self, message: Message):
+        """Обработчик команды /me в личных сообщениях"""
+        user_id = str(message.from_user.id)
+        user = User.get_by_id(user_id)
+        
+        if not user:
+            response = "❌ Пользователь не найден"
+        else:
+            stats = RunningLog.get_user_stats(user_id, datetime.now().year)
+            total_km = RunningLog.get_user_total_km(user_id)
+            
+            response = (
+                "👤 Ваш профиль:\n\n"
+                f"🆔 ID: {user_id}\n"
+                f"👤 Имя: {user.username}\n"
+                f"📊 Статистика за год:\n"
+                f"- Всего пробежек: {stats.get('runs_count', 0)}\n"
+                f"- Общая дистанция: {stats.get('total_km', 0):.2f} км\n"
+                f"- Средняя дистанция: {stats.get('average_km', 0):.2f} км\n"
+            )
+            
+            if user.goal_km > 0:
+                progress = (total_km / user.goal_km * 100)
+                response += f"\n🎯 Цель на год: {user.goal_km:.2f} км\n"
+                response += f"📈 Прогресс: {total_km:.2f} км ({progress:.2f}%)"
         
         self.bot.reply_to(message, response)
 
