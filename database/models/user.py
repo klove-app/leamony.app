@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Float, Boolean, REAL, DateTime
 from sqlalchemy.orm import Session, relationship
 from datetime import datetime
 from database.base import Base, get_db
+from database.models.running_log import RunningLog
 
 class User(Base):
     __tablename__ = "users"
