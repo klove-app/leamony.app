@@ -83,7 +83,6 @@ class ExtendedUser(Base):
 
     def record_login(self, successful: bool = True):
         """Записать попытку входа"""
-        db = next(get_db())
         if successful:
             self.last_login = datetime.utcnow()
             self.failed_login_attempts = 0
@@ -92,10 +91,7 @@ class ExtendedUser(Base):
             self.failed_login_attempts += 1
             if self.failed_login_attempts >= cfg.MAX_LOGIN_ATTEMPTS:
                 self.is_locked = True
-        self.update()
-        db.add(self)
-        db.commit()
-        db.refresh(self)
+        self.updated_at = datetime.utcnow()
 
     def is_account_locked(self) -> bool:
         """Проверить, заблокирован ли аккаунт"""
