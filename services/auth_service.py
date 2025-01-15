@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from database.models.user import User
+from database.models.extended_user import ExtendedUser
 from database.base import get_db
 import config.config as cfg
 
@@ -18,12 +18,11 @@ class AuthService:
         return pwd_context.hash(password)
 
     @staticmethod
-    def get_user_by_email(email: str) -> Optional[User]:
-        db = next(get_db())
-        return db.query(User).filter(User.email == email).first()
+    def get_user_by_email(email: str) -> Optional[ExtendedUser]:
+        return ExtendedUser.get_by_email(email)
 
     @staticmethod
-    def register_user(email: str, password: str, telegram_id: Optional[str] = None) -> User:
+    def register_user(email: str, password: str, telegram_id: Optional[str] = None) -> ExtendedUser:
         db = next(get_db())
         
         # Проверяем, существует ли пользователь с таким email
@@ -32,30 +31,27 @@ class AuthService:
 
         # Если указан telegram_id, проверяем существует ли пользователь
         if telegram_id:
-            existing_user = User.get_by_id(telegram_id)
+            existing_user = ExtendedUser.get_by_user_id(telegram_id)
             if existing_user:
                 # Обновляем существующего пользователя
                 existing_user.email = email
                 existing_user.password_hash = AuthService.get_password_hash(password)
                 existing_user.auth_type = 'both'  # и telegram и email
-                existing_user.save()
+                existing_user.update()
                 return existing_user
 
         # Создаем нового пользователя
-        user = User(
+        user = ExtendedUser.create(
             user_id=telegram_id or str(datetime.utcnow().timestamp()),
             email=email,
             password_hash=AuthService.get_password_hash(password),
             auth_type='email',
             username=email.split('@')[0]  # временное решение
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
         return user
 
     @staticmethod
-    def authenticate_user(email: str, password: str) -> Optional[User]:
+    def authenticate_user(email: str, password: str) -> Optional[ExtendedUser]:
         user = AuthService.get_user_by_email(email)
         if not user or not user.password_hash:
             return None
@@ -63,8 +59,7 @@ class AuthService:
             return None
         
         # Обновляем время последнего входа
-        user.last_login = datetime.utcnow()
-        user.save()
+        user.record_login(successful=True)
         return user
 
     @staticmethod

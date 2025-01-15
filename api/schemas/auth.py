@@ -21,7 +21,7 @@ class Token(BaseModel):
     """Схема токена доступа"""
     access_token: str
     token_type: str = "bearer"
-    expires_in: int
+    expires_in: Optional[int] = None
 
 class AuthCodeVerification(BaseModel):
     """Схема для проверки кода авторизации"""

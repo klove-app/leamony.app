@@ -8,7 +8,7 @@ from services.auth_service import AuthService
 from database.models.extended_user import ExtendedUser
 from .database import get_db
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False)
 
 async def get_current_user(
     token: str = Depends(jwt_bearer),
