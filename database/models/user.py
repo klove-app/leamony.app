@@ -9,6 +9,8 @@ class User(Base):
 
     user_id = Column(String, primary_key=True, index=True)
     username = Column(String)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
     yearly_goal = Column(REAL, nullable=True)
     yearly_progress = Column(REAL, nullable=True)
     goal_km = Column(Float, default=0)
