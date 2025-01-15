@@ -57,7 +57,18 @@ class ExtendedUser(Base):
     def create(cls, user_id: str, **kwargs) -> 'ExtendedUser':
         """Создать новый расширенный профиль"""
         db = next(get_db())
-        extended_user = cls(user_id=user_id, **kwargs)
+        
+        # Создаем базового пользователя
+        base_user = User(
+            user_id=user_id,
+            username=kwargs.get('username', kwargs.get('email', '').split('@')[0])
+        )
+        db.add(base_user)
+        db.commit()
+        db.refresh(base_user)
+        
+        # Создаем расширенный профиль
+        extended_user = cls(user_id=base_user.user_id, **kwargs)
         db.add(extended_user)
         db.commit()
         db.refresh(extended_user)
