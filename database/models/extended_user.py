@@ -76,17 +76,14 @@ class ExtendedUser(Base):
 
     def update(self, **kwargs):
         """Обновить атрибуты расширенного профиля"""
-        db = next(get_db())
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
         self.updated_at = datetime.utcnow()
-        db.add(self)
-        db.commit()
-        db.refresh(self)
 
     def record_login(self, successful: bool = True):
         """Записать попытку входа"""
+        db = next(get_db())
         if successful:
             self.last_login = datetime.utcnow()
             self.failed_login_attempts = 0
@@ -96,6 +93,9 @@ class ExtendedUser(Base):
             if self.failed_login_attempts >= cfg.MAX_LOGIN_ATTEMPTS:
                 self.is_locked = True
         self.update()
+        db.add(self)
+        db.commit()
+        db.refresh(self)
 
     def is_account_locked(self) -> bool:
         """Проверить, заблокирован ли аккаунт"""
