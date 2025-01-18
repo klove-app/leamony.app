@@ -1316,3 +1316,139 @@ h1 {
         font-size: 1rem;
     }
 } /* Updated styles */
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Вкладки авторизации */
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.auth-tab.active {
+    opacity: 1;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* Формы */
+.auth-form {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-error {
+    display: none;
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Разделитель */
+.auth-divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+.auth-divider::before {
+    left: 0;
+}
+
+.auth-divider::after {
+    right: 0;
+}
+
+.auth-divider span {
+    background-color: #fff;
+    padding: 0 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Telegram логин */
+.telegram-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Кнопка в навигации */
+.nav-link.button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    color: inherit;
+}
+
+.nav-link.button:hover {
+    color: var(--primary-color);
+}
