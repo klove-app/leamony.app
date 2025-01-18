@@ -6,7 +6,7 @@ async function login(email, password) {
     console.log('Отправка запроса на вход:', { email });
     
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ async function register(email, password) {
         
         console.log('Данные для регистрации:', userData);
 
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ async function checkAuth() {
     console.log('Проверка авторизации...');
     
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/check`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
             headers: {
                 'Accept': 'application/json'
             },
@@ -124,7 +124,7 @@ async function logout() {
     console.log('Отправка запроса на выход');
     
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json'
