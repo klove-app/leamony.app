@@ -17,6 +17,123 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/js/api.js"></script>
+    <script>
+        // Глобальные функции для работы с модальным окном
+        function openAuthModal() {
+            console.log('Попытка открыть модальное окно...');
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                modal.style.display = 'block';
+                console.log('Модальное окно открыто');
+            } else {
+                console.error('Модальное окно не найдено');
+            }
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Инициализация после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM загружен, инициализация скриптов...');
+
+            // Закрытие модального окна при клике вне его
+            window.onclick = function(event) {
+                const modal = document.getElementById('authModal');
+                if (event.target == modal) {
+                    closeAuthModal();
+                }
+            }
+
+            // Переключение между формами
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Убираем активный класс у всех вкладок
+                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                    // Добавляем активный класс текущей вкладке
+                    tab.classList.add('active');
+                    
+                    // Скрываем все формы
+                    document.querySelectorAll('.auth-form').forEach(form => {
+                        form.style.display = 'none';
+                    });
+                    
+                    // Показываем нужную форму
+                    const formId = tab.dataset.tab + 'Form';
+                    const form = document.getElementById(formId);
+                    if (form) {
+                        form.style.display = 'block';
+                    }
+                });
+            });
+
+            // Обработка входа
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const errorElement = document.getElementById('loginError');
+
+                try {
+                    const data = await login(email, password);
+                    window.location.href = '/dashboard.html';
+                } catch (error) {
+                    errorElement.textContent = 'Неверный email или пароль';
+                    errorElement.style.display = 'block';
+                }
+            });
+
+            // Обработка регистрации
+            document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const errorElement = document.getElementById('registerError');
+
+                if (password !== confirmPassword) {
+                    errorElement.textContent = 'Пароли не совпадают';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    await register(email, password);
+                    // После успешной регистрации выполняем вход
+                    const data = await login(email, password);
+                    window.location.href = '/dashboard.html';
+                } catch (error) {
+                    errorElement.textContent = 'Ошибка при регистрации';
+                    errorElement.style.display = 'block';
+                }
+            });
+
+            // Проверяем авторизацию
+            (async () => {
+                try {
+                    const isAuthenticated = await checkAuth();
+                    if (isAuthenticated) {
+                        // Если пользователь авторизован, меняем кнопку "Войти" на "Личный кабинет"
+                        const authButton = document.querySelector('.nav-link.button');
+                        if (authButton) {
+                            authButton.textContent = 'Личный кабинет';
+                            authButton.onclick = () => {
+                                window.location.href = '/dashboard.html';
+                            };
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при проверке авторизации:', error);
+                }
+            })();
+
+            console.log('Инициализация скриптов завершена');
+        });
+    </script>
 </head>
 <body>
     <nav class="navbar">
@@ -26,7 +143,7 @@
                 <a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener" class="nav-link support-link">Поддержать</a>
                 <a href="/" class="nav-link active">Главная</a>
                 <a href="#instructions" class="nav-link">Инструкция</a>
-                <button onclick="openAuthModal()" class="nav-link button">Войти</button>
+                <button id="authButton" class="nav-link button">Войти</button>
                 <div class="language-switcher">
                     <a href="/" class="lang-link active">🇷🇺</a>
                     <a href="/en" class="lang-link">🇬🇧</a>
@@ -471,135 +588,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM загружен, инициализация скриптов...');
-
-            // Функции для работы с модальным окном
-            window.openAuthModal = function() {
-                console.log('Попытка открыть модальное окно...');
-                try {
-                    const modal = document.getElementById('authModal');
-                    console.log('Модальное окно найдено:', modal);
-                    if (modal) {
-                        modal.style.display = 'block';
-                        console.log('Модальное окно открыто');
-                    } else {
-                        console.error('Модальное окно не найдено');
-                    }
-                } catch (error) {
-                    console.error('Ошибка при открытии модального окна:', error);
-                }
-            }
-
-            window.closeAuthModal = function() {
-                try {
-                    const modal = document.getElementById('authModal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Ошибка при закрытии модального окна:', error);
-                }
-            }
-
-            // Закрытие модального окна при клике вне его
-            window.onclick = function(event) {
-                const modal = document.getElementById('authModal');
-                if (event.target == modal) {
-                    closeAuthModal();
-                }
-            }
-
-            // Переключение между формами
-            document.querySelectorAll('.auth-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    try {
-                        // Убираем активный класс у всех вкладок
-                        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-                        // Добавляем активный класс текущей вкладке
-                        tab.classList.add('active');
-                        
-                        // Скрываем все формы
-                        document.querySelectorAll('.auth-form').forEach(form => {
-                            form.style.display = 'none';
-                        });
-                        
-                        // Показываем нужную форму
-                        const formId = tab.dataset.tab + 'Form';
-                        const form = document.getElementById(formId);
-                        if (form) {
-                            form.style.display = 'block';
-                        }
-                    } catch (error) {
-                        console.error('Ошибка при переключении форм:', error);
-                    }
-                });
-            });
-
-            // Обработка входа
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                const errorElement = document.getElementById('loginError');
-
-                try {
-                    const data = await login(email, password);
-                    window.location.href = '/dashboard.html';
-                } catch (error) {
-                    errorElement.textContent = 'Неверный email или пароль';
-                    errorElement.style.display = 'block';
-                }
-            });
-
-            // Обработка регистрации
-            document.getElementById('registerForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('registerEmail').value;
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const errorElement = document.getElementById('registerError');
-
-                if (password !== confirmPassword) {
-                    errorElement.textContent = 'Пароли не совпадают';
-                    errorElement.style.display = 'block';
-                    return;
-                }
-
-                try {
-                    await register(email, password);
-                    // После успешной регистрации выполняем вход
-                    const data = await login(email, password);
-                    window.location.href = '/dashboard.html';
-                } catch (error) {
-                    errorElement.textContent = 'Ошибка при регистрации';
-                    errorElement.style.display = 'block';
-                }
-            });
-
-            // Проверяем авторизацию
-            (async () => {
-                try {
-                    const isAuthenticated = await checkAuth();
-                    if (isAuthenticated) {
-                        // Если пользователь авторизован, меняем кнопку "Войти" на "Личный кабинет"
-                        const authButton = document.querySelector('.nav-link.button');
-                        if (authButton) {
-                            authButton.textContent = 'Личный кабинет';
-                            authButton.onclick = () => {
-                                window.location.href = '/dashboard.html';
-                            };
-                        }
-                    }
-                } catch (error) {
-                    console.error('Ошибка при проверке авторизации:', error);
-                }
-            })();
-
-            console.log('Инициализация скриптов завершена');
-        });
-    </script>
 </body>
 </html> 
