@@ -1,4 +1,169 @@
-                <div class="language-switcher">
-                    <a href="/" class="lang-link active">🇷🇺</a>
-                    <a href="/en" class="lang-link">🇬🇧</a>
-                </div> 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunTracker Bot - Отслеживайте свои пробежки в Telegram</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="/">RunTracker Bot</a>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Главная</a>
+                <button onclick="openAuthModal()" class="nav-link button primary">Войти</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="hero-wrapper">
+            <div class="hero-content">
+                <h1>Вход в личный кабинет</h1>
+                <p class="hero-description">
+                    Войдите через Telegram или email, чтобы получить доступ к вашей статистике и настройкам.
+                </p>
+                <div class="cta-group">
+                    <button onclick="openAuthModal()" class="button primary">
+                        Войти в систему
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно авторизации -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAuthModal()">&times;</span>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Вход</button>
+                <button class="auth-tab" data-tab="register">Регистрация</button>
+            </div>
+
+            <!-- Форма входа -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <div class="form-error" id="loginError"></div>
+                <button type="submit" class="button primary">Войти</button>
+            </form>
+
+            <!-- Форма регистрации -->
+            <form id="registerForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Пароль</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Подтвердите пароль</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <div class="form-error" id="registerError"></div>
+                <button type="submit" class="button primary">Зарегистрироваться</button>
+            </form>
+
+            <div class="auth-divider">
+                <span>или</span>
+            </div>
+
+            <!-- Telegram вход -->
+            <div class="telegram-login">
+                <div id="telegram-login-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        // Функции для работы с модальным окном
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'block';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('authModal')) {
+                closeAuthModal();
+            }
+        }
+
+        // Переключение между формами
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Убираем активный класс у всех вкладок
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                // Добавляем активный класс текущей вкладке
+                tab.classList.add('active');
+                
+                // Скрываем все формы
+                document.querySelectorAll('.auth-form').forEach(form => {
+                    form.style.display = 'none';
+                });
+                
+                // Показываем нужную форму
+                const formId = tab.dataset.tab + 'Form';
+                document.getElementById(formId).style.display = 'block';
+            });
+        });
+
+        // Обработка входа
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+
+            try {
+                const data = await login(email, password);
+                window.location.href = '/dashboard.html';
+            } catch (error) {
+                errorElement.textContent = 'Неверный email или пароль';
+                errorElement.style.display = 'block';
+            }
+        });
+
+        // Обработка регистрации
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorElement = document.getElementById('registerError');
+
+            if (password !== confirmPassword) {
+                errorElement.textContent = 'Пароли не совпадают';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            try {
+                await register(email, password);
+                // После успешной регистрации выполняем вход
+                const data = await login(email, password);
+                window.location.href = '/dashboard.html';
+            } catch (error) {
+                errorElement.textContent = 'Ошибка при регистрации';
+                errorElement.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 
