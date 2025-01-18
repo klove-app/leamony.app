@@ -41,6 +41,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM загружен, инициализация скриптов...');
 
+            // Добавляем обработчик для кнопки авторизации
+            const authButton = document.getElementById('authButton');
+            console.log('Поиск кнопки авторизации:', authButton);
+            if (authButton) {
+                authButton.addEventListener('click', function() {
+                    console.log('Клик по кнопке авторизации');
+                    openAuthModal();
+                });
+            }
+
             // Закрытие модального окна при клике вне его
             window.onclick = function(event) {
                 const modal = document.getElementById('authModal');
