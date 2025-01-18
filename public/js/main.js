@@ -86,17 +86,33 @@ function clearError(formId) {
 
 function updateUserInterface(user) {
     console.log('Обновление интерфейса для пользователя:', user);
+    
     const loginButton = document.getElementById('loginButton');
-    if (loginButton && user) {
-        loginButton.textContent = user.email;
-        loginButton.href = '/dashboard';
-        loginButton.removeEventListener('click', openAuthModal);
+    if (loginButton) {
+        // Заменяем кнопку входа на ссылку в личный кабинет
+        const profileLink = document.createElement('a');
+        profileLink.href = '/dashboard';
+        profileLink.className = 'nav-link';
+        profileLink.textContent = user.email || 'Личный кабинет';
+        loginButton.parentNode.replaceChild(profileLink, loginButton);
+    }
+    
+    // Закрываем модальное окно авторизации
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
 // Инициализация после загрузки DOM
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен, инициализация скриптов...');
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Инициализация скриптов завершена');
+    
+    // Проверяем авторизацию при загрузке страницы
+    const user = await checkAuth();
+    if (user) {
+        updateUserInterface(user);
+    }
     
     // Проверяем наличие элементов
     checkElements();
@@ -116,29 +132,15 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             clearError('login');
             
-            const submitButton = loginForm.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
-            try {
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-
-                console.log('Попытка входа для:', email);
-                const response = await login(email, password);
-                
-                if (response.success) {
-                    showSuccess('login', 'Вход выполнен успешно!');
-                    updateUserInterface(response.user);
-                    setTimeout(() => {
-                        closeAuthModal();
-                    }, 1000);
-                } else {
-                    showError('login', response.error);
-                }
-            } catch (error) {
-                showError('login', 'Произошла ошибка при входе');
-            } finally {
-                submitButton.disabled = false;
+            const result = await login(email, password);
+            if (result.success) {
+                showSuccess('login', 'Вход выполнен успешно!');
+                updateUserInterface(result.user);
+            } else {
+                showError('login', result.error);
             }
         });
     }
@@ -215,13 +217,4 @@ document.addEventListener('DOMContentLoaded', function() {
             closeAuthModal();
         }
     });
-
-    // Проверяем авторизацию при загрузке
-    checkAuth().then(user => {
-        if (user) {
-            updateUserInterface(user);
-        }
-    });
-
-    console.log('Инициализация скриптов завершена');
 }); 
