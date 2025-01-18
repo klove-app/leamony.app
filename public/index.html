@@ -58,14 +58,17 @@
             // Проверяем наличие элементов
             checkElements();
 
-            // Добавляем обработчик для ссылки авторизации
-            const loginLink = document.querySelector('a.nav-link[href="#"]');
-            if (loginLink) {
-                loginLink.addEventListener('click', function(e) {
+            // Добавляем обработчик для кнопки входа
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('Клик по ссылке авторизации');
+                    console.log('Клик по кнопке входа');
                     openAuthModal();
                 });
+                console.log('Обработчик для кнопки входа добавлен');
+            } else {
+                console.error('Кнопка входа не найдена');
             }
 
             // Закрытие модального окна при клике вне его
@@ -88,7 +91,7 @@
                 <a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener" class="nav-link support-link">Поддержать</a>
                 <a href="/" class="nav-link active">Главная</a>
                 <a href="#instructions" class="nav-link">Инструкция</a>
-                <a href="#" class="nav-link" onclick="openAuthModal(); return false;">Войти</a>
+                <a href="#" class="nav-link" id="loginButton">Войти</a>
                 <div class="language-switcher">
                     <a href="/" class="lang-link active">🇷🇺</a>
                     <a href="/en" class="lang-link">🇬🇧</a>
