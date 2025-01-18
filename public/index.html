@@ -20,14 +20,14 @@
     <script>
         // Глобальные функции для работы с модальным окном
         function openAuthModal() {
-            console.log('Попытка открыть модальное окно...');
+            console.log('Вызвана функция openAuthModal');
             const modal = document.getElementById('authModal');
             console.log('Найденное модальное окно:', modal);
             if (modal) {
                 modal.style.display = 'block';
                 console.log('Модальное окно открыто');
             } else {
-                console.error('Модальное окно не найдено');
+                console.error('Модальное окно не найдено!');
             }
         }
 
@@ -42,18 +42,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM загружен, инициализация скриптов...');
 
-            // Добавляем прямой обработчик для кнопки
-            const authButton = document.querySelector('button.nav-link.button');
+            // Добавляем обработчик для кнопки авторизации
+            const authButton = document.getElementById('authButton');
             console.log('Найдена кнопка авторизации:', authButton);
+            
             if (authButton) {
-                authButton.onclick = function() {
+                authButton.addEventListener('click', function() {
                     console.log('Клик по кнопке авторизации');
-                    const modal = document.getElementById('authModal');
-                    console.log('Найдено модальное окно:', modal);
-                    if (modal) {
-                        modal.style.display = 'block';
-                    }
-                };
+                    openAuthModal();
+                });
+            } else {
+                console.error('Кнопка авторизации не найдена!');
             }
 
             // Добавляем обработчик для закрытия модального окна
@@ -169,7 +168,7 @@
                 <a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener" class="nav-link support-link">Поддержать</a>
                 <a href="/" class="nav-link active">Главная</a>
                 <a href="#instructions" class="nav-link">Инструкция</a>
-                <button id="authButton" class="nav-link button">Войти</button>
+                <button id="authButton" class="nav-link button" onclick="openAuthModal()">Войти</button>
                 <div class="language-switcher">
                     <a href="/" class="lang-link active">🇷🇺</a>
                     <a href="/en" class="lang-link">🇬🇧</a>
