@@ -1321,102 +1321,155 @@ h1 {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal-content {
-    background-color: #fff;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%;
-    max-width: 500px;
     position: relative;
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
 }
 
-.close {
-    position: absolute;
-    right: 20px;
-    top: 10px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover {
-    color: #666;
-}
-
-/* Стили для видимого модального окна */
-.modal[style*="display: block"] {
+.modal.active {
     opacity: 1;
     visibility: visible;
 }
 
-/* Вкладки авторизации */
+.modal.active .modal-content {
+    transform: translateY(0);
+}
+
+.close {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.close:hover {
+    color: #333;
+}
+
+/* Стили для вкладок */
 .auth-tabs {
     display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #e0e0e0;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1rem;
 }
 
 .auth-tab {
-    flex: 1;
-    padding: 10px;
-    border: none;
     background: none;
-    font-size: 16px;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #666;
     cursor: pointer;
-    opacity: 0.6;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.auth-tab::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
 }
 
 .auth-tab.active {
-    opacity: 1;
-    border-bottom: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 500;
 }
 
-/* Формы */
+.auth-tab.active::after {
+    transform: scaleX(1);
+}
+
+/* Стили для форм */
 .auth-form {
-    margin-bottom: 20px;
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
+    color: #333;
     font-weight: 500;
 }
 
 .form-group input {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-color);
+    outline: none;
 }
 
 .form-error {
-    display: none;
     color: #dc3545;
-    font-size: 14px;
-    margin-top: 5px;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    min-height: 1.25rem;
 }
 
-/* Разделитель */
+.auth-form button {
+    width: 100%;
+    padding: 0.875rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.auth-form button:hover {
+    background-color: var(--primary-color-dark);
+}
+
 .auth-divider {
     text-align: center;
-    margin: 20px 0;
+    margin: 1.5rem 0;
     position: relative;
 }
 
@@ -1425,7 +1478,7 @@ h1 {
     content: '';
     position: absolute;
     top: 50%;
-    width: 45%;
+    width: calc(50% - 2rem);
     height: 1px;
     background-color: #e0e0e0;
 }
@@ -1439,28 +1492,13 @@ h1 {
 }
 
 .auth-divider span {
-    background-color: #fff;
-    padding: 0 10px;
+    background-color: white;
+    padding: 0 1rem;
     color: #666;
-    font-size: 14px;
 }
 
-/* Telegram логин */
 .telegram-login {
-    text-align: center;
-    margin-top: 20px;
-}
-
-/* Кнопка в навигации */
-.nav-link.button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: inherit;
-    padding: 0;
-    color: inherit;
-}
-
-.nav-link.button:hover {
-    color: var(--primary-color);
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
 }

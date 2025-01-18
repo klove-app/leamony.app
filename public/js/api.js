@@ -10,18 +10,19 @@ async function login(email, password) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ email, password }),
+            credentials: 'include'
         });
 
-        if (!response.ok) {
-            throw new Error('Ошибка авторизации');
-        }
-
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        return data;
+        
+        if (response.ok) {
+            return { success: true, user: data.user };
+        } else {
+            return { success: false, error: data.message || 'Ошибка входа' };
+        }
     } catch (error) {
         console.error('Ошибка при входе:', error);
-        throw error;
+        return { success: false, error: 'Произошла ошибка при входе' };
     }
 }
 
@@ -36,41 +37,48 @@ async function register(email, password) {
             body: JSON.stringify({ email, password }),
         });
 
-        if (!response.ok) {
-            throw new Error('Ошибка регистрации');
-        }
-
         const data = await response.json();
-        return data;
+        
+        if (response.ok) {
+            return { success: true };
+        } else {
+            return { success: false, error: data.message || 'Ошибка регистрации' };
+        }
     } catch (error) {
         console.error('Ошибка при регистрации:', error);
-        throw error;
+        return { success: false, error: 'Произошла ошибка при регистрации' };
     }
 }
 
 // Функция для проверки авторизации
 async function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        return false;
-    }
-
     try {
         const response = await fetch(`${API_BASE_URL}/auth/check`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include'
         });
 
-        return response.ok;
+        if (response.ok) {
+            const data = await response.json();
+            return data.user;
+        }
+        return null;
     } catch (error) {
         console.error('Ошибка при проверке авторизации:', error);
-        return false;
+        return null;
     }
 }
 
 // Функция для выхода
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/';
+async function logout() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        return response.ok;
+    } catch (error) {
+        console.error('Ошибка при выходе:', error);
+        return false;
+    }
 }
