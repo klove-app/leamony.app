@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/api.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -471,20 +472,36 @@
         </div>
     </div>
 
-    <script src="/js/api.js"></script>
     <script>
         // Функции для работы с модальным окном
         function openAuthModal() {
-            document.getElementById('authModal').style.display = 'block';
+            try {
+                const modal = document.getElementById('authModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                } else {
+                    console.error('Модальное окно не найдено');
+                }
+            } catch (error) {
+                console.error('Ошибка при открытии модального окна:', error);
+            }
         }
 
         function closeAuthModal() {
-            document.getElementById('authModal').style.display = 'none';
+            try {
+                const modal = document.getElementById('authModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Ошибка при закрытии модального окна:', error);
+            }
         }
 
         // Закрытие модального окна при клике вне его
         window.onclick = function(event) {
-            if (event.target == document.getElementById('authModal')) {
+            const modal = document.getElementById('authModal');
+            if (event.target == modal) {
                 closeAuthModal();
             }
         }
@@ -492,19 +509,26 @@
         // Переключение между формами
         document.querySelectorAll('.auth-tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                // Убираем активный класс у всех вкладок
-                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-                // Добавляем активный класс текущей вкладке
-                tab.classList.add('active');
-                
-                // Скрываем все формы
-                document.querySelectorAll('.auth-form').forEach(form => {
-                    form.style.display = 'none';
-                });
-                
-                // Показываем нужную форму
-                const formId = tab.dataset.tab + 'Form';
-                document.getElementById(formId).style.display = 'block';
+                try {
+                    // Убираем активный класс у всех вкладок
+                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                    // Добавляем активный класс текущей вкладке
+                    tab.classList.add('active');
+                    
+                    // Скрываем все формы
+                    document.querySelectorAll('.auth-form').forEach(form => {
+                        form.style.display = 'none';
+                    });
+                    
+                    // Показываем нужную форму
+                    const formId = tab.dataset.tab + 'Form';
+                    const form = document.getElementById(formId);
+                    if (form) {
+                        form.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Ошибка при переключении форм:', error);
+                }
             });
         });
 
@@ -546,6 +570,25 @@
             } catch (error) {
                 errorElement.textContent = 'Ошибка при регистрации';
                 errorElement.style.display = 'block';
+            }
+        });
+
+        // Проверяем авторизацию при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const isAuthenticated = await checkAuth();
+                if (isAuthenticated) {
+                    // Если пользователь авторизован, меняем кнопку "Войти" на "Личный кабинет"
+                    const authButton = document.querySelector('.nav-link.button');
+                    if (authButton) {
+                        authButton.textContent = 'Личный кабинет';
+                        authButton.onclick = () => {
+                            window.location.href = '/dashboard.html';
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке авторизации:', error);
             }
         });
     </script>
