@@ -33,18 +33,30 @@ function closeAuthModal() {
 
 // Функции для работы с формами авторизации
 function switchTab(tabName) {
+    console.log('Переключение на вкладку:', tabName);
+    
     // Обновляем активную вкладку
     document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.tab === tabName);
+        const isActive = tab.dataset.tab === tabName;
+        tab.classList.toggle('active', isActive);
+        console.log('Вкладка:', tab.dataset.tab, isActive ? 'активна' : 'неактивна');
     });
 
     // Показываем соответствующую форму
     document.querySelectorAll('.auth-form').forEach(form => {
-        form.classList.toggle('active', form.id === `${tabName}Form`);
+        const isActive = form.id === `${tabName}Form`;
+        form.style.display = isActive ? 'block' : 'none';
+        if (isActive) {
+            form.classList.add('active');
+        } else {
+            form.classList.remove('active');
+        }
+        console.log('Форма:', form.id, isActive ? 'показана' : 'скрыта');
     });
 }
 
 function showError(formId, message) {
+    console.log('Показ ошибки для формы:', formId, message);
     const errorElement = document.getElementById(`${formId}Error`);
     if (errorElement) {
         errorElement.textContent = message;
@@ -52,15 +64,28 @@ function showError(formId, message) {
     }
 }
 
+function showSuccess(formId, message) {
+    console.log('Показ успеха для формы:', formId, message);
+    const errorElement = document.getElementById(`${formId}Error`);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.color = '#10B981';
+        errorElement.style.display = 'block';
+    }
+}
+
 function clearError(formId) {
+    console.log('Очистка ошибок для формы:', formId);
     const errorElement = document.getElementById(`${formId}Error`);
     if (errorElement) {
         errorElement.textContent = '';
         errorElement.style.display = 'none';
+        errorElement.style.color = '#dc3545';
     }
 }
 
 function updateUserInterface(user) {
+    console.log('Обновление интерфейса для пользователя:', user);
     const loginButton = document.getElementById('loginButton');
     if (loginButton && user) {
         loginButton.textContent = user.email;
@@ -78,7 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Добавляем обработчики для вкладок
     document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        tab.addEventListener('click', () => {
+            console.log('Клик по вкладке:', tab.dataset.tab);
+            switchTab(tab.dataset.tab);
+        });
     });
 
     // Обработчик формы входа
@@ -87,20 +115,30 @@ document.addEventListener('DOMContentLoaded', function() {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             clearError('login');
-
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
+            
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
             try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                console.log('Попытка входа для:', email);
                 const response = await login(email, password);
+                
                 if (response.success) {
+                    showSuccess('login', 'Вход выполнен успешно!');
                     updateUserInterface(response.user);
-                    closeAuthModal();
+                    setTimeout(() => {
+                        closeAuthModal();
+                    }, 1000);
                 } else {
-                    showError('login', response.error || 'Ошибка входа');
+                    showError('login', response.error);
                 }
             } catch (error) {
                 showError('login', 'Произошла ошибка при входе');
+            } finally {
+                submitButton.disabled = false;
             }
         });
     }
@@ -111,29 +149,36 @@ document.addEventListener('DOMContentLoaded', function() {
         registerForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             clearError('register');
-
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (password !== confirmPassword) {
-                showError('register', 'Пароли не совпадают');
-                return;
-            }
-
+            
+            const submitButton = registerForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
             try {
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    showError('register', 'Пароли не совпадают');
+                    return;
+                }
+
+                console.log('Попытка регистрации для:', email);
                 const response = await register(email, password);
+                
                 if (response.success) {
-                    showError('register', 'Регистрация успешна! Теперь вы можете войти.');
+                    showSuccess('register', 'Регистрация успешна! Сейчас вы будете перенаправлены на форму входа.');
                     setTimeout(() => {
                         switchTab('login');
                         clearError('register');
                     }, 2000);
                 } else {
-                    showError('register', response.error || 'Ошибка регистрации');
+                    showError('register', response.error);
                 }
             } catch (error) {
                 showError('register', 'Произошла ошибка при регистрации');
+            } finally {
+                submitButton.disabled = false;
             }
         });
     }

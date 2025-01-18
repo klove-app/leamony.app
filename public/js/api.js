@@ -1,5 +1,5 @@
 // Базовый URL API
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://runconnect.app/api';
 
 // Функция для входа
 async function login(email, password) {
@@ -8,21 +8,28 @@ async function login(email, password) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ email, password }),
             credentials: 'include'
         });
 
-        const data = await response.json();
-        
-        if (response.ok) {
-            return { success: true, user: data.user };
-        } else {
-            return { success: false, error: data.message || 'Ошибка входа' };
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            return { 
+                success: false, 
+                error: errorData.message || 'Ошибка входа. Проверьте email и пароль.' 
+            };
         }
+
+        const data = await response.json();
+        return { success: true, user: data.user };
     } catch (error) {
         console.error('Ошибка при входе:', error);
-        return { success: false, error: 'Произошла ошибка при входе' };
+        return { 
+            success: false, 
+            error: 'Произошла ошибка при входе. Попробуйте позже.' 
+        };
     }
 }
 
@@ -33,20 +40,32 @@ async function register(email, password) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ 
+                email, 
+                password,
+                name: email.split('@')[0] // Добавляем имя пользователя из email
+            }),
+            credentials: 'include'
         });
 
-        const data = await response.json();
-        
-        if (response.ok) {
-            return { success: true };
-        } else {
-            return { success: false, error: data.message || 'Ошибка регистрации' };
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            return { 
+                success: false, 
+                error: errorData.message || 'Ошибка регистрации. Возможно, email уже занят.' 
+            };
         }
+
+        const data = await response.json();
+        return { success: true, user: data.user };
     } catch (error) {
         console.error('Ошибка при регистрации:', error);
-        return { success: false, error: 'Произошла ошибка при регистрации' };
+        return { 
+            success: false, 
+            error: 'Произошла ошибка при регистрации. Попробуйте позже.' 
+        };
     }
 }
 
@@ -54,14 +73,18 @@ async function register(email, password) {
 async function checkAuth() {
     try {
         const response = await fetch(`${API_BASE_URL}/auth/check`, {
+            headers: {
+                'Accept': 'application/json'
+            },
             credentials: 'include'
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            return data.user;
+        if (!response.ok) {
+            return null;
         }
-        return null;
+
+        const data = await response.json();
+        return data.user;
     } catch (error) {
         console.error('Ошибка при проверке авторизации:', error);
         return null;
@@ -73,6 +96,9 @@ async function logout() {
     try {
         const response = await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
             credentials: 'include'
         });
 
