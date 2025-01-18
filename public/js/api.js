@@ -3,6 +3,8 @@ const API_BASE_URL = 'https://runconnect.app/api';
 
 // Функция для входа
 async function login(email, password) {
+    console.log('Отправка запроса на вход:', { email });
+    
     try {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
@@ -14,15 +16,22 @@ async function login(email, password) {
             credentials: 'include'
         });
 
+        console.log('Ответ сервера:', response.status, response.statusText);
+        
+        const data = await response.json().catch(e => {
+            console.error('Ошибка парсинга JSON:', e);
+            return {};
+        });
+        
+        console.log('Данные ответа:', data);
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
             return { 
                 success: false, 
-                error: errorData.message || 'Ошибка входа. Проверьте email и пароль.' 
+                error: data.message || data.error || 'Ошибка входа. Проверьте email и пароль.' 
             };
         }
 
-        const data = await response.json();
         return { success: true, user: data.user };
     } catch (error) {
         console.error('Ошибка при входе:', error);
@@ -35,30 +44,43 @@ async function login(email, password) {
 
 // Функция для регистрации
 async function register(email, password) {
+    console.log('Отправка запроса на регистрацию:', { email });
+    
     try {
+        const userData = {
+            email,
+            password,
+            name: email.split('@')[0]
+        };
+        
+        console.log('Данные для регистрации:', userData);
+
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ 
-                email, 
-                password,
-                name: email.split('@')[0] // Добавляем имя пользователя из email
-            }),
+            body: JSON.stringify(userData),
             credentials: 'include'
         });
 
+        console.log('Ответ сервера:', response.status, response.statusText);
+        
+        const data = await response.json().catch(e => {
+            console.error('Ошибка парсинга JSON:', e);
+            return {};
+        });
+        
+        console.log('Данные ответа:', data);
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
             return { 
                 success: false, 
-                error: errorData.message || 'Ошибка регистрации. Возможно, email уже занят.' 
+                error: data.message || data.error || 'Ошибка регистрации. Возможно, email уже занят.' 
             };
         }
 
-        const data = await response.json();
         return { success: true, user: data.user };
     } catch (error) {
         console.error('Ошибка при регистрации:', error);
@@ -71,6 +93,8 @@ async function register(email, password) {
 
 // Функция для проверки авторизации
 async function checkAuth() {
+    console.log('Проверка авторизации...');
+    
     try {
         const response = await fetch(`${API_BASE_URL}/auth/check`, {
             headers: {
@@ -79,11 +103,15 @@ async function checkAuth() {
             credentials: 'include'
         });
 
+        console.log('Ответ сервера:', response.status, response.statusText);
+
         if (!response.ok) {
+            console.log('Пользователь не авторизован');
             return null;
         }
 
         const data = await response.json();
+        console.log('Данные пользователя:', data);
         return data.user;
     } catch (error) {
         console.error('Ошибка при проверке авторизации:', error);
@@ -93,6 +121,8 @@ async function checkAuth() {
 
 // Функция для выхода
 async function logout() {
+    console.log('Отправка запроса на выход');
+    
     try {
         const response = await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
@@ -102,6 +132,7 @@ async function logout() {
             credentials: 'include'
         });
 
+        console.log('Ответ сервера:', response.status, response.statusText);
         return response.ok;
     } catch (error) {
         console.error('Ошибка при выходе:', error);
