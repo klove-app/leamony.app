@@ -1,5 +1,5 @@
 // Базовый URL API
-const API_BASE_URL = 'https://runconnect.app/api';
+const API_BASE_URL = 'https://api-server-production-39f0.up.railway.app:8080';
 
 // Функция для входа
 async function login(email, password) {
