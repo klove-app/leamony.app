@@ -4,41 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RunConnect</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        function initApp() {
-            if (!window.Telegram || !window.Telegram.WebApp) {
-                document.getElementById('error').textContent = 'Ошибка: Telegram WebApp не доступен';
-                document.getElementById('error').style.display = 'block';
+        function showDebug(message) {
+            console.log(message);
+            const debugInfo = document.getElementById('debug');
+            debugInfo.textContent += message + '\n';
+            debugInfo.style.display = 'block';
+        }
+
+        function showError(message) {
+            console.error(message);
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        async function waitForTelegram(maxAttempts = 50) {
+            showDebug('Ожидание загрузки Telegram WebApp...');
+            
+            for (let i = 0; i < maxAttempts; i++) {
+                if (window.Telegram?.WebApp) {
+                    showDebug('Telegram WebApp загружен!');
+                    return true;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            showError('Telegram WebApp не загрузился после ' + maxAttempts + ' попыток');
+            return false;
+        }
+
+        async function initApp() {
+            showDebug('URL: ' + window.location.href);
+            showDebug('User Agent: ' + navigator.userAgent);
+            
+            // Загружаем скрипт Telegram
+            const script = document.createElement('script');
+            script.src = 'https://telegram.org/js/telegram-web-app.js';
+            document.head.appendChild(script);
+
+            // Ждем загрузки Telegram WebApp
+            if (!await waitForTelegram()) {
                 return;
             }
 
-            // Сообщаем что мы готовы
-            window.Telegram.WebApp.ready();
-            
-            // Загружаем Chart.js
-            var script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-            script.onload = function() {
-                // Создаем тестовый график
-                new Chart(document.getElementById('testChart'), {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [30, 70],
-                            backgroundColor: ['#2481cc', '#f0f0f0']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } }
-                    }
-                });
-            };
-            document.head.appendChild(script);
+            try {
+                // Сообщаем что мы готовы
+                window.Telegram.WebApp.ready();
+                showDebug('WebApp.ready() вызван');
+                
+                // Загружаем Chart.js
+                const chartScript = document.createElement('script');
+                chartScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+                chartScript.onload = function() {
+                    showDebug('Chart.js загружен');
+                    // Создаем тестовый график
+                    new Chart(document.getElementById('testChart'), {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [30, 70],
+                                backgroundColor: ['#2481cc', '#f0f0f0']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                    showDebug('График создан');
+                };
+                document.head.appendChild(chartScript);
+            } catch (e) {
+                showError('Ошибка: ' + e.message);
+            }
         }
 
-        // Ждем загрузки страницы
+        // Запускаем инициализацию после загрузки DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         } else {
@@ -56,6 +98,16 @@
             height: 200px;
             margin: 0 auto;
         }
+        #debug {
+            display: none;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre;
+            color: #666;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -63,5 +115,6 @@
     <div id="chart-container">
         <canvas id="testChart"></canvas>
     </div>
+    <div id="debug"></div>
 </body>
 </html> 
