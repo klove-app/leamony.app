@@ -196,18 +196,4 @@ h2 {
     text-align: center;
     font-weight: 500;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.debug-log {
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #00ff00;
-    padding: 8px;
-    margin: 4px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 12px;
-    white-space: pre-wrap;
-    word-break: break-all;
-    position: relative;
-    z-index: 9999;
 } 

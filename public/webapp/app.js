@@ -1,22 +1,10 @@
-// Функция для отображения логов на странице
-function showLog(message) {
-    console.log(message);
-    const logDiv = document.createElement('div');
-    logDiv.className = 'debug-log';
-    logDiv.textContent = message;
-    document.body.prepend(logDiv);
-}
+let tg = window.Telegram.WebApp;
 
-console.log('Скрипт загружен');
-showLog('Скрипт загружен');
-
-// Функция инициализации приложения
-function initApp(tg) {
-    showLog('Инициализация приложения');
+// Инициализация WebApp
+document.addEventListener('DOMContentLoaded', function() {
     try {
         tg.ready();
         tg.expand();
-        showLog('WebApp готов и развернут');
 
         // Устанавливаем тему
         const theme = {
@@ -27,7 +15,6 @@ function initApp(tg) {
             button_color: tg.button_color || '#2481cc',
             button_text_color: tg.button_text_color || '#ffffff'
         };
-        showLog('Применяем тему: ' + JSON.stringify(theme));
 
         Object.entries(theme).forEach(([key, value]) => {
             document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
@@ -36,47 +23,9 @@ function initApp(tg) {
         // Загружаем данные пользователя
         loadUserStats();
     } catch (error) {
-        showLog('Ошибка инициализации WebApp: ' + error.message);
         showError('Не удалось инициализировать приложение');
     }
-}
-
-// Ждем загрузку DOM и WebApp
-let webAppReady = false;
-let domReady = false;
-
-document.addEventListener('DOMContentLoaded', () => {
-    showLog('DOM загружен');
-    domReady = true;
-    if (webAppReady) {
-        initApp(window.Telegram.WebApp);
-    }
 });
-
-// Проверяем наличие объекта Telegram
-showLog('Проверяем window.Telegram: ' + (window.Telegram ? 'Найден' : 'Не найден'));
-
-// Ждем загрузки объекта Telegram.WebApp
-let checkInterval = setInterval(() => {
-    showLog('Проверяем WebApp...');
-    if (window.Telegram && window.Telegram.WebApp) {
-        showLog('WebApp найден!');
-        clearInterval(checkInterval);
-        webAppReady = true;
-        if (domReady) {
-            initApp(window.Telegram.WebApp);
-        }
-    }
-}, 1000);
-
-// Таймаут на случай, если WebApp не загрузится
-setTimeout(() => {
-    clearInterval(checkInterval);
-    if (!window.Telegram || !window.Telegram.WebApp) {
-        showLog('WebApp не загрузился за 5 секунд');
-        document.body.innerHTML = '<div class="error">Ошибка: не удалось инициализировать Telegram WebApp. Убедитесь, что вы открыли приложение через Telegram.</div>';
-    }
-}, 5000);
 
 // Функция загрузки статистики пользователя
 async function loadUserStats() {
@@ -106,7 +55,6 @@ async function loadUserStats() {
             ]
         });
     } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
         showError('Не удалось загрузить статистику');
     }
 }
@@ -167,7 +115,6 @@ function updateStats(data) {
 
 // Функция отображения ошибки
 function showError(message) {
-    console.error('Ошибка:', message);
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error';
     errorDiv.textContent = message;
