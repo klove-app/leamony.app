@@ -5,117 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://telegram.org https://cdnjs.cloudflare.com">
     <title>Статистика - RunConnect</title>
-    <script>
-        // Глобальные переменные
-        let tg = null;
-        let progressChart, activityChart, weeklyChart;
-        let isInitialized = false;
-        let userData = null;
-
-        // Функция для показа статуса загрузки
-        function updateStatus(message) {
-            const loadingDiv = document.getElementById('loading');
-            if (loadingDiv) {
-                loadingDiv.textContent = message;
-            }
-        }
-        
-        // Функция для показа ошибки
-        function showError(message, details = '') {
-            const errorDiv = document.getElementById('error');
-            if (errorDiv) {
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = `<div style="color: red;">${message}</div>`;
-                if (details) {
-                    errorDiv.innerHTML += `<div style="color: gray; font-size: 12px; margin-top: 8px;">${details}</div>`;
-                }
-            }
-            document.getElementById('loading').style.display = 'none';
-        }
-
-        // Функция загрузки данных
-        async function loadUserData() {
-            try {
-                updateStatus('Загрузка данных...');
-                
-                // Получаем initData из WebApp
-                const initData = tg.initData || '';
-                
-                // Загружаем данные с API
-                const response = await fetch('https://api.runconnect.app/stats', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Telegram-Data': initData
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Ошибка загрузки данных: ' + response.status);
-                }
-                
-                userData = await response.json();
-                return userData;
-                
-            } catch (error) {
-                showError('Ошибка загрузки данных: ' + error.message);
-                return null;
-            }
-        }
-
-        // Инициализация приложения
-        async function initApp() {
-            try {
-                updateStatus('Проверка окружения...');
-                
-                // Базовые проверки
-                if (!window.Telegram) {
-                    showError('Ошибка: Telegram API не загружен');
-                    return;
-                }
-
-                updateStatus('Инициализация Telegram WebApp...');
-                
-                // Пробуем получить WebApp
-                tg = window.Telegram.WebApp;
-                
-                if (!tg) {
-                    showError('Ошибка: WebApp не инициализирован');
-                    return;
-                }
-
-                updateStatus('Настройка WebApp...');
-                
-                // Инициализируем WebApp
-                tg.ready();
-                tg.expand();
-                
-                // Загружаем данные
-                userData = await loadUserData();
-                if (!userData) {
-                    return;
-                }
-                
-                updateStatus('Создание графиков...');
-                
-                // Создаем графики после загрузки Chart.js
-                if (typeof Chart !== 'undefined') {
-                    createCharts();
-                } else {
-                    showError('Ошибка: Chart.js не загружен');
-                }
-                
-            } catch (error) {
-                showError('Ошибка инициализации: ' + error.message);
-            }
-        }
-
-        // Запускаем инициализацию после загрузки страницы
-        window.addEventListener('DOMContentLoaded', () => {
-            updateStatus('Ожидание загрузки страницы...');
-            setTimeout(initApp, 1000); // Даем время на загрузку всех скриптов
-        });
-    </script>
+    <!-- Сначала загружаем Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
@@ -203,6 +93,119 @@
     </div>
 
     <script>
+        // Глобальные переменные
+        let tg = null;
+        let progressChart, activityChart, weeklyChart;
+        let isInitialized = false;
+        let userData = null;
+
+        // Функция для показа статуса загрузки
+        function updateStatus(message) {
+            const loadingDiv = document.getElementById('loading');
+            if (loadingDiv) {
+                loadingDiv.textContent = message;
+            }
+        }
+        
+        // Функция для показа ошибки
+        function showError(message, details = '') {
+            const errorDiv = document.getElementById('error');
+            if (errorDiv) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = `<div style="color: red;">${message}</div>`;
+                if (details) {
+                    errorDiv.innerHTML += `<div style="color: gray; font-size: 12px; margin-top: 8px;">${details}</div>`;
+                }
+            }
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Функция проверки готовности Telegram WebApp
+        function waitForTelegram() {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50;
+                const interval = 100;
+
+                function check() {
+                    attempts++;
+                    updateStatus(`Ожидание Telegram WebApp (попытка ${attempts})...`);
+
+                    if (window.Telegram?.WebApp) {
+                        resolve(window.Telegram.WebApp);
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('Telegram API не загрузился'));
+                    } else {
+                        setTimeout(check, interval);
+                    }
+                }
+
+                // Начинаем проверку
+                check();
+            });
+        }
+
+        // Функция загрузки данных
+        async function loadUserData() {
+            try {
+                updateStatus('Загрузка данных...');
+                
+                // Пока нет API, возвращаем тестовые данные
+                return {
+                    progress: {
+                        completed: 286.5,
+                        remaining: 713.5
+                    },
+                    weeklyActivity: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
+                    monthlyStats: [15.5, 22.3, 18.7, 25.1]
+                };
+                
+            } catch (error) {
+                showError('Ошибка загрузки данных: ' + error.message);
+                return null;
+            }
+        }
+
+        // Инициализация приложения
+        async function initApp() {
+            try {
+                updateStatus('Проверка окружения...');
+                
+                // Ждем загрузку Telegram WebApp
+                tg = await waitForTelegram();
+                
+                updateStatus('Настройка WebApp...');
+                
+                // Инициализируем WebApp
+                tg.ready();
+                tg.expand();
+                
+                // Загружаем данные
+                userData = await loadUserData();
+                if (!userData) {
+                    return;
+                }
+                
+                updateStatus('Создание графиков...');
+                
+                // Создаем графики после загрузки Chart.js
+                if (typeof Chart !== 'undefined') {
+                    createCharts();
+                } else {
+                    showError('Ошибка: Chart.js не загружен');
+                }
+                
+            } catch (error) {
+                showError('Ошибка инициализации: ' + error.message);
+            }
+        }
+
+        // Запускаем инициализацию после загрузки страницы
+        window.addEventListener('DOMContentLoaded', () => {
+            updateStatus('Ожидание загрузки страницы...');
+            initApp();
+        });
+
         // Создание графиков
         function createCharts() {
             try {
