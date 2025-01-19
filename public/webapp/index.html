@@ -3,127 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RunConnect Stats</title>
+    <title>Статистика - RunConnect</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .stats-card {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            margin: 16px 0;
+        }
+        #progressChart {
+            max-width: 180px;
+            max-height: 180px;
+            margin: 0 auto;
+        }
+        .progress-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .detail-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 4px;
+        }
+        .detail-label {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0 0 16px 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Общий прогресс -->
-        <div class="stats-card">
-            <h2>Общий прогресс</h2>
-            <div class="main-stats">
-                <div class="stats-info">
-                    <div class="progress-details">
-                        <div class="detail-item">
-                            <span class="detail-value">286.5</span>
-                            <span class="detail-label">KM пройдено</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-value">713.5</span>
-                            <span class="detail-label">KM осталось</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="progressChart"></canvas>
-                </div>
+    <!-- Общий прогресс -->
+    <div class="stats-card">
+        <div class="progress-details">
+            <div class="detail-item">
+                <div class="detail-value">286.5</div>
+                <div class="detail-label">KM пройдено</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-value">713.5</div>
+                <div class="detail-label">KM осталось</div>
             </div>
         </div>
-
-        <!-- Активность за месяц -->
-        <div class="stats-card">
-            <h2>Активность за месяц</h2>
-            <div class="chart-container">
-                <canvas id="activityChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Статистика по неделям -->
-        <div class="stats-card">
-            <h2>Статистика по неделям</h2>
-            <div class="chart-container">
-                <canvas id="weeklyChart"></canvas>
-            </div>
-        </div>
-
-        <h1>Предложения</h1>
-        
-        <!-- Карточки предложений -->
-        <div class="offers-grid">
-            <div class="offer-card">
-                <div class="offer-icon">
-                    <img src="../images/030-medal.png" alt="Медаль">
-                </div>
-                <h2>Достижения</h2>
-                <p>Получите медаль за пробежку более 10 км</p>
-                <div class="offer-progress">
-                    <div class="progress-bar" style="width: 80%"></div>
-                    <span>8 из 10 км</span>
-                </div>
-            </div>
-            
-            <div class="offer-card">
-                <div class="offer-icon">
-                    <img src="../images/027-bicycle.png" alt="Велосипед">
-                </div>
-                <h2>Новый вызов</h2>
-                <p>Попробуйте велотренировку на этой неделе</p>
-                <button class="offer-button">Принять вызов</button>
-            </div>
-            
-            <div class="offer-card">
-                <div class="offer-icon">
-                    <img src="../images/032-target.png" alt="Цель">
-                </div>
-                <h2>Цель недели</h2>
-                <p>Пробегите 20 км до воскресенья</p>
-                <div class="offer-progress">
-                    <div class="progress-bar" style="width: 45%"></div>
-                    <span>9 из 20 км</span>
-                </div>
-            </div>
-        </div>
-
-        <h1>Сервисы</h1>
-        
-        <!-- Сервисы -->
-        <div class="services-section">
-            <div class="service-card add-widget">
-                <div class="service-icon">
-                    <img src="../images/041-menu.png" alt="Добавить виджет">
-                </div>
-                <h3>Новый виджет</h3>
-                <button class="service-button">Добавить</button>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <img src="../images/039-smartwatch.png" alt="Умные часы">
-                </div>
-                <h3>Подключить устройство</h3>
-                <button class="service-button">Настроить</button>
-            </div>
-            
-            <div class="service-card">
-                <div class="service-icon">
-                    <img src="../images/034-football.png" alt="Спорт">
-                </div>
-                <h3>Другие виды спорта</h3>
-                <button class="service-button">Выбрать</button>
-            </div>
-        </div>
-
-        <!-- Навигация -->
-        <div class="navigation-tabs">
-            <button class="tab-button active">Избранное</button>
-            <button class="tab-button">Автоплатежи</button>
-            <button class="tab-button">Напоминания</button>
+        <div class="chart-container">
+            <canvas id="progressChart"></canvas>
         </div>
     </div>
-    
-    <!-- Загружаем Chart.js перед нашим скриптом -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <!-- Активность за месяц -->
+    <div class="stats-card">
+        <h2>Активность за месяц</h2>
+        <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Статистика по неделям -->
+    <div class="stats-card">
+        <h2>Статистика по неделям</h2>
+        <div class="chart-container">
+            <canvas id="weeklyChart"></canvas>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html> 

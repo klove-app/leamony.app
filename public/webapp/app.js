@@ -81,114 +81,124 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // Инициализация графиков
 async function initCharts() {
-    // График прогресса (круговой)
-    const progressCtx = document.getElementById('progressChart');
-    if (!progressCtx) {
-        throw new Error('Элемент progressChart не найден');
-    }
-
-    progressChart = new Chart(progressCtx, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [286.5, 713.5],
-                backgroundColor: ['#2481cc', 'rgba(0, 0, 0, 0.1)'],
-                borderWidth: 0,
-                cutout: '80%'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
+    try {
+        console.log('Начинаем инициализацию графиков');
+        
+        // График прогресса
+        const progressCtx = document.getElementById('progressChart');
+        if (!progressCtx) throw new Error('Элемент progressChart не найден');
+        
+        progressChart = new Chart(progressCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [286.5, 713.5],
+                    backgroundColor: [
+                        tg.themeParams.button_color || '#2481cc',
+                        tg.themeParams.secondary_bg_color || '#f0f0f0'
+                    ],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 }
             }
-        }
-    });
+        });
+        console.log('Круговой график создан');
 
-    // График активности за месяц
-    const activityCtx = document.getElementById('activityChart');
-    if (!activityCtx) {
-        throw new Error('Элемент activityChart не найден');
-    }
-
-    activityChart = new Chart(activityCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-            datasets: [{
-                data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
-                backgroundColor: '#2481cc',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
+        // График активности
+        const activityCtx = document.getElementById('activityChart');
+        if (!activityCtx) throw new Error('Элемент activityChart не найден');
+        
+        activityChart = new Chart(activityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: tg.themeParams.button_color || '#2481cc',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
                         display: false
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
             }
-        }
-    });
+        });
+        console.log('График активности создан');
 
-    // График статистики по неделям
-    const weeklyCtx = document.getElementById('weeklyChart');
-    if (!weeklyCtx) {
-        throw new Error('Элемент weeklyChart не найден');
-    }
-
-    weeklyChart = new Chart(weeklyCtx, {
-        type: 'line',
-        data: {
-            labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
-            datasets: [{
-                data: [15.5, 22.3, 18.7, 25.1],
-                borderColor: '#2481cc',
-                backgroundColor: 'rgba(36, 129, 204, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
+        // График по неделям
+        const weeklyCtx = document.getElementById('weeklyChart');
+        if (!weeklyCtx) throw new Error('Элемент weeklyChart не найден');
+        
+        weeklyChart = new Chart(weeklyCtx, {
+            type: 'line',
+            data: {
+                labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    borderColor: tg.themeParams.button_color || '#2481cc',
+                    backgroundColor: tg.themeParams.button_color || '#2481cc',
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
                         display: false
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
             }
-        }
-    });
+        });
+        console.log('График статистики создан');
+        
+    } catch (error) {
+        console.error('Ошибка при создании графиков:', error);
+        throw error;
+    }
 }
 
 // Загрузка данных пользователя
