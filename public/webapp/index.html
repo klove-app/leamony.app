@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RunConnect Stats</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Годовая статистика -->
+        <section class="stats-card annual-stats">
+            <h2>Статистика 2024</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">286.5</span>
+                    <span class="stat-label">Километров</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">42</span>
+                    <span class="stat-label">Тренировок</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">6.8</span>
+                    <span class="stat-label">Средняя дистанция</span>
+                </div>
+            </div>
+            <div class="goal-progress">
+                <div class="progress-label">
+                    <span>Цель: 1000 км</span>
+                    <span>28.6%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 28.6%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Месячная статистика -->
+        <section class="stats-card monthly-stats">
+            <h2>Март 2024</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">64.2</span>
+                    <span class="stat-label">Километров</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">9</span>
+                    <span class="stat-label">Тренировок</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">+12%</span>
+                    <span class="stat-label">К прошлому месяцу</span>
+                </div>
+            </div>
+            <div class="activity-chart">
+                <!-- Здесь будет график активности -->
+            </div>
+        </section>
+
+        <!-- Последние тренировки -->
+        <section class="stats-card recent-runs">
+            <h2>Последние пробежки</h2>
+            <div class="runs-list">
+                <div class="run-item">
+                    <div class="run-date">19 марта</div>
+                    <div class="run-details">
+                        <span class="run-distance">5.2 км</span>
+                        <span class="run-time">32:15</span>
+                    </div>
+                </div>
+                <div class="run-item">
+                    <div class="run-date">17 марта</div>
+                    <div class="run-details">
+                        <span class="run-distance">8.1 км</span>
+                        <span class="run-time">48:30</span>
+                    </div>
+                </div>
+                <div class="run-item">
+                    <div class="run-date">15 марта</div>
+                    <div class="run-details">
+                        <span class="run-distance">6.5 км</span>
+                        <span class="run-time">39:45</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 
