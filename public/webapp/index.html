@@ -6,14 +6,6 @@
     <title>Статистика - RunConnect</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="app.js"></script>
-    <script>
-        // Немедленная инициализация Telegram WebApp
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-        }
-    </script>
     <style>
         body {
             margin: 0;
@@ -99,48 +91,148 @@
     </div>
 
     <script>
-        // Проверяем, что страница открыта в WebView Telegram
-        function isTelegramWebView() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            return userAgent.includes('webview') || 
-                   userAgent.includes('telegram') || 
-                   window.Telegram?.WebApp?.initData;
-        }
-
-        // Функция инициализации приложения
-        function initApp() {
+        // Глобальные переменные для графиков
+        let progressChart, activityChart, weeklyChart;
+        
+        // Создание графиков
+        function createCharts() {
             try {
-                if (!isTelegramWebView()) {
-                    console.error('Открыто не в WebView Telegram');
-                    window.location.href = 'https://t.me/rsvl_test_bot';
-                    return;
-                }
-
-                if (!window.Telegram?.WebApp) {
-                    showError('Ошибка: Приложение должно быть открыто через Telegram');
-                    return;
-                }
-
-                // Инициализируем графики напрямую
-                if (typeof createCharts === 'function') {
-                    createCharts();
-                } else {
-                    showError('Ошибка: Функции для создания графиков недоступны');
-                }
+                // График прогресса
+                const progressCtx = document.getElementById('progressChart');
+                progressChart = new Chart(progressCtx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [286.5, 713.5],
+                            backgroundColor: ['#2481cc', '#f0f0f0'],
+                            borderWidth: 0,
+                            cutout: '80%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // График активности
+                const activityCtx = document.getElementById('activityChart');
+                activityChart = new Chart(activityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                        datasets: [{
+                            data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
+                            backgroundColor: '#2481cc',
+                            borderRadius: 6,
+                            maxBarThickness: 40
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // График по неделям
+                const weeklyCtx = document.getElementById('weeklyChart');
+                weeklyChart = new Chart(weeklyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
+                        datasets: [{
+                            data: [15.5, 22.3, 18.7, 25.1],
+                            borderColor: '#2481cc',
+                            backgroundColor: '#2481cc',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Скрываем индикатор загрузки
+                document.getElementById('loading').style.display = 'none';
+                
             } catch (error) {
-                showError('Ошибка инициализации: ' + error.message);
+                showError('Ошибка при создании графиков: ' + error.message);
             }
         }
 
         // Функция для показа ошибки
         function showError(message) {
-            console.error('Ошибка:', message);
             const errorDiv = document.getElementById('error');
             if (errorDiv) {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = message;
             }
             document.getElementById('loading').style.display = 'none';
+        }
+
+        // Инициализация приложения
+        function initApp() {
+            try {
+                // Проверяем Telegram WebApp
+                if (!window.Telegram?.WebApp) {
+                    showError('Ошибка: Приложение должно быть открыто через Telegram');
+                    return;
+                }
+
+                // Инициализируем WebApp
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+
+                // Создаем графики
+                createCharts();
+                
+            } catch (error) {
+                showError('Ошибка инициализации: ' + error.message);
+            }
         }
 
         // Запускаем инициализацию после загрузки страницы
