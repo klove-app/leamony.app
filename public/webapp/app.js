@@ -1,3 +1,6 @@
+// Глобальные переменные для графиков
+let progressChart, activityChart, weeklyChart;
+
 // Инициализация при загрузке скрипта
 console.log('Скрипт app.js загружен');
 
@@ -24,22 +27,8 @@ if (!tg) {
         console.log('activityChart canvas:', document.getElementById('activityChart'));
         console.log('weeklyChart canvas:', document.getElementById('weeklyChart'));
         
-        // Ждем загрузку Chart.js
-        function waitForChart(callback) {
-            if (typeof Chart !== 'undefined') {
-                console.log('Chart.js уже загружен');
-                callback();
-            } else {
-                console.log('Ожидаем загрузку Chart.js...');
-                setTimeout(() => waitForChart(callback), 100);
-            }
-        }
-
-        // Создание графиков
-        waitForChart(() => {
-            console.log('Chart.js загружен, создаем графики');
-            createCharts();
-        });
+        // Создаем графики после загрузки DOM
+        document.addEventListener('DOMContentLoaded', createCharts);
         
         // Загружаем тестовые данные
         const testData = {
@@ -57,8 +46,6 @@ if (!tg) {
         showError(error.message);
     }
 }
-
-let progressChart, activityChart, weeklyChart;
 
 // Создание графиков
 function createCharts() {
