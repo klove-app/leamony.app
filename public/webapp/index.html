@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://telegram.org https://cdnjs.cloudflare.com">
     <title>Статистика - RunConnect</title>
+    <script src="https://telegram.org/js/telegram-web-app.js" data-telegram-webapp="true" data-path="runconnect"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -100,7 +102,7 @@
         function updateStatus(message) {
             const loadingDiv = document.getElementById('loading');
             if (loadingDiv) {
-                loadingDiv.textContent = message;
+                loadingDiv.innerHTML = message;
             }
         }
         
@@ -117,17 +119,6 @@
             document.getElementById('loading').style.display = 'none';
         }
 
-        // Функция загрузки скрипта
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = () => reject(new Error(`Не удалось загрузить скрипт: ${src}`));
-                document.head.appendChild(script);
-            });
-        }
-
         // Функция проверки готовности Telegram WebApp
         function waitForTelegram() {
             return new Promise((resolve, reject) => {
@@ -142,7 +133,9 @@
                         `window.Telegram: ${!!window.Telegram}`,
                         `window.Telegram?.WebApp: ${!!window.Telegram?.WebApp}`,
                         `User Agent: ${navigator.userAgent}`,
-                        `URL: ${window.location.href}`
+                        `URL: ${window.location.href}`,
+                        `Referrer: ${document.referrer}`,
+                        `WebView: ${/WebView|Telegram/i.test(navigator.userAgent)}`
                     ].join('<br>');
                     
                     updateStatus(`Ожидание Telegram WebApp...<br><span style="font-size: 12px; color: gray;">${details}</span>`);
@@ -184,15 +177,13 @@
         // Инициализация приложения
         async function initApp() {
             try {
-                updateStatus('Загрузка скриптов...');
-                
-                // Загружаем скрипты
-                await Promise.all([
-                    loadScript('https://telegram.org/js/telegram-web-app.js'),
-                    loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js')
-                ]);
-                
                 updateStatus('Проверка окружения...');
+                
+                // Проверяем, что мы в WebView
+                if (!/WebView|Telegram/i.test(navigator.userAgent)) {
+                    window.location.href = 'https://t.me/rsvl_test_bot/app';
+                    return;
+                }
                 
                 // Ждем загрузку Telegram WebApp
                 tg = await waitForTelegram();
