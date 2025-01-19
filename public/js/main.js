@@ -93,7 +93,18 @@ function updateUserInterface(user) {
         const dashboardLink = document.createElement('a');
         dashboardLink.href = '/dashboard';
         dashboardLink.className = 'nav-link';
-        dashboardLink.textContent = user.email || 'Личный кабинет';
+        
+        // Проверяем структуру данных пользователя
+        let displayName = 'Личный кабинет';
+        if (user && typeof user === 'object') {
+            if (user.email) {
+                displayName = user.email;
+            } else if (user.access_token) {
+                // Если пришел только токен, оставляем "Личный кабинет"
+                console.log('Получен только токен авторизации');
+            }
+        }
+        dashboardLink.textContent = displayName;
         
         // Заменяем кнопку входа на ссылку дашборда
         loginButton.parentNode.replaceChild(dashboardLink, loginButton);
