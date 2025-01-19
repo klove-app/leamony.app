@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.telegram.org https://cdnjs.cloudflare.com https://app.runconnect.app; script-src 'self' 'unsafe-inline' https://*.telegram.org https://cdnjs.cloudflare.com https://app.runconnect.app; style-src 'self' 'unsafe-inline'; connect-src 'self' https://app.runconnect.app;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.telegram.org https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://*.telegram.org https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline';">
     <title>Статистика - RunConnect</title>
     <style>
         body {
@@ -102,28 +102,18 @@
             const urlParams = new URLSearchParams(window.location.search);
             console.log('URL Parameters:', Object.fromEntries(urlParams));
             
-            // Проверяем хост и домен
-            const host = window.location.host;
-            const allowedDomains = ['app.runconnect.app', 'localhost'];
-            console.log('Host:', host);
-            console.log('Is Allowed Domain:', allowedDomains.includes(host));
+            // Проверяем хост
+            console.log('Host:', window.location.host);
             
             // Множественные способы определения Telegram
             const checks = {
                 userAgent: navigator.userAgent.toLowerCase().includes('telegram'),
                 webAppObject: typeof window.Telegram !== 'undefined',
                 webAppData: window.Telegram?.WebApp?.initData?.length > 0,
-                webAppInitDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe,
-                allowedDomain: allowedDomains.includes(host)
+                webAppInitDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe
             };
             
             console.log('Telegram Detection Checks:', checks);
-            
-            // Если домен не разрешен, показываем специальную ошибку
-            if (!checks.allowedDomain) {
-                showError('Ошибка: Неверный домен. Используйте app.runconnect.app');
-                return false;
-            }
             
             // Возвращаем true, если хотя бы один из методов определения сработал
             return checks.userAgent || checks.webAppObject || checks.webAppData;
