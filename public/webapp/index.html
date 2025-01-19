@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://telegram.org https://cdnjs.cloudflare.com">
     <title>Статистика - RunConnect</title>
+    <script src="https://telegram.org/js/telegram-web-app.js" defer crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {
@@ -90,21 +92,6 @@
     </div>
 
     <script>
-        // Функция для загрузки скрипта Telegram
-        function loadTelegramScript() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://telegram.org/js/telegram-web-app.js';
-                script.async = true;
-                script.onload = () => {
-                    // Даем время на инициализацию
-                    setTimeout(resolve, 100);
-                };
-                script.onerror = () => reject(new Error('Не удалось загрузить скрипт Telegram'));
-                document.head.appendChild(script);
-            });
-        }
-
         // Глобальные переменные
         let tg = null;
         let progressChart, activityChart, weeklyChart;
@@ -125,6 +112,7 @@
         // Проверка окружения
         function checkEnvironment() {
             const details = [];
+            details.push(`URL: ${window.location.href}`);
             details.push(`User Agent: ${navigator.userAgent}`);
             details.push(`window.Telegram exists: ${!!window.Telegram}`);
             details.push(`window.Telegram?.WebApp exists: ${!!window.Telegram?.WebApp}`);
@@ -257,22 +245,39 @@
             }
         }
 
+        // Проверка готовности WebApp
+        function checkWebApp() {
+            const maxAttempts = 10;
+            let attempts = 0;
+
+            return new Promise((resolve, reject) => {
+                function check() {
+                    attempts++;
+                    if (window.Telegram?.WebApp) {
+                        resolve(window.Telegram.WebApp);
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('WebApp не загрузился после нескольких попыток'));
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                }
+                check();
+            });
+        }
+
         // Инициализация приложения
         async function initApp() {
             try {
-                // Загружаем скрипт Telegram
-                await loadTelegramScript();
+                // Ждем загрузку WebApp
+                tg = await checkWebApp();
                 
                 const envDetails = checkEnvironment();
                 
-                // Пробуем получить WebApp
-                if (!window.Telegram?.WebApp) {
-                    showError('Ошибка: Приложение должно быть открыто через Telegram', envDetails);
+                // Проверяем параметры инициализации
+                if (!tg.initData) {
+                    showError('Ошибка: Отсутствуют параметры инициализации WebApp', envDetails);
                     return;
                 }
-
-                // Обновляем глобальную переменную
-                tg = window.Telegram.WebApp;
 
                 // Инициализируем WebApp
                 tg.ready();
