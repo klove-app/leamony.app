@@ -51,8 +51,6 @@
             margin: 0 0 16px 0;
         }
     </style>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <div id="error" style="display: none; color: red; padding: 10px; margin-bottom: 16px;"></div>
@@ -91,81 +89,88 @@
         </div>
     </div>
 
+    <!-- Загружаем скрипты в правильном порядке -->
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" defer></script>
+    
     <script>
-        // Проверка открытия через Telegram с расширенным логированием
-        function isTelegramWebView() {
-            console.log('User Agent:', navigator.userAgent);
-            console.log('window.Telegram:', window.Telegram);
-            console.log('window.Telegram?.WebApp:', window.Telegram?.WebApp);
+        // Инициализация при загрузке страницы
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM загружен, ожидаем загрузку скриптов...');
             
-            // Проверяем наличие параметров в URL
-            const urlParams = new URLSearchParams(window.location.search);
-            console.log('URL Parameters:', Object.fromEntries(urlParams));
-            
-            // Проверяем хост и домен
-            const host = window.location.host;
-            const allowedDomains = ['runconnect.app', 'localhost'];
-            console.log('Host:', host);
-            console.log('Is Allowed Domain:', allowedDomains.includes(host));
-            
-            // Множественные способы определения Telegram
-            const checks = {
-                userAgent: navigator.userAgent.toLowerCase().includes('telegram'),
-                webAppObject: typeof window.Telegram !== 'undefined',
-                webAppData: window.Telegram?.WebApp?.initData?.length > 0,
-                webAppInitDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe,
-                allowedDomain: allowedDomains.includes(host)
-            };
-            
-            console.log('Telegram Detection Checks:', checks);
-            
-            // Возвращаем true, если хотя бы один из методов определения сработал
-            return checks.userAgent || checks.webAppObject || checks.webAppData;
-        }
-
-        // Глобальная переменная для отслеживания состояния загрузки
-        window.appState = {
-            chartjsLoaded: false,
-            webappLoaded: false
-        };
-
-        // Функция для проверки готовности всех компонентов
-        function checkReadiness() {
-            console.log('Проверка готовности компонентов:', window.appState);
-            if (window.appState.chartjsLoaded && window.appState.webappLoaded) {
-                console.log('Все компоненты загружены, инициализируем приложение');
-                initializeApp();
-            }
-        }
-
-        // Функция для проверки загрузки Telegram WebApp
-        function checkTelegramWebApp() {
-            console.log('Проверка Telegram WebApp...');
-            
-            // Пытаемся инициализировать WebApp сразу
-            try {
+            // Проверяем загрузку Telegram WebApp каждые 100мс
+            const checkInterval = setInterval(() => {
+                console.log('Проверка window.Telegram:', !!window.Telegram);
                 if (window.Telegram?.WebApp) {
-                    console.log('Инициализация WebApp...');
-                    console.log('WebApp initData:', window.Telegram.WebApp.initData);
-                    console.log('WebApp initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+                    clearInterval(checkInterval);
+                    console.log('Telegram WebApp загружен, инициализируем...');
                     
-                    window.Telegram.WebApp.ready();
-                    window.appState.webappLoaded = true;
-                    console.log('WebApp успешно инициализирован');
-                    return true;
+                    try {
+                        // Логируем состояние перед инициализацией
+                        console.log('WebApp initData:', window.Telegram.WebApp.initData);
+                        console.log('WebApp initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+                        console.log('User Agent:', navigator.userAgent);
+                        console.log('Host:', window.location.host);
+                        
+                        // Инициализируем WebApp
+                        window.Telegram.WebApp.ready();
+                        console.log('WebApp успешно инициализирован');
+                        
+                        // Проверяем загрузку Chart.js
+                        if (typeof Chart !== 'undefined') {
+                            console.log('Chart.js загружен, запускаем приложение');
+                            initializeApp();
+                        } else {
+                            console.log('Ожидаем загрузку Chart.js...');
+                            // Ждем загрузку Chart.js
+                            const chartInterval = setInterval(() => {
+                                if (typeof Chart !== 'undefined') {
+                                    clearInterval(chartInterval);
+                                    console.log('Chart.js загружен, запускаем приложение');
+                                    initializeApp();
+                                }
+                            }, 100);
+                        }
+                    } catch (e) {
+                        console.error('Ошибка при инициализации:', e);
+                        showError('Ошибка инициализации: ' + e.message);
+                    }
+                } else if (!window.Telegram) {
+                    console.log('Telegram WebApp еще не загружен...');
                 }
-            } catch (e) {
-                console.error('Ошибка при инициализации WebApp:', e);
-            }
+            }, 100);
             
-            // Если не получилось инициализировать, проверяем через isTelegramWebView
-            if (!isTelegramWebView()) {
-                console.error('Приложение открыто не через Telegram');
-                showError('Ошибка: Приложение должно быть открыто через Telegram');
-                return false;
-            }
+            // Таймаут через 5 секунд, если что-то пошло не так
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                if (!window.Telegram?.WebApp) {
+                    console.error('Не удалось загрузить Telegram WebApp за 5 секунд');
+                    showError('Ошибка: Приложение должно быть открыто через Telegram');
+                }
+            }, 5000);
+        });
+
+        // Функция инициализации приложения
+        function initializeApp() {
+            console.log('Начало инициализации приложения');
+            const loadingDiv = document.getElementById('loading');
             
-            return false;
+            try {
+                // Загружаем наш основной скрипт
+                const appScript = document.createElement('script');
+                appScript.src = 'app.js';
+                appScript.defer = true;
+                appScript.onerror = function() {
+                    showError('Ошибка загрузки app.js');
+                };
+                document.body.appendChild(appScript);
+                
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'none';
+                }
+            } catch (error) {
+                showError('Ошибка инициализации: ' + error.message);
+            }
         }
 
         // Улучшенная функция показа ошибок
@@ -181,51 +186,6 @@
             }
             console.error(message);
         }
-
-        // Функция инициализации приложения
-        function initializeApp() {
-            console.log('Начало инициализации приложения');
-            const loadingDiv = document.getElementById('loading');
-            
-            try {
-                // Загружаем наш основной скрипт
-                const appScript = document.createElement('script');
-                appScript.src = 'app.js';
-                appScript.onerror = function() {
-                    showError('Ошибка загрузки app.js');
-                };
-                document.body.appendChild(appScript);
-                
-                if (loadingDiv) {
-                    loadingDiv.style.display = 'none';
-                }
-            } catch (error) {
-                showError('Ошибка инициализации: ' + error.message);
-            }
-        }
-
-        // Обработчик загрузки Chart.js
-        window.addEventListener('load', function() {
-            if (typeof Chart !== 'undefined') {
-                window.appState.chartjsLoaded = true;
-                console.log('Chart.js загружен');
-                checkReadiness();
-            } else {
-                showError('Ошибка: Chart.js не загружен');
-            }
-        });
-
-        // Инициализация Telegram WebApp
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM загружен, начинаем инициализацию...');
-            
-            // Добавляем небольшую задержку для загрузки скрипта Telegram
-            setTimeout(() => {
-                if (checkTelegramWebApp()) {
-                    checkReadiness();
-                }
-            }, 500);
-        });
     </script>
 </body>
 </html> 
