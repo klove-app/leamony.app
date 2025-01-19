@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RunConnect</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        window.addEventListener('load', function() {
-            try {
-                window.Telegram.WebApp.ready();
-                
+        function initApp() {
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                document.getElementById('error').textContent = 'Ошибка: Telegram WebApp не доступен';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+
+            // Сообщаем что мы готовы
+            window.Telegram.WebApp.ready();
+            
+            // Загружаем Chart.js
+            var script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+            script.onload = function() {
                 // Создаем тестовый график
                 new Chart(document.getElementById('testChart'), {
                     type: 'doughnut',
@@ -25,11 +34,16 @@
                         plugins: { legend: { display: false } }
                     }
                 });
-            } catch (e) {
-                document.getElementById('error').textContent = e.message;
-                document.getElementById('error').style.display = 'block';
-            }
-        });
+            };
+            document.head.appendChild(script);
+        }
+
+        // Ждем загрузки страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
     <style>
         body {
