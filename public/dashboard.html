@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunConnect - Личный кабинет</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="brand">RunConnect</a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Главная</a>
+                <a href="/dashboard" class="nav-link active">Личный кабинет</a>
+                <button id="logoutButton" class="nav-link button">Выйти</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="container">
+            <h1>Личный кабинет</h1>
+            <div id="userProfile" class="profile-section">
+                <h2>Профиль</h2>
+                <div id="profileData">
+                    Загрузка...
+                </div>
+            </div>
+            
+            <div class="dashboard-sections">
+                <div class="dashboard-section">
+                    <h2>Мои тренировки</h2>
+                    <p>Здесь будет информация о ваших тренировках</p>
+                </div>
+                
+                <div class="dashboard-section">
+                    <h2>Статистика</h2>
+                    <p>Здесь будет ваша статистика</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Проверяем авторизацию
+            const user = await checkAuth();
+            if (!user) {
+                // Если пользователь не авторизован, перенаправляем на главную
+                window.location.href = '/';
+                return;
+            }
+
+            // Отображаем данные пользователя
+            const profileData = document.getElementById('profileData');
+            profileData.innerHTML = `
+                <div class="profile-info">
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Имя:</strong> ${user.name || 'Не указано'}</p>
+                </div>
+            `;
+
+            // Обработчик выхода
+            const logoutButton = document.getElementById('logoutButton');
+            logoutButton.addEventListener('click', async () => {
+                const success = await logout();
+                if (success) {
+                    window.location.href = '/';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
