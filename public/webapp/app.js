@@ -2,13 +2,16 @@ let tg = window.Telegram.WebApp;
 let progressChart, activityChart, weeklyChart, groupChart;
 
 // Инициализация WebApp
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен');
+    
     try {
         // Проверяем, загрузился ли Chart.js
         if (typeof Chart === 'undefined') {
             console.error('Chart.js не загружен');
             return;
         }
+        console.log('Chart.js загружен успешно');
 
         tg.ready();
         tg.expand();
@@ -27,8 +30,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
         });
 
-        // Инициализируем графики
-        await initCharts();
+        // Инициализируем графики после небольшой задержки
+        setTimeout(() => {
+            initCharts();
+            console.log('Графики инициализированы');
+        }, 500);
         
         // Инициализируем обработчики
         initHandlers();
@@ -41,10 +47,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // Инициализация графиков
-async function initCharts() {
+function initCharts() {
     try {
         // График прогресса (круговой)
         const progressCtx = document.getElementById('progressChart');
+        console.log('progressChart элемент:', progressCtx);
+        
         if (progressCtx) {
             progressChart = new Chart(progressCtx, {
                 type: 'doughnut',
@@ -52,7 +60,7 @@ async function initCharts() {
                     datasets: [{
                         data: [286.5, 713.5],
                         backgroundColor: [
-                            getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                            '#2481cc',
                             'rgba(0, 0, 0, 0.1)'
                         ],
                         borderWidth: 0,
@@ -69,10 +77,13 @@ async function initCharts() {
                     }
                 }
             });
+            console.log('progressChart создан');
         }
 
         // График активности за месяц
         const activityCtx = document.getElementById('activityChart');
+        console.log('activityChart элемент:', activityCtx);
+        
         if (activityCtx) {
             activityChart = new Chart(activityCtx, {
                 type: 'bar',
@@ -81,7 +92,7 @@ async function initCharts() {
                     datasets: [{
                         label: 'Километры',
                         data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
-                        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                        backgroundColor: '#2481cc',
                         borderRadius: 8
                     }]
                 },
@@ -108,10 +119,13 @@ async function initCharts() {
                     }
                 }
             });
+            console.log('activityChart создан');
         }
 
         // График статистики по неделям
         const weeklyCtx = document.getElementById('weeklyChart');
+        console.log('weeklyChart элемент:', weeklyCtx);
+        
         if (weeklyCtx) {
             weeklyChart = new Chart(weeklyCtx, {
                 type: 'line',
@@ -120,7 +134,7 @@ async function initCharts() {
                     datasets: [{
                         label: 'Километры',
                         data: [15.5, 22.3, 18.7, 25.1],
-                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                        borderColor: '#2481cc',
                         backgroundColor: 'rgba(36, 129, 204, 0.1)',
                         tension: 0.4,
                         fill: true
@@ -149,9 +163,11 @@ async function initCharts() {
                     }
                 }
             });
+            console.log('weeklyChart создан');
         }
     } catch (error) {
         console.error('Ошибка при инициализации графиков:', error);
+        console.error('Стек ошибки:', error.stack);
     }
 }
 
