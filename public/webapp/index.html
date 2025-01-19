@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.telegram.org https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://*.telegram.org https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline';">
     <title>Статистика - RunConnect</title>
     <style>
         body {
@@ -50,7 +51,7 @@
             margin: 0 0 16px 0;
         }
     </style>
-    <!-- Загружаем Chart.js до инициализации WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
@@ -90,12 +91,16 @@
         </div>
     </div>
 
-    <!-- Скрипты -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+        // Проверка открытия через Telegram
+        function isTelegramWebView() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            return userAgent.includes('telegram') || window.Telegram !== undefined;
+        }
+
         // Глобальная переменная для отслеживания состояния загрузки
         window.appState = {
-            chartjsLoaded: typeof Chart !== 'undefined',
+            chartjsLoaded: false,
             webappLoaded: false
         };
 
@@ -111,6 +116,11 @@
         // Функция для проверки загрузки Telegram WebApp
         function checkTelegramWebApp() {
             console.log('Проверка Telegram WebApp...');
+            if (!isTelegramWebView()) {
+                console.error('Приложение открыто не через Telegram');
+                showError('Ошибка: Приложение должно быть открыто через Telegram');
+                return false;
+            }
             if (!window.Telegram || !window.Telegram.WebApp) {
                 console.error('Telegram WebApp не загружен');
                 showError('Ошибка: Telegram WebApp не загружен. Убедитесь, что вы открываете приложение через Telegram.');
@@ -156,18 +166,20 @@
             }
         }
 
-        // Обработчик загрузки страницы
+        // Обработчик загрузки Chart.js
         window.addEventListener('load', function() {
-            console.log('Страница загружена, начинаем инициализацию...');
-            
-            // Проверяем Chart.js
-            if (typeof Chart === 'undefined') {
+            if (typeof Chart !== 'undefined') {
+                window.appState.chartjsLoaded = true;
+                console.log('Chart.js загружен');
+                checkReadiness();
+            } else {
                 showError('Ошибка: Chart.js не загружен');
-                return;
             }
-            window.appState.chartjsLoaded = true;
-            
-            // Проверяем и инициализируем WebApp
+        });
+
+        // Инициализация Telegram WebApp
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM загружен, проверяем Telegram WebApp');
             if (checkTelegramWebApp()) {
                 try {
                     window.Telegram.WebApp.ready();
