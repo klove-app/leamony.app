@@ -87,20 +87,32 @@ function clearError(formId) {
 function updateUserInterface(user) {
     console.log('Обновление интерфейса для пользователя:', user);
     
-    const loginButton = document.getElementById('loginButton');
+    const loginButton = document.querySelector('a.nav-link[href="#"]');
     if (loginButton) {
-        // Заменяем кнопку входа на ссылку в личный кабинет
-        const profileLink = document.createElement('a');
-        profileLink.href = '/dashboard';
-        profileLink.className = 'nav-link';
-        profileLink.textContent = user.email || 'Личный кабинет';
-        loginButton.parentNode.replaceChild(profileLink, loginButton);
-    }
-    
-    // Закрываем модальное окно авторизации
-    const modal = document.getElementById('authModal');
-    if (modal) {
-        modal.style.display = 'none';
+        // Создаем новую ссылку на дашборд
+        const dashboardLink = document.createElement('a');
+        dashboardLink.href = '/dashboard';
+        dashboardLink.className = 'nav-link';
+        dashboardLink.textContent = user.email || 'Личный кабинет';
+        
+        // Заменяем кнопку входа на ссылку дашборда
+        loginButton.parentNode.replaceChild(dashboardLink, loginButton);
+        
+        // Закрываем модальное окно
+        const modal = document.getElementById('authModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.style.visibility = 'hidden';
+            modal.style.opacity = '0';
+        }
+        
+        // Очищаем формы
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        if (loginForm) loginForm.reset();
+        if (registerForm) registerForm.reset();
+    } else {
+        console.error('Кнопка входа не найдена');
     }
 }
 
