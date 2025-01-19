@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://*.telegram.org data: blob:; script-src 'self' 'unsafe-inline' https://telegram.org https://*.telegram.org https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline';">
     <title>Статистика - RunConnect</title>
     <script>
+        // Функция для обновления деталей загрузки
+        function updateLoadingDetails(details) {
+            const detailsDiv = document.getElementById('loadingDetails');
+            if (detailsDiv) {
+                detailsDiv.innerHTML = details;
+            }
+        }
+
         // Функция для логирования
         function logDebug(message, data = {}) {
             const debugInfo = [
@@ -15,9 +23,12 @@
                 `User Agent: ${navigator.userAgent}`,
                 `Platform: ${navigator.platform}`,
                 `WebView: ${/WebView|TelegramWebView|iPhone|Android/i.test(navigator.userAgent)}`,
+                `Telegram: ${!!window.Telegram}`,
+                `WebApp: ${!!window.Telegram?.WebApp}`,
                 `Data: ${JSON.stringify(data, null, 2)}`
             ].join('\n');
             console.log(debugInfo);
+            updateLoadingDetails(debugInfo.replace(/\n/g, '<br>'));
             return debugInfo;
         }
 
@@ -62,94 +73,14 @@
                 }
             });
         }
-    </script>
-    <script src="telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        .stats-card {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 180px;
-            margin: 16px 0;
-        }
-        #progressChart {
-            max-width: 180px;
-            max-height: 180px;
-            margin: 0 auto;
-        }
-        .progress-details {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 16px;
-            text-align: center;
-        }
-        .detail-value {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 4px;
-        }
-        .detail-label {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #999999);
-        }
-        h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
-            margin: 0 0 16px 0;
-        }
-    </style>
-</head>
-<body>
-    <div id="error" style="display: none; color: red; padding: 10px; margin-bottom: 16px;"></div>
-    <div id="loading" style="display: block; text-align: center; padding: 20px;">Инициализация...</div>
-    
-    <!-- Общий прогресс -->
-    <div class="stats-card">
-        <div class="progress-details">
-            <div class="detail-item">
-                <div class="detail-value">286.5</div>
-                <div class="detail-label">KM пройдено</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-value">713.5</div>
-                <div class="detail-label">KM осталось</div>
-            </div>
-        </div>
-        <div class="chart-container">
-            <canvas id="progressChart"></canvas>
-        </div>
-    </div>
 
-    <!-- Активность за месяц -->
-    <div class="stats-card">
-        <h2>Активность за месяц</h2>
-        <div class="chart-container">
-            <canvas id="activityChart"></canvas>
-        </div>
-    </div>
+        // Проверка на WebView
+        function checkWebView() {
+            const isWebView = /WebView|TelegramWebView|iPhone|Android/i.test(navigator.userAgent);
+            logDebug('WebView check:', { isWebView, userAgent: navigator.userAgent });
+            return isWebView;
+        }
 
-    <!-- Статистика по неделям -->
-    <div class="stats-card">
-        <h2>Статистика по неделям</h2>
-        <div class="chart-container">
-            <canvas id="weeklyChart"></canvas>
-        </div>
-    </div>
-
-    <script>
         // Глобальные переменные
         let tg = null;
         let progressChart, activityChart, weeklyChart;
@@ -188,32 +119,16 @@
 
                 function check() {
                     attempts++;
-                    const state = {
+                    logDebug('Проверка Telegram WebApp', {
                         attempts,
                         windowTelegram: !!window.Telegram,
-                        webAppExists: !!window.Telegram?.WebApp,
-                        userAgent: navigator.userAgent,
-                        url: window.location.href,
-                        referrer: document.referrer
-                    };
-                    
-                    logDebug('Telegram check:', state);
-                    
-                    const details = [
-                        `Попытка: ${attempts}/${maxAttempts}`,
-                        `window.Telegram: ${state.windowTelegram}`,
-                        `window.Telegram?.WebApp: ${state.webAppExists}`,
-                        `User Agent: ${state.userAgent}`,
-                        `URL: ${state.url}`,
-                        `Referrer: ${state.referrer}`
-                    ].join('<br>');
-                    
-                    updateStatus(`Ожидание Telegram WebApp...<br><span style="font-size: 12px; color: gray;">${details}</span>`);
+                        webAppExists: !!window.Telegram?.WebApp
+                    });
 
                     if (window.Telegram?.WebApp) {
                         resolve(window.Telegram.WebApp);
                     } else if (attempts >= maxAttempts) {
-                        reject(new Error('Telegram API не загрузился'));
+                        reject(new Error('Telegram WebApp не загрузился'));
                     } else {
                         setTimeout(check, interval);
                     }
@@ -247,27 +162,20 @@
         // Инициализация приложения
         async function initApp() {
             try {
-                updateStatus('Проверка окружения...');
-                
-                // Проверяем URL параметры
-                const url = new URL(window.location.href);
-                const params = new URLSearchParams(url.search);
-                
-                if (!params.has('tgWebAppData')) {
-                    const details = [
-                        `URL: ${window.location.href}`,
-                        `Параметры: ${Array.from(params.entries()).map(([k,v]) => `${k}=${v}`).join(', ')}`,
-                        `User Agent: ${navigator.userAgent}`,
-                        `Referrer: ${document.referrer}`
-                    ].join('<br>');
-                    showError('Ошибка: Отсутствуют параметры инициализации', details);
-                    return;
+                if (!checkWebView()) {
+                    throw new Error('Приложение должно быть открыто через Telegram');
                 }
+
+                logDebug('Начало инициализации');
                 
                 // Ждем загрузку Telegram WebApp
                 tg = await waitForTelegram();
                 
-                updateStatus('Настройка WebApp...');
+                logDebug('Telegram WebApp загружен', { 
+                    version: tg.version,
+                    platform: tg.platform,
+                    initData: tg.initData
+                });
                 
                 // Инициализируем WebApp
                 tg.ready();
@@ -276,27 +184,22 @@
                 // Загружаем данные
                 userData = await loadUserData();
                 if (!userData) {
-                    return;
+                    throw new Error('Не удалось загрузить данные');
                 }
                 
-                updateStatus('Создание графиков...');
-                
-                // Создаем графики после загрузки Chart.js
-                if (typeof Chart !== 'undefined') {
-                    createCharts();
-                } else {
-                    showError('Ошибка: Chart.js не загружен');
+                // Создаем графики
+                if (typeof Chart === 'undefined') {
+                    throw new Error('Chart.js не загружен');
                 }
+                
+                createCharts();
                 
             } catch (error) {
-                const details = [
-                    `User Agent: ${navigator.userAgent}`,
-                    `URL: ${window.location.href}`,
-                    `Referrer: ${document.referrer}`,
-                    `window.Telegram: ${!!window.Telegram}`,
-                    `window.Telegram?.WebApp: ${!!window.Telegram?.WebApp}`
-                ].join('<br>');
-                showError('Ошибка инициализации: ' + error.message, details);
+                logDebug('Ошибка инициализации', { 
+                    error: error.message,
+                    stack: error.stack
+                });
+                showError(error.message);
             }
         }
 
@@ -439,5 +342,94 @@
             }
         }
     </script>
+    <script src="telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .stats-card {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            margin: 16px 0;
+        }
+        #progressChart {
+            max-width: 180px;
+            max-height: 180px;
+            margin: 0 auto;
+        }
+        .progress-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .detail-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 4px;
+        }
+        .detail-label {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0 0 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="error" style="display: none; padding: 20px; text-align: center; color: red;"></div>
+    <div id="loading" style="display: block; padding: 20px; text-align: center;">
+        <div style="margin-bottom: 10px;">Загрузка приложения...</div>
+        <div id="loadingDetails" style="font-size: 12px; color: gray;"></div>
+    </div>
+    
+    <!-- Общий прогресс -->
+    <div class="stats-card">
+        <div class="progress-details">
+            <div class="detail-item">
+                <div class="detail-value">286.5</div>
+                <div class="detail-label">KM пройдено</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-value">713.5</div>
+                <div class="detail-label">KM осталось</div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Активность за месяц -->
+    <div class="stats-card">
+        <h2>Активность за месяц</h2>
+        <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Статистика по неделям -->
+    <div class="stats-card">
+        <h2>Статистика по неделям</h2>
+        <div class="chart-container">
+            <canvas id="weeklyChart"></canvas>
+        </div>
+    </div>
+
 </body>
 </html> 
