@@ -1,30 +1,21 @@
+// Инициализация при загрузке скрипта
+console.log('Скрипт app.js загружен');
+
 let tg = window.Telegram.WebApp;
 let progressChart, activityChart, weeklyChart;
 
-// Инициализация при загрузке DOM
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен');
+// Проверяем готовность WebApp
+if (!tg) {
+    showError('Telegram WebApp не доступен');
+} else {
+    console.log('WebApp доступен, инициализируем...');
+    tg.ready();
+    tg.expand();
     
-    // Проверяем наличие необходимых объектов
-    if (!window.Telegram || !window.Telegram.WebApp) {
-        showError('Telegram WebApp не инициализирован');
-        return;
-    }
-    
-    if (typeof Chart === 'undefined') {
-        showError('Chart.js не загружен');
-        return;
-    }
-    
+    // Создаем графики
     try {
-        // Инициализируем Telegram WebApp
-        tg.ready();
-        tg.expand();
-        console.log('WebApp инициализирован');
-        
-        // Создаем графики
         createCharts();
-        console.log('Графики созданы');
+        console.log('Графики созданы успешно');
         
         // Загружаем тестовые данные
         const testData = {
@@ -37,10 +28,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Данные загружены');
         
     } catch (error) {
-        console.error('Ошибка инициализации:', error);
+        console.error('Ошибка при создании графиков:', error);
         showError(error.message);
     }
-});
+}
 
 // Создание графиков
 function createCharts() {
@@ -55,10 +46,7 @@ function createCharts() {
         data: {
             datasets: [{
                 data: [0, 0],
-                backgroundColor: [
-                    '#2481cc',
-                    '#f0f0f0'
-                ],
+                backgroundColor: ['#2481cc', '#f0f0f0'],
                 borderWidth: 0,
                 cutout: '80%'
             }]
