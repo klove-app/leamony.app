@@ -50,8 +50,6 @@
             margin: 0 0 16px 0;
         }
     </style>
-    <!-- Загружаем Telegram WebApp первым -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div id="error" style="display: none; color: red; padding: 10px; margin-bottom: 16px;"></div>
@@ -90,39 +88,67 @@
         </div>
     </div>
 
-    <!-- Chart.js загружаем после -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
     <script>
-        // Проверяем, открыто ли приложение в Telegram
-        if (!window.Telegram || !window.Telegram.WebApp) {
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error').textContent = 'Ошибка: Приложение должно быть открыто через Telegram';
-            document.getElementById('loading').style.display = 'none';
-            throw new Error('Telegram WebApp не инициализирован');
+        // Функция для получения параметров URL
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            console.log('URL params:', Object.fromEntries(params));
+            return Object.fromEntries(params);
         }
 
-        // Инициализируем Telegram WebApp
-        try {
-            window.Telegram.WebApp.ready();
-            
-            // Загружаем основной скрипт приложения
-            const appScript = document.createElement('script');
-            appScript.src = 'app.js';
-            appScript.onload = function() {
-                document.getElementById('loading').style.display = 'none';
-            };
-            appScript.onerror = function() {
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('error').textContent = 'Ошибка загрузки приложения';
-                document.getElementById('loading').style.display = 'none';
-            };
-            document.body.appendChild(appScript);
-        } catch (error) {
+        // Функция для проверки, открыто ли приложение как Mini App
+        function isMiniApp() {
+            const params = getUrlParams();
+            return params.startapp === 'true' || 
+                   params.tgWebAppStartParam === 'true' || 
+                   (window.Telegram && window.Telegram.WebApp);
+        }
+
+        // Функция для показа ошибки
+        function showError(message) {
             document.getElementById('error').style.display = 'block';
-            document.getElementById('error').textContent = 'Ошибка инициализации: ' + error.message;
+            document.getElementById('error').textContent = message;
             document.getElementById('loading').style.display = 'none';
         }
+
+        // Функция инициализации приложения
+        function initApp() {
+            try {
+                // Проверяем, открыто ли приложение как Mini App
+                if (!isMiniApp()) {
+                    window.location.href = 'https://t.me/rsvl_test_bot';
+                    return;
+                }
+
+                // Проверяем наличие Telegram WebApp
+                if (!window.Telegram || !window.Telegram.WebApp) {
+                    showError('Ошибка: Приложение должно быть открыто через Telegram');
+                    return;
+                }
+
+                // Инициализируем Telegram WebApp
+                window.Telegram.WebApp.ready();
+                
+                // Загружаем основной скрипт приложения
+                const appScript = document.createElement('script');
+                appScript.src = 'app.js';
+                appScript.onload = function() {
+                    document.getElementById('loading').style.display = 'none';
+                };
+                appScript.onerror = function() {
+                    showError('Ошибка загрузки приложения');
+                };
+                document.body.appendChild(appScript);
+            } catch (error) {
+                showError('Ошибка инициализации: ' + error.message);
+            }
+        }
+
+        // Запускаем инициализацию после загрузки страницы
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html> 
