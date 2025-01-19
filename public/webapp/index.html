@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Статистика - RunConnect</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Немедленная инициализация Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+    </script>
     <style>
         body {
             margin: 0;
@@ -88,82 +96,31 @@
         </div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
     <script>
-        // Функция для получения параметров URL
-        function getUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            const pathname = window.location.pathname;
-            console.log('URL pathname:', pathname);
-            console.log('URL params:', Object.fromEntries(params));
-            return {
-                params: Object.fromEntries(params),
-                pathname: pathname
-            };
-        }
-
-        // Функция для проверки, открыто ли приложение как Mini App
-        function isMiniApp() {
-            const {params, pathname} = getUrlParams();
-            
-            // Проверяем путь и параметры
-            const isCorrectPath = pathname.includes('/runconnect') || 
-                                pathname.includes('/webapp') ||
-                                pathname === '/';
-                                
-            const isWebApp = window.Telegram && window.Telegram.WebApp;
-            const hasWebAppData = window.Telegram?.WebApp?.initData?.length > 0;
-            const hasStartParam = params.startapp === 'true' || 
-                                params.tgWebAppStartParam === 'true' ||
-                                params.source === 'telegram';
-            
-            console.log('Path check:', {
-                pathname,
-                isCorrectPath,
-                isWebApp,
-                hasWebAppData,
-                hasStartParam,
-                initData: window.Telegram?.WebApp?.initData,
-                initDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe
-            });
-            
-            return isWebApp || hasWebAppData || hasStartParam;
-        }
-
-        // Функция для показа ошибки
-        function showError(message) {
-            console.error('Показываем ошибку:', message);
-            const errorDiv = document.getElementById('error');
-            if (errorDiv) {
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = message;
-            } else {
-                console.error('Элемент для отображения ошибки не найден');
-            }
+        // Проверяем, что страница открыта в WebView Telegram
+        function isTelegramWebView() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            return userAgent.includes('webview') || 
+                   userAgent.includes('telegram') || 
+                   window.Telegram?.WebApp?.initData;
         }
 
         // Функция инициализации приложения
         function initApp() {
             try {
-                // Проверяем, открыто ли приложение как Mini App
-                if (!isMiniApp()) {
-                    console.error('Приложение открыто не через Mini App');
-                    window.location.href = 'https://t.me/rsvl_test_bot/runconnect';
+                if (!isTelegramWebView()) {
+                    console.error('Открыто не в WebView Telegram');
+                    window.location.href = 'https://t.me/rsvl_test_bot';
                     return;
                 }
 
-                // Проверяем наличие Telegram WebApp
-                if (!window.Telegram || !window.Telegram.WebApp) {
+                if (!window.Telegram?.WebApp) {
                     showError('Ошибка: Приложение должно быть открыто через Telegram');
                     return;
                 }
 
-                // Инициализируем Telegram WebApp
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
-                
                 // Загружаем основной скрипт приложения
                 const appScript = document.createElement('script');
                 appScript.src = 'app.js';
@@ -179,8 +136,23 @@
             }
         }
 
+        // Функция для показа ошибки
+        function showError(message) {
+            console.error('Ошибка:', message);
+            const errorDiv = document.getElementById('error');
+            if (errorDiv) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = message;
+            }
+            document.getElementById('loading').style.display = 'none';
+        }
+
         // Запускаем инициализацию после загрузки страницы
-        document.addEventListener('DOMContentLoaded', initApp);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html> 
