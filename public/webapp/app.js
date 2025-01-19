@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
         });
 
+        // Инициализируем графики
+        initCharts();
+        
         // Инициализируем обработчики
         initHandlers();
         
@@ -30,6 +33,111 @@ document.addEventListener('DOMContentLoaded', function() {
         showError('Не удалось инициализировать приложение');
     }
 });
+
+// Инициализация графиков
+function initCharts() {
+    // График прогресса (круговой)
+    const progressCtx = document.getElementById('progressChart').getContext('2d');
+    progressChart = new Chart(progressCtx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [286.5, 713.5],
+                backgroundColor: [
+                    getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                    'rgba(0, 0, 0, 0.1)'
+                ],
+                borderWidth: 0,
+                cutout: '80%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // График активности за месяц
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    activityChart = new Chart(activityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            datasets: [{
+                label: 'Километры',
+                data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
+                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // График статистики по неделям
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    weeklyChart = new Chart(weeklyCtx, {
+        type: 'line',
+        data: {
+            labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
+            datasets: [{
+                label: 'Километры',
+                data: [15.5, 22.3, 18.7, 25.1],
+                borderColor: getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                backgroundColor: 'rgba(36, 129, 204, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
 
 // Инициализация обработчиков событий
 function initHandlers() {

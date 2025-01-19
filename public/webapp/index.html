@@ -10,6 +10,44 @@
 </head>
 <body>
     <div class="container">
+        <!-- Общий прогресс -->
+        <div class="stats-card">
+            <h2>Общий прогресс</h2>
+            <div class="main-stats">
+                <div class="chart-container">
+                    <canvas id="progressChart"></canvas>
+                </div>
+                <div class="stats-info">
+                    <div class="progress-details">
+                        <div class="detail-item">
+                            <span class="detail-value">286.5</span>
+                            <span class="detail-label">КМ пройдено</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-value">713.5</span>
+                            <span class="detail-label">КМ осталось</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Активность за месяц -->
+        <div class="stats-card activity-card">
+            <h2>Активность за месяц</h2>
+            <div class="chart-container">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Статистика по неделям -->
+        <div class="stats-card">
+            <h2>Статистика по неделям</h2>
+            <div class="chart-container">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+
         <h1>Предложения</h1>
         
         <!-- Карточки предложений -->
