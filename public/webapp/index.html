@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RunConnect</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         function showDebug(message) {
             console.log(message);
@@ -20,73 +21,41 @@
         }
 
         function checkEnvironment() {
-            showDebug('URL: ' + window.location.href);
+            const url = new URL(window.location.href);
+            showDebug('Pathname: ' + url.pathname);
+            showDebug('Search: ' + url.search);
+            showDebug('Hash: ' + url.hash);
             showDebug('User Agent: ' + navigator.userAgent);
             
             // Проверяем, открыто ли приложение в Telegram
             if (!/WebView|TelegramWebView|Telegram/i.test(navigator.userAgent)) {
                 showDebug('Приложение открыто не в Telegram');
-                // Получаем bot_username из URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const hash = window.location.hash;
-                let botUsername = 'rsvl_test_bot'; // Значение по умолчанию
-                
-                if (hash) {
-                    const hashParams = new URLSearchParams(hash.substring(1));
-                    const webAppData = hashParams.get('tgWebAppData');
-                    if (webAppData) {
-                        showDebug('WebApp данные найдены, перенаправляем в Telegram');
-                        window.location.href = 'https://t.me/' + botUsername + '/app';
-                        return false;
-                    }
-                }
-                
-                showError('Приложение должно быть открыто через Telegram');
+                window.location.href = 'https://t.me/rsvl_test_bot/app';
                 return false;
             }
             
             return true;
         }
 
-        async function waitForTelegram(maxAttempts = 50) {
-            showDebug('Ожидание загрузки Telegram WebApp...');
-            
-            for (let i = 0; i < maxAttempts; i++) {
-                if (window.Telegram?.WebApp) {
-                    showDebug('Telegram WebApp загружен!');
-                    return true;
-                }
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            showError('Telegram WebApp не загрузился после ' + maxAttempts + ' попыток');
-            return false;
-        }
-
-        async function initApp() {
+        function initApp() {
             if (!checkEnvironment()) {
                 return;
             }
 
-            // Загружаем скрипт Telegram
-            const script = document.createElement('script');
-            script.src = 'https://telegram.org/js/telegram-web-app.js';
-            document.head.appendChild(script);
-
-            // Ждем загрузки Telegram WebApp
-            if (!await waitForTelegram()) {
-                return;
-            }
-
             try {
+                if (!window.Telegram?.WebApp) {
+                    showError('Ошибка: Telegram WebApp не доступен');
+                    return;
+                }
+
                 // Сообщаем что мы готовы
                 window.Telegram.WebApp.ready();
                 showDebug('WebApp.ready() вызван');
                 
                 // Загружаем Chart.js
-                const chartScript = document.createElement('script');
-                chartScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-                chartScript.onload = function() {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+                script.onload = function() {
                     showDebug('Chart.js загружен');
                     // Создаем тестовый график
                     new Chart(document.getElementById('testChart'), {
@@ -104,7 +73,7 @@
                     });
                     showDebug('График создан');
                 };
-                document.head.appendChild(chartScript);
+                document.head.appendChild(script);
             } catch (e) {
                 showError('Ошибка: ' + e.message);
             }
@@ -137,12 +106,6 @@
             margin-top: 20px;
             padding: 10px;
             background: #f5f5f5;
-        }
-        .redirect-message {
-            text-align: center;
-            padding: 20px;
-            font-size: 16px;
-            color: #666;
         }
     </style>
 </head>
