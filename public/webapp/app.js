@@ -24,13 +24,22 @@ if (!tg) {
         console.log('activityChart canvas:', document.getElementById('activityChart'));
         console.log('weeklyChart canvas:', document.getElementById('weeklyChart'));
         
-        // Создаем графики после успешной инициализации WebApp
-        if (typeof Chart === 'undefined') {
-            throw new Error('Chart.js не загружен');
+        // Ждем загрузку Chart.js
+        function waitForChart(callback) {
+            if (typeof Chart !== 'undefined') {
+                console.log('Chart.js уже загружен');
+                callback();
+            } else {
+                console.log('Ожидаем загрузку Chart.js...');
+                setTimeout(() => waitForChart(callback), 100);
+            }
         }
-        
-        createCharts();
-        console.log('Графики созданы успешно');
+
+        // Создание графиков
+        waitForChart(() => {
+            console.log('Chart.js загружен, создаем графики');
+            createCharts();
+        });
         
         // Загружаем тестовые данные
         const testData = {
@@ -67,7 +76,7 @@ function createCharts() {
             type: 'doughnut',
             data: {
                 datasets: [{
-                    data: [0, 0],
+                    data: [286.5, 713.5],
                     backgroundColor: ['#2481cc', '#f0f0f0'],
                     borderWidth: 0,
                     cutout: '80%'
@@ -97,7 +106,7 @@ function createCharts() {
             data: {
                 labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
                 datasets: [{
-                    data: [0, 0, 0, 0, 0, 0, 0],
+                    data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
                     backgroundColor: '#2481cc',
                     borderRadius: 6,
                     maxBarThickness: 40
@@ -140,7 +149,7 @@ function createCharts() {
             data: {
                 labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
                 datasets: [{
-                    data: [0, 0, 0, 0],
+                    data: [15.5, 22.3, 18.7, 25.1],
                     borderColor: '#2481cc',
                     backgroundColor: '#2481cc',
                     tension: 0.4,
@@ -173,9 +182,12 @@ function createCharts() {
         });
         console.log('График статистики создан');
         
+        // Скрываем индикатор загрузки
+        document.getElementById('loading').style.display = 'none';
+        
     } catch (error) {
         console.error('Ошибка при создании графиков:', error);
-        throw error;
+        showError('Ошибка при создании графиков: ' + error.message);
     }
 }
 
