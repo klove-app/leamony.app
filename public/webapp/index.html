@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Статистика - RunConnect</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             margin: 0;
@@ -89,13 +88,16 @@
     </div>
 
     <!-- Скрипты -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Проверяем загрузку Telegram WebApp
-        if (!window.Telegram || !window.Telegram.WebApp) {
-            console.error('Telegram WebApp не загружен');
-            document.getElementById('error').textContent = 'Ошибка: Telegram WebApp не загружен';
-            document.getElementById('error').style.display = 'block';
-        } else {
+        window.addEventListener('load', function() {
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                console.error('Telegram WebApp не загружен');
+                document.getElementById('error').textContent = 'Ошибка: Telegram WebApp не загружен';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+            
             console.log('Telegram WebApp загружен успешно');
             // Загружаем Chart.js
             const chartScript = document.createElement('script');
@@ -113,7 +115,7 @@
                 document.getElementById('error').style.display = 'block';
             };
             document.body.appendChild(chartScript);
-        }
+        });
 
         function showError(message) {
             const errorDiv = document.getElementById('error');

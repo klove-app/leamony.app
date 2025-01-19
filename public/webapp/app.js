@@ -1,19 +1,23 @@
 // Инициализация при загрузке скрипта
 console.log('Скрипт app.js загружен');
 
-let tg = window.Telegram.WebApp;
-let progressChart, activityChart, weeklyChart;
-
 // Проверяем готовность WebApp
+let tg = window.Telegram?.WebApp;
 if (!tg) {
-    showError('Telegram WebApp не доступен');
+    console.error('WebApp недоступен при загрузке app.js');
+    showError('Ошибка инициализации WebApp');
 } else {
-    console.log('WebApp доступен, инициализируем...');
-    tg.ready();
-    tg.expand();
-    
-    // Создаем графики
+    console.log('WebApp найден, инициализируем...');
     try {
+        tg.ready();
+        tg.expand();
+        console.log('WebApp успешно инициализирован');
+        
+        // Создаем графики после успешной инициализации WebApp
+        if (typeof Chart === 'undefined') {
+            throw new Error('Chart.js не загружен');
+        }
+        
         createCharts();
         console.log('Графики созданы успешно');
         
@@ -28,10 +32,12 @@ if (!tg) {
         console.log('Данные загружены');
         
     } catch (error) {
-        console.error('Ошибка при создании графиков:', error);
+        console.error('Ошибка инициализации:', error);
         showError(error.message);
     }
 }
+
+let progressChart, activityChart, weeklyChart;
 
 // Создание графиков
 function createCharts() {
