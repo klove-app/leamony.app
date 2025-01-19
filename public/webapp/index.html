@@ -91,14 +91,54 @@
     </div>
 
     <script>
-        // Глобальные переменные для графиков
+        // Глобальные переменные
+        let tg = window.Telegram?.WebApp;
         let progressChart, activityChart, weeklyChart;
         
+        // Функция для показа ошибки
+        function showError(message, details = '') {
+            const errorDiv = document.getElementById('error');
+            if (errorDiv) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = `<div style="color: red;">${message}</div>`;
+                if (details) {
+                    errorDiv.innerHTML += `<div style="color: gray; font-size: 12px; margin-top: 8px;">${details}</div>`;
+                }
+            }
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Проверка окружения
+        function checkEnvironment() {
+            const details = [];
+            details.push(`User Agent: ${navigator.userAgent}`);
+            details.push(`window.Telegram exists: ${!!window.Telegram}`);
+            details.push(`window.Telegram?.WebApp exists: ${!!window.Telegram?.WebApp}`);
+            
+            if (window.Telegram?.WebApp) {
+                details.push('WebApp properties:');
+                details.push(`- initData: ${window.Telegram.WebApp.initData}`);
+                details.push(`- initDataUnsafe: ${JSON.stringify(window.Telegram.WebApp.initDataUnsafe)}`);
+                details.push(`- version: ${window.Telegram.WebApp.version}`);
+                details.push(`- platform: ${window.Telegram.WebApp.platform}`);
+            }
+            
+            return details.join('<br>');
+        }
+
         // Создание графиков
         function createCharts() {
             try {
                 // График прогресса
                 const progressCtx = document.getElementById('progressChart');
+                if (!progressCtx) {
+                    throw new Error('Canvas для графика прогресса не найден');
+                }
+
+                if (typeof Chart === 'undefined') {
+                    throw new Error('Chart.js не загружен');
+                }
+
                 progressChart = new Chart(progressCtx, {
                     type: 'doughnut',
                     data: {
@@ -196,7 +236,6 @@
                     }
                 });
                 
-                // Скрываем индикатор загрузки
                 document.getElementById('loading').style.display = 'none';
                 
             } catch (error) {
@@ -204,43 +243,34 @@
             }
         }
 
-        // Функция для показа ошибки
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            if (errorDiv) {
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = message;
-            }
-            document.getElementById('loading').style.display = 'none';
-        }
-
         // Инициализация приложения
         function initApp() {
             try {
-                // Проверяем Telegram WebApp
+                const envDetails = checkEnvironment();
+                
+                // Пробуем получить WebApp
                 if (!window.Telegram?.WebApp) {
-                    showError('Ошибка: Приложение должно быть открыто через Telegram');
+                    showError('Ошибка: Приложение должно быть открыто через Telegram', envDetails);
                     return;
                 }
 
+                // Обновляем глобальную переменную
+                tg = window.Telegram.WebApp;
+
                 // Инициализируем WebApp
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
+                tg.ready();
+                tg.expand();
 
                 // Создаем графики
-                createCharts();
+                setTimeout(createCharts, 500); // Добавляем задержку перед созданием графиков
                 
             } catch (error) {
-                showError('Ошибка инициализации: ' + error.message);
+                showError('Ошибка инициализации: ' + error.message, checkEnvironment());
             }
         }
 
-        // Запускаем инициализацию после загрузки страницы
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
+        // Запускаем инициализацию после полной загрузки страницы
+        window.addEventListener('load', initApp);
     </script>
 </body>
 </html> 
