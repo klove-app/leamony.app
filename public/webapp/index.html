@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Статистика - RunConnect</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -54,6 +52,8 @@
     </style>
 </head>
 <body>
+    <div id="error" style="display: none; color: red; padding: 10px;"></div>
+    
     <!-- Общий прогресс -->
     <div class="stats-card">
         <div class="progress-details">
@@ -87,6 +87,28 @@
         </div>
     </div>
 
+    <!-- Скрипты -->
+    <script>
+        // Функция для отображения ошибок
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            console.error(message);
+        }
+        
+        // Проверка загрузки зависимостей
+        window.addEventListener('load', function() {
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                showError('Ошибка: Telegram WebApp не загружен');
+            }
+            if (typeof Chart === 'undefined') {
+                showError('Ошибка: Chart.js не загружен');
+            }
+        });
+    </script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html> 
