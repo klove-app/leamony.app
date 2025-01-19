@@ -1,179 +1,53 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Статистика - RunConnect</title>
+    <title>RunConnect</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        let tg = window.Telegram.WebApp;
-
-        // Функция для отображения статуса
-        function updateStatus(message) {
-            const loading = document.getElementById('loading');
-            if (loading) {
-                loading.textContent = message;
-            }
-            console.log('Status:', message);
-        }
-
-        // Функция для отображения ошибки
-        function showError(message) {
-            const error = document.getElementById('error');
-            if (error) {
-                error.style.display = 'block';
-                error.textContent = message;
-            }
-            document.getElementById('loading').style.display = 'none';
-            console.error('Error:', message);
-        }
-
-        // Обработчик изменения viewport
-        function onViewportChanged(event) {
-            console.log('Viewport changed:', event);
-            document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`);
-            document.documentElement.style.setProperty('--tg-viewport-stable-height', `${tg.viewportStableHeight}px`);
-        }
-
-        // Функция инициализации
-        function initializeApp() {
+        window.addEventListener('load', function() {
             try {
-                // Проверяем доступность WebApp
-                if (!tg) {
-                    throw new Error('Telegram WebApp не доступен');
-                }
-
-                // Выводим информацию о WebApp
-                console.log('WebApp initialized:', {
-                    version: tg.version,
-                    platform: tg.platform,
-                    colorScheme: tg.colorScheme,
-                    themeParams: tg.themeParams,
-                    isExpanded: tg.isExpanded,
-                    viewportHeight: tg.viewportHeight,
-                    viewportStableHeight: tg.viewportStableHeight
+                window.Telegram.WebApp.ready();
+                
+                // Создаем тестовый график
+                new Chart(document.getElementById('testChart'), {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [30, 70],
+                            backgroundColor: ['#2481cc', '#f0f0f0']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } }
+                    }
                 });
-
-                // Подписываемся на изменение viewport
-                tg.onEvent('viewportChanged', onViewportChanged);
-
-                // Устанавливаем начальную высоту viewport
-                onViewportChanged();
-
-                // Расширяем окно
-                tg.expand();
-
-                // Показываем контент
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-
-                // Загружаем Chart.js
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-                script.onload = createCharts;
-                document.head.appendChild(script);
-
-                // Сообщаем WebApp что мы готовы
-                tg.ready();
-
-            } catch (error) {
-                showError(error.message);
+            } catch (e) {
+                document.getElementById('error').textContent = e.message;
+                document.getElementById('error').style.display = 'block';
             }
-        }
-
-        // Запускаем после загрузки DOM
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        });
     </script>
     <style>
-        :root {
-            --tg-viewport-height: 100vh;
-            --tg-viewport-stable-height: 100vh;
-        }
         body {
             margin: 0;
             padding: 16px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            min-height: var(--tg-viewport-stable-height);
         }
-        .stats-card {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 180px;
-            margin: 16px 0;
-        }
-        #progressChart {
-            max-width: 180px;
-            max-height: 180px;
+        #chart-container {
+            width: 200px;
+            height: 200px;
             margin: 0 auto;
-        }
-        .progress-details {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 16px;
-            text-align: center;
-        }
-        .detail-value {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 4px;
-        }
-        .detail-label {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #999999);
-        }
-        h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
-            margin: 0 0 16px 0;
         }
     </style>
 </head>
 <body>
-    <div id="error" style="display: none; padding: 20px; text-align: center; color: red;"></div>
-    <div id="loading" style="padding: 20px; text-align: center;">Загрузка...</div>
-    <div id="content" style="display: none;">
-        <!-- Общий прогресс -->
-        <div class="stats-card">
-            <div class="progress-details">
-                <div class="detail-item">
-                    <div class="detail-value">286.5</div>
-                    <div class="detail-label">KM пройдено</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-value">713.5</div>
-                    <div class="detail-label">KM осталось</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="progressChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Активность за месяц -->
-        <div class="stats-card">
-            <h2>Активность за месяц</h2>
-            <div class="chart-container">
-                <canvas id="activityChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Статистика по неделям -->
-        <div class="stats-card">
-            <h2>Статистика по неделям</h2>
-            <div class="chart-container">
-                <canvas id="weeklyChart"></canvas>
-            </div>
-        </div>
+    <div id="error" style="display: none; color: red; text-align: center; padding: 20px;"></div>
+    <div id="chart-container">
+        <canvas id="testChart"></canvas>
     </div>
 </body>
 </html> 
