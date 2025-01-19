@@ -1,20 +1,16 @@
 let tg = window.Telegram.WebApp;
-let progressChart, activityChart, weeklyChart, groupChart;
+let progressChart, activityChart, weeklyChart;
 
 // Инициализация WebApp
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен');
-    
+document.addEventListener('DOMContentLoaded', async function() {
     try {
-        // Проверяем, загрузился ли Chart.js
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js не загружен');
-            return;
-        }
-        console.log('Chart.js загружен успешно');
-
         tg.ready();
         tg.expand();
+
+        // Проверяем, загрузился ли Chart.js
+        if (typeof Chart === 'undefined') {
+            throw new Error('Chart.js не загружен');
+        }
 
         // Устанавливаем тему
         const theme = {
@@ -30,14 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
         });
 
-        // Инициализируем графики после небольшой задержки
-        setTimeout(() => {
-            initCharts();
-            console.log('Графики инициализированы');
-        }, 500);
-        
-        // Инициализируем обработчики
-        initHandlers();
+        // Инициализируем графики
+        initCharts();
         
         // Загружаем данные пользователя
         await loadUserData();
@@ -48,167 +38,114 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Инициализация графиков
 function initCharts() {
-    try {
-        // График прогресса (круговой)
-        const progressCtx = document.getElementById('progressChart');
-        console.log('progressChart элемент:', progressCtx);
-        
-        if (progressCtx) {
-            progressChart = new Chart(progressCtx, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [286.5, 713.5],
-                        backgroundColor: [
-                            '#2481cc',
-                            'rgba(0, 0, 0, 0.1)'
-                        ],
-                        borderWidth: 0,
-                        cutout: '80%'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+    // График прогресса (круговой)
+    const progressCtx = document.getElementById('progressChart');
+    if (progressCtx) {
+        progressChart = new Chart(progressCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [286.5, 713.5],
+                    backgroundColor: ['#2481cc', 'rgba(0, 0, 0, 0.1)'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     }
                 }
-            });
-            console.log('progressChart создан');
-        }
-
-        // График активности за месяц
-        const activityCtx = document.getElementById('activityChart');
-        console.log('activityChart элемент:', activityCtx);
-        
-        if (activityCtx) {
-            activityChart = new Chart(activityCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                    datasets: [{
-                        label: 'Километры',
-                        data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
-                        backgroundColor: '#2481cc',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                display: false
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-            console.log('activityChart создан');
-        }
-
-        // График статистики по неделям
-        const weeklyCtx = document.getElementById('weeklyChart');
-        console.log('weeklyChart элемент:', weeklyCtx);
-        
-        if (weeklyCtx) {
-            weeklyChart = new Chart(weeklyCtx, {
-                type: 'line',
-                data: {
-                    labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
-                    datasets: [{
-                        label: 'Километры',
-                        data: [15.5, 22.3, 18.7, 25.1],
-                        borderColor: '#2481cc',
-                        backgroundColor: 'rgba(36, 129, 204, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                display: false
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-            console.log('weeklyChart создан');
-        }
-    } catch (error) {
-        console.error('Ошибка при инициализации графиков:', error);
-        console.error('Стек ошибки:', error.stack);
+            }
+        });
     }
-}
 
-// Инициализация обработчиков событий
-function initHandlers() {
-    // Обработчики для кнопок в предложениях
-    document.querySelectorAll('.offer-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const card = this.closest('.offer-card');
-            const title = card.querySelector('h2').textContent;
-            tg.showAlert(`Вы приняли вызов: ${title}`);
+    // График активности за месяц
+    const activityCtx = document.getElementById('activityChart');
+    if (activityCtx) {
+        activityChart = new Chart(activityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                datasets: [{
+                    data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
+                    backgroundColor: '#2481cc',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
         });
-    });
+    }
 
-    // Обработчики для кнопок в сервисах
-    document.querySelectorAll('.service-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const card = this.closest('.service-card');
-            const title = card.querySelector('h3').textContent;
-            tg.showAlert(`Открываем настройки: ${title}`);
+    // График статистики по неделям
+    const weeklyCtx = document.getElementById('weeklyChart');
+    if (weeklyCtx) {
+        weeklyChart = new Chart(weeklyCtx, {
+            type: 'line',
+            data: {
+                labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
+                datasets: [{
+                    data: [15.5, 22.3, 18.7, 25.1],
+                    borderColor: '#2481cc',
+                    backgroundColor: 'rgba(36, 129, 204, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
         });
-    });
-
-    // Обработчики для вкладок навигации
-    document.querySelectorAll('.tab-button').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            tg.showAlert(`Выбрана вкладка: ${this.textContent}`);
-        });
-    });
+    }
 }
 
 // Загрузка данных пользователя
 async function loadUserData() {
     try {
         // TODO: Здесь будет запрос к API для получения реальных данных
-        // const response = await fetch('https://api.runconnect.app/api/user/stats');
-        // const data = await response.json();
-        
-        // Пока используем тестовые данные
         const data = {
             totalProgress: {
                 completed: 286.5,
@@ -240,6 +177,36 @@ function updateCharts(data) {
         weeklyChart.data.datasets[0].data = data.monthlyStats;
         weeklyChart.update();
     }
+}
+
+// Инициализация обработчиков событий
+function initHandlers() {
+    // Обработчики для кнопок в предложениях
+    document.querySelectorAll('.offer-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.offer-card');
+            const title = card.querySelector('h2').textContent;
+            tg.showAlert(`Вы приняли вызов: ${title}`);
+        });
+    });
+
+    // Обработчики для кнопок в сервисах
+    document.querySelectorAll('.service-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.service-card');
+            const title = card.querySelector('h3').textContent;
+            tg.showAlert(`Открываем настройки: ${title}`);
+        });
+    });
+
+    // Обработчики для вкладок навигации
+    document.querySelectorAll('.tab-button').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            tg.showAlert(`Выбрана вкладка: ${this.textContent}`);
+        });
+    });
 }
 
 // Функция отображения ошибки
