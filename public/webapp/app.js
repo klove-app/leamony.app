@@ -26,12 +26,16 @@ function waitForChartJs(maxAttempts = 10) {
 // Инициализация WebApp
 document.addEventListener('DOMContentLoaded', async function() {
     try {
+        console.log('DOM загружен');
+        
+        // Инициализируем Telegram WebApp
         tg.ready();
         tg.expand();
+        console.log('WebApp инициализирован');
 
-        // Ждем загрузки Chart.js
+        // Ждем загрузку Chart.js
         await waitForChartJs();
-        console.log('Chart.js успешно загружен');
+        console.log('Chart.js загружен');
 
         // Устанавливаем тему
         const theme = {
@@ -49,13 +53,29 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Инициализируем графики
         await initCharts();
-        console.log('Графики инициализированы');
+        console.log('Графики созданы');
         
-        // Загружаем данные пользователя
-        await loadUserData();
+        // Инициализируем обработчики событий
+        initHandlers();
+        console.log('Обработчики инициализированы');
+        
+        // Загружаем тестовые данные
+        const testData = {
+            totalProgress: {
+                completed: 286.5,
+                remaining: 713.5
+            },
+            weeklyActivity: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
+            monthlyStats: [15.5, 22.3, 18.7, 25.1]
+        };
+        
+        // Обновляем графики с тестовыми данными
+        updateCharts(testData);
+        console.log('Данные загружены и графики обновлены');
+        
     } catch (error) {
         console.error('Ошибка инициализации:', error);
-        showError('Не удалось загрузить графики. Пожалуйста, обновите страницу.');
+        showError('Не удалось загрузить графики: ' + error.message);
     }
 });
 
@@ -193,19 +213,32 @@ async function loadUserData() {
 
 // Обновление графиков
 function updateCharts(data) {
-    if (progressChart) {
-        progressChart.data.datasets[0].data = [data.totalProgress.completed, data.totalProgress.remaining];
-        progressChart.update();
-    }
+    try {
+        console.log('Обновляем графики с данными:', data);
+        
+        if (progressChart && data.totalProgress) {
+            progressChart.data.datasets[0].data = [
+                data.totalProgress.completed,
+                data.totalProgress.remaining
+            ];
+            progressChart.update();
+            console.log('График прогресса обновлен');
+        }
 
-    if (activityChart) {
-        activityChart.data.datasets[0].data = data.weeklyActivity;
-        activityChart.update();
-    }
+        if (activityChart && data.weeklyActivity) {
+            activityChart.data.datasets[0].data = data.weeklyActivity;
+            activityChart.update();
+            console.log('График активности обновлен');
+        }
 
-    if (weeklyChart) {
-        weeklyChart.data.datasets[0].data = data.monthlyStats;
-        weeklyChart.update();
+        if (weeklyChart && data.monthlyStats) {
+            weeklyChart.data.datasets[0].data = data.monthlyStats;
+            weeklyChart.update();
+            console.log('График статистики обновлен');
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении графиков:', error);
+        showError('Не удалось обновить графики: ' + error.message);
     }
 }
 
