@@ -1,20 +1,42 @@
+// Проверяем наличие объекта Telegram.WebApp
+if (!window.Telegram || !window.Telegram.WebApp) {
+    console.error('Telegram WebApp не инициализирован');
+    document.body.innerHTML = '<div class="error">Ошибка: приложение должно быть открыто в Telegram</div>';
+    return;
+}
+
 let tg = window.Telegram.WebApp;
+console.log('Telegram WebApp инициализирован:', tg);
 
 // Инициализация WebApp
 document.addEventListener('DOMContentLoaded', function() {
-    tg.ready();
-    tg.expand();
+    console.log('DOM загружен, инициализируем WebApp');
+    try {
+        tg.ready();
+        tg.expand();
+        console.log('WebApp готов и развернут');
 
-    // Устанавливаем тему
-    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor);
-    document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor);
-    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.hint_color || '#999999');
-    document.documentElement.style.setProperty('--tg-theme-link-color', tg.link_color || '#2481cc');
-    document.documentElement.style.setProperty('--tg-theme-button-color', tg.button_color || '#2481cc');
-    document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.button_text_color || '#ffffff');
+        // Устанавливаем тему
+        const theme = {
+            bg_color: tg.backgroundColor || '#ffffff',
+            text_color: tg.textColor || '#000000',
+            hint_color: tg.hint_color || '#999999',
+            link_color: tg.link_color || '#2481cc',
+            button_color: tg.button_color || '#2481cc',
+            button_text_color: tg.button_text_color || '#ffffff'
+        };
+        console.log('Применяем тему:', theme);
 
-    // Загружаем данные пользователя
-    loadUserStats();
+        Object.entries(theme).forEach(([key, value]) => {
+            document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
+        });
+
+        // Загружаем данные пользователя
+        loadUserStats();
+    } catch (error) {
+        console.error('Ошибка инициализации WebApp:', error);
+        showError('Не удалось инициализировать приложение');
+    }
 });
 
 // Функция загрузки статистики пользователя
@@ -106,6 +128,9 @@ function updateStats(data) {
 
 // Функция отображения ошибки
 function showError(message) {
-    // TODO: Реализовать красивое отображение ошибок
-    console.error(message);
+    console.error('Ошибка:', message);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error';
+    errorDiv.textContent = message;
+    document.body.prepend(errorDiv);
 } 
