@@ -50,9 +50,12 @@
             margin: 0 0 16px 0;
         }
     </style>
+    <!-- Загружаем Chart.js до инициализации WebApp -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
-    <div id="error" style="display: none; color: red; padding: 10px;"></div>
+    <div id="error" style="display: none; color: red; padding: 10px; margin-bottom: 16px;"></div>
+    <div id="loading" style="display: block; text-align: center; padding: 20px;">Загрузка...</div>
     
     <!-- Общий прогресс -->
     <div class="stats-card">
@@ -90,39 +93,92 @@
     <!-- Скрипты -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        window.addEventListener('load', function() {
+        // Глобальная переменная для отслеживания состояния загрузки
+        window.appState = {
+            chartjsLoaded: typeof Chart !== 'undefined',
+            webappLoaded: false
+        };
+
+        // Функция для проверки готовности всех компонентов
+        function checkReadiness() {
+            console.log('Проверка готовности компонентов:', window.appState);
+            if (window.appState.chartjsLoaded && window.appState.webappLoaded) {
+                console.log('Все компоненты загружены, инициализируем приложение');
+                initializeApp();
+            }
+        }
+
+        // Функция для проверки загрузки Telegram WebApp
+        function checkTelegramWebApp() {
+            console.log('Проверка Telegram WebApp...');
             if (!window.Telegram || !window.Telegram.WebApp) {
                 console.error('Telegram WebApp не загружен');
-                document.getElementById('error').textContent = 'Ошибка: Telegram WebApp не загружен';
-                document.getElementById('error').style.display = 'block';
-                return;
+                showError('Ошибка: Telegram WebApp не загружен. Убедитесь, что вы открываете приложение через Telegram.');
+                return false;
             }
-            
-            console.log('Telegram WebApp загружен успешно');
-            // Загружаем Chart.js
-            const chartScript = document.createElement('script');
-            chartScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-            chartScript.onload = function() {
-                console.log('Chart.js загружен успешно');
-                // Загружаем наш скрипт
-                const appScript = document.createElement('script');
-                appScript.src = 'app.js';
-                document.body.appendChild(appScript);
-            };
-            chartScript.onerror = function() {
-                console.error('Ошибка загрузки Chart.js');
-                document.getElementById('error').textContent = 'Ошибка: Chart.js не загружен';
-                document.getElementById('error').style.display = 'block';
-            };
-            document.body.appendChild(chartScript);
-        });
+            console.log('Telegram WebApp доступен');
+            return true;
+        }
 
+        // Улучшенная функция показа ошибок
         function showError(message) {
             const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+            const loadingDiv = document.getElementById('loading');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
             console.error(message);
         }
+
+        // Функция инициализации приложения
+        function initializeApp() {
+            console.log('Начало инициализации приложения');
+            const loadingDiv = document.getElementById('loading');
+            
+            try {
+                // Загружаем наш основной скрипт
+                const appScript = document.createElement('script');
+                appScript.src = 'app.js';
+                appScript.onerror = function() {
+                    showError('Ошибка загрузки app.js');
+                };
+                document.body.appendChild(appScript);
+                
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'none';
+                }
+            } catch (error) {
+                showError('Ошибка инициализации: ' + error.message);
+            }
+        }
+
+        // Обработчик загрузки страницы
+        window.addEventListener('load', function() {
+            console.log('Страница загружена, начинаем инициализацию...');
+            
+            // Проверяем Chart.js
+            if (typeof Chart === 'undefined') {
+                showError('Ошибка: Chart.js не загружен');
+                return;
+            }
+            window.appState.chartjsLoaded = true;
+            
+            // Проверяем и инициализируем WebApp
+            if (checkTelegramWebApp()) {
+                try {
+                    window.Telegram.WebApp.ready();
+                    window.appState.webappLoaded = true;
+                    console.log('WebApp успешно инициализирован');
+                    checkReadiness();
+                } catch (e) {
+                    showError('Ошибка инициализации WebApp: ' + e.message);
+                }
+            }
+        });
     </script>
 </body>
 </html> 
