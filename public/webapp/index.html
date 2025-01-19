@@ -7,66 +7,115 @@
     <title>Статистика - RunConnect</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        let tg;
-        
-        function showError(message) {
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error').textContent = message;
-            document.getElementById('loading').style.display = 'none';
+        // Функция для отображения статуса загрузки
+        function updateStatus(message, details = '') {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.innerHTML = `
+                    <div>${message}</div>
+                    ${details ? `<div style="font-size: 12px; color: gray; margin-top: 8px;">${details}</div>` : ''}
+                `;
+            }
+            console.log('Status:', message, details);
         }
 
+        // Функция для отображения ошибки
+        function showError(message, details = '') {
+            const error = document.getElementById('error');
+            if (error) {
+                error.style.display = 'block';
+                error.innerHTML = `
+                    <div style="color: red;">${message}</div>
+                    ${details ? `<div style="font-size: 12px; color: gray; margin-top: 8px;">${details}</div>` : ''}
+                `;
+            }
+            document.getElementById('loading').style.display = 'none';
+            console.error('Error:', message, details);
+        }
+
+        // Функция для проверки окружения
+        function checkEnvironment() {
+            const details = {
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                webview: /WebView|TelegramWebView|iPhone|Android/i.test(navigator.userAgent),
+                telegram: !!window.Telegram,
+                webApp: !!window.Telegram?.WebApp,
+                search: window.location.search
+            };
+            
+            console.log('Environment check:', details);
+            return details;
+        }
+
+        // Функция инициализации
         function initializeApp() {
             try {
-                if (!window.Telegram || !window.Telegram.WebApp) {
-                    throw new Error('Telegram WebApp не доступен');
+                updateStatus('Проверка окружения...');
+                const env = checkEnvironment();
+                
+                if (!env.telegram || !env.webApp) {
+                    const details = `
+                        URL: ${env.url}<br>
+                        User Agent: ${env.userAgent}<br>
+                        WebView: ${env.webview}<br>
+                        Telegram: ${env.telegram}<br>
+                        WebApp: ${env.webApp}<br>
+                        Search: ${env.search}
+                    `;
+                    throw new Error('Telegram WebApp не доступен', { cause: details });
                 }
+
+                updateStatus('Инициализация WebApp...');
+                const tg = window.Telegram.WebApp;
                 
-                // Получаем WebApp
-                tg = window.Telegram.WebApp;
-                
-                // Выводим информацию для отладки
-                console.log('WebApp initialized:', {
+                // Выводим информацию о WebApp
+                console.log('WebApp details:', {
                     version: tg.version,
                     platform: tg.platform,
                     colorScheme: tg.colorScheme,
-                    viewportHeight: tg.viewportHeight,
-                    viewportStableHeight: tg.viewportStableHeight,
-                    headerColor: tg.headerColor,
-                    backgroundColor: tg.backgroundColor,
-                    isClosingConfirmationEnabled: tg.isClosingConfirmationEnabled,
-                    isExpanded: tg.isExpanded
+                    initData: tg.initData,
+                    initDataUnsafe: tg.initDataUnsafe
                 });
+
+                // Показываем детали инициализации
+                updateStatus('WebApp инициализирован', `
+                    Version: ${tg.version}<br>
+                    Platform: ${tg.platform}<br>
+                    Color Scheme: ${tg.colorScheme}
+                `);
 
                 // Сообщаем WebApp что мы готовы
                 tg.ready();
+                tg.expand();
+
+                // Показываем контент
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
                 
-                // Загружаем основной скрипт с графиками
+                // Загружаем Chart.js
                 const script = document.createElement('script');
                 script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-                script.onload = createCharts;
-                script.onerror = () => showError('Не удалось загрузить Chart.js');
+                script.onload = () => {
+                    console.log('Chart.js loaded');
+                    if (typeof createCharts === 'function') {
+                        createCharts();
+                    }
+                };
+                script.onerror = (e) => {
+                    console.error('Chart.js load error:', e);
+                    showError('Не удалось загрузить Chart.js');
+                };
                 document.head.appendChild(script);
                 
             } catch (error) {
-                console.error('Initialization error:', error);
-                showError(error.message);
+                showError(error.message, error.cause);
             }
         }
 
-        // Ждем загрузки DOM
-        document.addEventListener('DOMContentLoaded', () => {
-            // Проверяем окружение
-            if (window.location.href.indexOf('https://t.me') === -1 && 
-                !window.location.search.includes('tgWebAppData')) {
-                window.location.href = 'https://t.me/rsvl_test_bot/app';
-                return;
-            }
-            
-            // Запускаем инициализацию
-            initializeApp();
-        });
-        
-        // ... rest of the code (createCharts, etc.) ...
+        // Запускаем после загрузки DOM
+        document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
     <style>
         body {
@@ -118,8 +167,8 @@
     </style>
 </head>
 <body>
-    <div id="error" style="display: none; padding: 20px; text-align: center; color: red;"></div>
-    <div id="loading">Загрузка...</div>
+    <div id="error" style="display: none; padding: 20px; text-align: center;"></div>
+    <div id="loading" style="padding: 20px; text-align: center;">Загрузка...</div>
     <div id="content" style="display: none;">
         <!-- Общий прогресс -->
         <div class="stats-card">
