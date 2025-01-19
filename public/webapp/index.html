@@ -120,7 +120,11 @@
                 details.push(`- ${key}: ${value}`);
             }
             
-            // Проверяем наличие tgWebAppData в URL
+            // Проверяем параметры
+            if (params.has('startapp')) {
+                details.push('Обнаружен параметр startapp - возможно, неправильная конфигурация в BotFather');
+            }
+            
             if (!params.has('tgWebAppData')) {
                 details.push('ВНИМАНИЕ: Отсутствует параметр tgWebAppData');
             }
@@ -134,6 +138,8 @@
             details.push(`URL: ${window.location.href}`);
             details.push(`Pathname: ${window.location.pathname}`);
             details.push(`Search: ${window.location.search}`);
+            details.push(`Protocol: ${window.location.protocol}`);
+            details.push(`Host: ${window.location.host}`);
             details.push(`User Agent: ${navigator.userAgent}`);
             details.push(`window.Telegram exists: ${!!window.Telegram}`);
             details.push(`window.Telegram?.WebApp exists: ${!!window.Telegram?.WebApp}`);
@@ -271,7 +277,7 @@
 
         // Проверка готовности WebApp
         function checkWebApp() {
-            const maxAttempts = 20; // Увеличиваем количество попыток
+            const maxAttempts = 20;
             let attempts = 0;
 
             return new Promise((resolve, reject) => {
@@ -283,20 +289,39 @@
                         const details = checkEnvironment();
                         reject(new Error(`WebApp не загрузился после ${maxAttempts} попыток. Проверьте URL и параметры.`));
                     } else {
-                        setTimeout(check, 200); // Увеличиваем интервал между попытками
+                        setTimeout(check, 200);
                     }
                 }
                 check();
             });
         }
 
+        // Проверка правильности URL
+        function checkAndRedirect() {
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            
+            // Если есть параметр startapp, но нет tgWebAppData
+            if (params.has('startapp') && !params.has('tgWebAppData')) {
+                // Перенаправляем на правильный URL в Telegram
+                window.location.href = 'https://t.me/rsvl_test_bot/app';
+                return true;
+            }
+            
+            // Если неправильный путь
+            if (!url.pathname.includes('/webapp/')) {
+                window.location.href = 'https://t.me/rsvl_test_bot/app';
+                return true;
+            }
+            
+            return false;
+        }
+
         // Инициализация приложения
         async function initApp() {
             try {
-                // Проверяем URL
-                const url = new URL(window.location.href);
-                if (!url.pathname.includes('/webapp/')) {
-                    window.location.href = 'https://t.me/rsvl_test_bot/runconnect';
+                // Проверяем URL и перенаправляем если нужно
+                if (checkAndRedirect()) {
                     return;
                 }
 
