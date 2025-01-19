@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com">
     <title>Статистика - RunConnect</title>
+    <script>
+        // Немедленная проверка и перенаправление
+        (function() {
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            
+            // Если есть startapp, но нет tgWebAppData, перенаправляем
+            if (params.has('startapp') && !params.has('tgWebAppData')) {
+                window.location.href = 'https://t.me/rsvl_test_bot/app';
+            }
+            
+            // Если нет WebView, тоже перенаправляем
+            if (!/WebView|TelegramWebView|iPhone.*like Mac OS X/i.test(navigator.userAgent)) {
+                window.location.href = 'https://t.me/rsvl_test_bot/app';
+            }
+        })();
+    </script>
     <script src="telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
@@ -135,7 +152,7 @@
                         `User Agent: ${navigator.userAgent}`,
                         `URL: ${window.location.href}`,
                         `Referrer: ${document.referrer}`,
-                        `WebView: ${/WebView|Telegram/i.test(navigator.userAgent)}`
+                        `WebView: ${/WebView|TelegramWebView|iPhone.*like Mac OS X/i.test(navigator.userAgent)}`
                     ].join('<br>');
                     
                     updateStatus(`Ожидание Telegram WebApp...<br><span style="font-size: 12px; color: gray;">${details}</span>`);
@@ -179,14 +196,18 @@
             try {
                 updateStatus('Проверка окружения...');
                 
-                // Проверяем, что мы в WebView
-                if (!/WebView|Telegram/i.test(navigator.userAgent)) {
+                // Проверяем URL параметры
+                const url = new URL(window.location.href);
+                const params = new URLSearchParams(url.search);
+                
+                if (!params.has('tgWebAppData')) {
                     const details = [
-                        `User Agent: ${navigator.userAgent}`,
                         `URL: ${window.location.href}`,
+                        `Параметры: ${Array.from(params.entries()).map(([k,v]) => `${k}=${v}`).join(', ')}`,
+                        `User Agent: ${navigator.userAgent}`,
                         `Referrer: ${document.referrer}`
                     ].join('<br>');
-                    showError('Ошибка: Приложение должно быть открыто через Telegram', details);
+                    showError('Ошибка: Отсутствуют параметры инициализации', details);
                     return;
                 }
                 
