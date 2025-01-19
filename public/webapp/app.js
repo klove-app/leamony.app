@@ -1,16 +1,8 @@
-// Проверяем наличие объекта Telegram.WebApp
-if (!window.Telegram || !window.Telegram.WebApp) {
-    console.error('Telegram WebApp не инициализирован');
-    document.body.innerHTML = '<div class="error">Ошибка: приложение должно быть открыто в Telegram</div>';
-    return;
-}
+console.log('Скрипт загружен');
 
-let tg = window.Telegram.WebApp;
-console.log('Telegram WebApp инициализирован:', tg);
-
-// Инициализация WebApp
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен, инициализируем WebApp');
+// Функция инициализации приложения
+function initApp(tg) {
+    console.log('Инициализация приложения');
     try {
         tg.ready();
         tg.expand();
@@ -37,7 +29,44 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Ошибка инициализации WebApp:', error);
         showError('Не удалось инициализировать приложение');
     }
+}
+
+// Ждем загрузку DOM и WebApp
+let webAppReady = false;
+let domReady = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM загружен');
+    domReady = true;
+    if (webAppReady) {
+        initApp(window.Telegram.WebApp);
+    }
 });
+
+// Проверяем наличие объекта Telegram
+console.log('window.Telegram:', window.Telegram);
+
+// Ждем загрузки объекта Telegram.WebApp
+let checkInterval = setInterval(() => {
+    console.log('Проверяем WebApp...');
+    if (window.Telegram && window.Telegram.WebApp) {
+        console.log('WebApp найден!');
+        clearInterval(checkInterval);
+        webAppReady = true;
+        if (domReady) {
+            initApp(window.Telegram.WebApp);
+        }
+    }
+}, 100);
+
+// Таймаут на случай, если WebApp не загрузится
+setTimeout(() => {
+    clearInterval(checkInterval);
+    if (!window.Telegram || !window.Telegram.WebApp) {
+        console.error('WebApp не загрузился за 5 секунд');
+        document.body.innerHTML = '<div class="error">Ошибка: не удалось инициализировать Telegram WebApp. Убедитесь, что вы открыли приложение через Telegram.</div>';
+    }
+}, 5000);
 
 // Функция загрузки статистики пользователя
 async function loadUserStats() {
