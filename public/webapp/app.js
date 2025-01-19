@@ -1,12 +1,22 @@
+// Функция для отображения логов на странице
+function showLog(message) {
+    console.log(message);
+    const logDiv = document.createElement('div');
+    logDiv.className = 'debug-log';
+    logDiv.textContent = message;
+    document.body.prepend(logDiv);
+}
+
 console.log('Скрипт загружен');
+showLog('Скрипт загружен');
 
 // Функция инициализации приложения
 function initApp(tg) {
-    console.log('Инициализация приложения');
+    showLog('Инициализация приложения');
     try {
         tg.ready();
         tg.expand();
-        console.log('WebApp готов и развернут');
+        showLog('WebApp готов и развернут');
 
         // Устанавливаем тему
         const theme = {
@@ -17,7 +27,7 @@ function initApp(tg) {
             button_color: tg.button_color || '#2481cc',
             button_text_color: tg.button_text_color || '#ffffff'
         };
-        console.log('Применяем тему:', theme);
+        showLog('Применяем тему: ' + JSON.stringify(theme));
 
         Object.entries(theme).forEach(([key, value]) => {
             document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
@@ -26,7 +36,7 @@ function initApp(tg) {
         // Загружаем данные пользователя
         loadUserStats();
     } catch (error) {
-        console.error('Ошибка инициализации WebApp:', error);
+        showLog('Ошибка инициализации WebApp: ' + error.message);
         showError('Не удалось инициализировать приложение');
     }
 }
@@ -36,7 +46,7 @@ let webAppReady = false;
 let domReady = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM загружен');
+    showLog('DOM загружен');
     domReady = true;
     if (webAppReady) {
         initApp(window.Telegram.WebApp);
@@ -44,26 +54,26 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Проверяем наличие объекта Telegram
-console.log('window.Telegram:', window.Telegram);
+showLog('Проверяем window.Telegram: ' + (window.Telegram ? 'Найден' : 'Не найден'));
 
 // Ждем загрузки объекта Telegram.WebApp
 let checkInterval = setInterval(() => {
-    console.log('Проверяем WebApp...');
+    showLog('Проверяем WebApp...');
     if (window.Telegram && window.Telegram.WebApp) {
-        console.log('WebApp найден!');
+        showLog('WebApp найден!');
         clearInterval(checkInterval);
         webAppReady = true;
         if (domReady) {
             initApp(window.Telegram.WebApp);
         }
     }
-}, 100);
+}, 1000);
 
 // Таймаут на случай, если WebApp не загрузится
 setTimeout(() => {
     clearInterval(checkInterval);
     if (!window.Telegram || !window.Telegram.WebApp) {
-        console.error('WebApp не загрузился за 5 секунд');
+        showLog('WebApp не загрузился за 5 секунд');
         document.body.innerHTML = '<div class="error">Ошибка: не удалось инициализировать Telegram WebApp. Убедитесь, что вы открыли приложение через Telegram.</div>';
     }
 }, 5000);
