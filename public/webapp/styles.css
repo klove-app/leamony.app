@@ -245,4 +245,87 @@ h2 {
     text-align: center;
     font-weight: 500;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.weekly-stats,
+.group-dynamics {
+    margin-top: 8px;
+}
+
+.weekly-summary,
+.group-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.summary-item,
+.group-stat {
+    text-align: center;
+}
+
+.summary-label,
+.stat-label {
+    display: block;
+    font-size: 14px;
+    color: var(--tg-theme-hint-color);
+    margin-bottom: 4px;
+}
+
+.summary-value,
+.stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tg-theme-text-color);
+}
+
+.chart-container {
+    min-height: 200px;
+    width: 100%;
+    position: relative;
+}
+
+/* Обновляем стили для графиков */
+.activity-card .chart-container,
+.weekly-stats .chart-container,
+.group-dynamics .chart-container {
+    height: 200px;
+}
+
+.main-stats .chart-container {
+    max-width: 160px;
+    height: 160px;
+}
+
+/* Анимации для новых секций */
+.weekly-stats,
+.group-dynamics {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.weekly-stats {
+    animation-delay: 0.3s;
+}
+
+.group-dynamics {
+    animation-delay: 0.4s;
+}
+
+/* Адаптивность для новых секций */
+@media (max-width: 480px) {
+    .weekly-summary,
+    .group-stats {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .summary-item,
+    .group-stat {
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 8px;
+    }
 } 

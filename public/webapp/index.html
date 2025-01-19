@@ -11,32 +11,22 @@
 <body>
     <div class="container">
         <!-- Основные показатели -->
-        <div class="stats-overview">
-            <div class="stats-card main-stats">
-                <div class="chart-container">
-                    <canvas id="progressChart"></canvas>
-                </div>
-                <div class="stats-info">
-                    <h2>Общий прогресс</h2>
-                    <div class="progress-details">
-                        <div class="detail-item">
-                            <span class="detail-value">286.5</span>
-                            <span class="detail-label">км пройдено</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-value">713.5</span>
-                            <span class="detail-label">км осталось</span>
-                        </div>
+        <div class="stats-card main-stats">
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+            <div class="stats-info">
+                <h2>Общий прогресс</h2>
+                <div class="progress-details">
+                    <div class="detail-item">
+                        <span class="detail-value">286.5</span>
+                        <span class="detail-label">км пройдено</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-value">713.5</span>
+                        <span class="detail-label">км осталось</span>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- График активности -->
-        <div class="stats-card activity-card">
-            <h2>Активность за месяц</h2>
-            <div class="chart-container">
-                <canvas id="activityChart"></canvas>
             </div>
         </div>
 
@@ -59,6 +49,50 @@
                 <div class="metric-value">28.6%</div>
                 <div class="metric-label">Цели на год</div>
                 <div class="metric-trend">712 км осталось</div>
+            </div>
+        </div>
+
+        <!-- График активности -->
+        <div class="stats-card activity-card">
+            <h2>Активность за месяц</h2>
+            <div class="chart-container">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Недельная статистика -->
+        <div class="stats-card weekly-stats">
+            <h2>Статистика по неделям</h2>
+            <div class="chart-container">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+            <div class="weekly-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Эта неделя</span>
+                    <span class="summary-value">24.6 км</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Прошлая неделя</span>
+                    <span class="summary-value">21.2 км</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Групповая динамика -->
+        <div class="stats-card group-dynamics">
+            <h2>Групповая динамика</h2>
+            <div class="chart-container">
+                <canvas id="groupChart"></canvas>
+            </div>
+            <div class="group-stats">
+                <div class="group-stat">
+                    <span class="stat-label">Ваше место</span>
+                    <span class="stat-value">#3 из 42</span>
+                </div>
+                <div class="group-stat">
+                    <span class="stat-label">Среднее в группе</span>
+                    <span class="stat-value">5.8 км/день</span>
+                </div>
             </div>
         </div>
 

@@ -1,5 +1,5 @@
 let tg = window.Telegram.WebApp;
-let progressChart, activityChart;
+let progressChart, activityChart, weeklyChart, groupChart;
 
 // Инициализация WebApp
 document.addEventListener('DOMContentLoaded', function() {
@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Инициализация графиков
 function initCharts() {
+    const chartColor = getComputedStyle(document.documentElement).getPropertyValue('--progress-color');
+    
     // График прогресса
     const progressCtx = document.getElementById('progressChart').getContext('2d');
     progressChart = new Chart(progressCtx, {
@@ -41,7 +43,7 @@ function initCharts() {
             datasets: [{
                 data: [28.6, 71.4],
                 backgroundColor: [
-                    getComputedStyle(document.documentElement).getPropertyValue('--progress-color'),
+                    chartColor,
                     'rgba(0, 0, 0, 0.1)'
                 ],
                 borderWidth: 0
@@ -68,7 +70,7 @@ function initCharts() {
             datasets: [{
                 label: 'Километры',
                 data: [5.2, 0, 8.1, 0, 6.5, 4.8, 0],
-                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--progress-color'),
+                backgroundColor: chartColor,
                 borderRadius: 8
             }]
         },
@@ -78,6 +80,103 @@ function initCharts() {
             plugins: {
                 legend: {
                     display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // График по неделям
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    weeklyChart = new Chart(weeklyCtx, {
+        type: 'line',
+        data: {
+            labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
+            datasets: [{
+                label: 'Дистанция',
+                data: [18.5, 21.2, 19.8, 24.6],
+                borderColor: chartColor,
+                backgroundColor: 'rgba(36, 129, 204, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // График групповой динамики
+    const groupCtx = document.getElementById('groupChart').getContext('2d');
+    groupChart = new Chart(groupCtx, {
+        type: 'line',
+        data: {
+            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            datasets: [
+                {
+                    label: 'Вы',
+                    data: [5.2, 0, 8.1, 0, 6.5, 4.8, 0],
+                    borderColor: chartColor,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 3
+                },
+                {
+                    label: 'Среднее по группе',
+                    data: [4.8, 5.1, 4.9, 5.2, 5.0, 4.7, 4.5],
+                    borderColor: 'rgba(0, 0, 0, 0.2)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
                 }
             },
             scales: {
@@ -118,6 +217,18 @@ async function loadUserStats() {
                 runs: 9,
                 change: 12
             },
+            weekly: {
+                current: 24.6,
+                previous: 21.2,
+                data: [18.5, 21.2, 19.8, 24.6]
+            },
+            group: {
+                rank: 3,
+                total: 42,
+                avgDistance: 5.8,
+                userData: [5.2, 0, 8.1, 0, 6.5, 4.8, 0],
+                groupData: [4.8, 5.1, 4.9, 5.2, 5.0, 4.7, 4.5]
+            },
             recent: [
                 { date: '19 марта', distance: 5.2, time: '32:15' },
                 { date: '17 марта', distance: 8.1, time: '48:30' },
@@ -142,49 +253,19 @@ function updateCharts(data) {
     // Обновляем график активности
     activityChart.data.datasets[0].data = data.activity;
     activityChart.update();
+
+    // Обновляем график по неделям
+    weeklyChart.data.datasets[0].data = data.weekly.data;
+    weeklyChart.update();
+
+    // Обновляем график групповой динамики
+    groupChart.data.datasets[0].data = data.group.userData;
+    groupChart.data.datasets[1].data = data.group.groupData;
+    groupChart.update();
 }
 
 // Функция обновления статистики на странице
 function updateStats(data) {
-    // Обновляем годовую статистику
-    document.querySelector('.annual-stats .stats-grid').innerHTML = `
-        <div class="stat-item">
-            <span class="stat-value">${data.year.distance}</span>
-            <span class="stat-label">Километров</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${data.year.runs}</span>
-            <span class="stat-label">Тренировок</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${data.year.avgDistance}</span>
-            <span class="stat-label">Средняя дистанция</span>
-        </div>
-    `;
-
-    // Обновляем прогресс к цели
-    document.querySelector('.progress').style.width = `${data.year.progress}%`;
-    document.querySelector('.progress-label').innerHTML = `
-        <span>Цель: ${data.year.goal} км</span>
-        <span>${data.year.progress}%</span>
-    `;
-
-    // Обновляем месячную статистику
-    document.querySelector('.monthly-stats .stats-grid').innerHTML = `
-        <div class="stat-item">
-            <span class="stat-value">${data.month.distance}</span>
-            <span class="stat-label">Километров</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${data.month.runs}</span>
-            <span class="stat-label">Тренировок</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">+${data.month.change}%</span>
-            <span class="stat-label">К прошлому месяцу</span>
-        </div>
-    `;
-
     // Обновляем список последних пробежек
     const runsList = document.querySelector('.runs-list');
     runsList.innerHTML = data.recent.map(run => `
@@ -196,6 +277,14 @@ function updateStats(data) {
             </div>
         </div>
     `).join('');
+
+    // Обновляем недельную статистику
+    document.querySelector('.weekly-summary .summary-value:first-child').textContent = `${data.weekly.current} км`;
+    document.querySelector('.weekly-summary .summary-value:last-child').textContent = `${data.weekly.previous} км`;
+
+    // Обновляем групповую статистику
+    document.querySelector('.group-stats .stat-value:first-child').textContent = `#${data.group.rank} из ${data.group.total}`;
+    document.querySelector('.group-stats .stat-value:last-child').textContent = `${data.group.avgDistance} км/день`;
 }
 
 // Функция отображения ошибки
