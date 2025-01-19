@@ -21,270 +21,97 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.style.setProperty(`--tg-theme-${key}`, value);
         });
 
-        // Инициализируем графики
-        initCharts();
-
+        // Инициализируем обработчики
+        initHandlers();
+        
         // Загружаем данные пользователя
-        loadUserStats();
+        loadUserData();
     } catch (error) {
         showError('Не удалось инициализировать приложение');
     }
 });
 
-// Инициализация графиков
-function initCharts() {
-    const chartColor = getComputedStyle(document.documentElement).getPropertyValue('--progress-color');
-    
-    // График прогресса
-    const progressCtx = document.getElementById('progressChart').getContext('2d');
-    progressChart = new Chart(progressCtx, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [28.6, 71.4],
-                backgroundColor: [
-                    chartColor,
-                    'rgba(0, 0, 0, 0.1)'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            cutout: '80%',
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
+// Инициализация обработчиков событий
+function initHandlers() {
+    // Обработчики для кнопок в предложениях
+    document.querySelectorAll('.offer-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.offer-card');
+            const title = card.querySelector('h2').textContent;
+            tg.showAlert(`Вы приняли вызов: ${title}`);
+        });
     });
 
-    // График активности
-    const activityCtx = document.getElementById('activityChart').getContext('2d');
-    activityChart = new Chart(activityCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-            datasets: [{
-                label: 'Километры',
-                data: [5.2, 0, 8.1, 0, 6.5, 4.8, 0],
-                backgroundColor: chartColor,
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: false
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
+    // Обработчики для кнопок в сервисах
+    document.querySelectorAll('.service-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.service-card');
+            const title = card.querySelector('h3').textContent;
+            tg.showAlert(`Открываем настройки: ${title}`);
+        });
     });
 
-    // График по неделям
-    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
-    weeklyChart = new Chart(weeklyCtx, {
-        type: 'line',
-        data: {
-            labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
-            datasets: [{
-                label: 'Дистанция',
-                data: [18.5, 21.2, 19.8, 24.6],
-                borderColor: chartColor,
-                backgroundColor: 'rgba(36, 129, 204, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 4,
-                pointBackgroundColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: false
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-
-    // График групповой динамики
-    const groupCtx = document.getElementById('groupChart').getContext('2d');
-    groupChart = new Chart(groupCtx, {
-        type: 'line',
-        data: {
-            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-            datasets: [
-                {
-                    label: 'Вы',
-                    data: [5.2, 0, 8.1, 0, 6.5, 4.8, 0],
-                    borderColor: chartColor,
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    pointRadius: 3
-                },
-                {
-                    label: 'Среднее по группе',
-                    data: [4.8, 5.1, 4.9, 5.2, 5.0, 4.7, 4.5],
-                    borderColor: 'rgba(0, 0, 0, 0.2)',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 0
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: false
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
+    // Обработчики для вкладок навигации
+    document.querySelectorAll('.tab-button').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            tg.showAlert(`Выбрана вкладка: ${this.textContent}`);
+        });
     });
 }
 
-// Функция загрузки статистики пользователя
-async function loadUserStats() {
+// Загрузка данных пользователя
+async function loadUserData() {
     try {
         // TODO: Здесь будет запрос к API для получения реальных данных
-        // const response = await fetch('https://api.runconnect.app/api/stats');
+        // const response = await fetch('https://api.runconnect.app/api/user/data');
         // const data = await response.json();
         
         // Пока используем тестовые данные
         const data = {
-            year: {
-                distance: 286.5,
-                runs: 42,
-                avgDistance: 6.8,
-                goal: 1000,
-                progress: 28.6
-            },
-            month: {
-                distance: 64.2,
-                runs: 9,
-                change: 12
-            },
-            weekly: {
-                current: 24.6,
-                previous: 21.2,
-                data: [18.5, 21.2, 19.8, 24.6]
-            },
-            group: {
-                rank: 3,
-                total: 42,
-                avgDistance: 5.8,
-                userData: [5.2, 0, 8.1, 0, 6.5, 4.8, 0],
-                groupData: [4.8, 5.1, 4.9, 5.2, 5.0, 4.7, 4.5]
-            },
-            recent: [
-                { date: '19 марта', distance: 5.2, time: '32:15' },
-                { date: '17 марта', distance: 8.1, time: '48:30' },
-                { date: '15 марта', distance: 6.5, time: '39:45' }
-            ],
-            activity: [5.2, 0, 8.1, 0, 6.5, 4.8, 0]
+            offers: [
+                {
+                    title: "Достижения",
+                    description: "Получите медаль за пробежку более 10 км",
+                    progress: 80,
+                    current: 8,
+                    total: 10
+                },
+                {
+                    title: "Новый вызов",
+                    description: "Попробуйте велотренировку на этой неделе"
+                },
+                {
+                    title: "Цель недели",
+                    description: "Пробегите 20 км до воскресенья",
+                    progress: 45,
+                    current: 9,
+                    total: 20
+                }
+            ]
         };
 
-        updateStats(data);
-        updateCharts(data);
+        updateInterface(data);
     } catch (error) {
-        showError('Не удалось загрузить статистику');
+        showError('Не удалось загрузить данные');
     }
 }
 
-// Функция обновления графиков
-function updateCharts(data) {
-    // Обновляем график прогресса
-    progressChart.data.datasets[0].data = [data.year.progress, 100 - data.year.progress];
-    progressChart.update();
-
-    // Обновляем график активности
-    activityChart.data.datasets[0].data = data.activity;
-    activityChart.update();
-
-    // Обновляем график по неделям
-    weeklyChart.data.datasets[0].data = data.weekly.data;
-    weeklyChart.update();
-
-    // Обновляем график групповой динамики
-    groupChart.data.datasets[0].data = data.group.userData;
-    groupChart.data.datasets[1].data = data.group.groupData;
-    groupChart.update();
-}
-
-// Функция обновления статистики на странице
-function updateStats(data) {
-    // Обновляем список последних пробежек
-    const runsList = document.querySelector('.runs-list');
-    runsList.innerHTML = data.recent.map(run => `
-        <div class="run-item">
-            <div class="run-date">${run.date}</div>
-            <div class="run-details">
-                <span class="run-distance">${run.distance} км</span>
-                <span class="run-time">${run.time}</span>
-            </div>
-        </div>
-    `).join('');
-
-    // Обновляем недельную статистику
-    document.querySelector('.weekly-summary .summary-value:first-child').textContent = `${data.weekly.current} км`;
-    document.querySelector('.weekly-summary .summary-value:last-child').textContent = `${data.weekly.previous} км`;
-
-    // Обновляем групповую статистику
-    document.querySelector('.group-stats .stat-value:first-child').textContent = `#${data.group.rank} из ${data.group.total}`;
-    document.querySelector('.group-stats .stat-value:last-child').textContent = `${data.group.avgDistance} км/день`;
+// Обновление интерфейса
+function updateInterface(data) {
+    // Обновляем прогресс в предложениях
+    document.querySelectorAll('.offer-card').forEach((card, index) => {
+        const offer = data.offers[index];
+        if (offer.progress !== undefined) {
+            const progressBar = card.querySelector('.progress-bar');
+            const progressText = card.querySelector('.offer-progress span');
+            if (progressBar && progressText) {
+                progressBar.style.width = `${offer.progress}%`;
+                progressText.textContent = `${offer.current} из ${offer.total} км`;
+            }
+        }
+    });
 }
 
 // Функция отображения ошибки

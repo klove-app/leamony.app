@@ -6,6 +6,7 @@
     --tg-theme-button-color: #2481cc;
     --tg-theme-button-text-color: #ffffff;
     --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --card-border-radius: 16px;
     --progress-color: #2481cc;
     --success-color: #31B545;
     --trend-positive: #31B545;
@@ -32,6 +33,250 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 16px 0;
+}
+
+/* Карточки предложений */
+.offers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.offer-card {
+    background: var(--tg-theme-bg-color);
+    border-radius: var(--card-border-radius);
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: transform 0.2s ease;
+}
+
+.offer-card:hover {
+    transform: translateY(-4px);
+}
+
+.offer-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(36, 129, 204, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.offer-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.offer-card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.offer-card p {
+    color: var(--tg-theme-hint-color);
+    font-size: 15px;
+    margin: 0;
+}
+
+.offer-progress {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    height: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--progress-color);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+.offer-progress span {
+    display: block;
+    font-size: 13px;
+    color: var(--tg-theme-hint-color);
+    margin-top: 8px;
+}
+
+.offer-button {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.offer-button:hover {
+    opacity: 0.9;
+}
+
+/* Сервисы */
+.services-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.service-card {
+    background: var(--tg-theme-bg-color);
+    border-radius: var(--card-border-radius);
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+}
+
+.service-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: rgba(36, 129, 204, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.service-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.service-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.service-button {
+    background: transparent;
+    color: var(--tg-theme-button-color);
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.service-button:hover {
+    opacity: 0.8;
+}
+
+/* Навигация */
+.navigation-tabs {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+}
+
+.tab-button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--tg-theme-hint-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-button.active {
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    box-shadow: var(--card-shadow);
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .offers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .services-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .navigation-tabs {
+        flex-wrap: wrap;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.offer-card,
+.service-card {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.offer-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.offer-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.service-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.service-card:nth-child(3) {
+    animation-delay: 0.2s;
 }
 
 .stats-card {
@@ -183,57 +428,6 @@ h2 {
 
 .run-time {
     color: var(--tg-theme-hint-color);
-}
-
-/* Анимации */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.stats-card {
-    animation: fadeIn 0.3s ease-out forwards;
-}
-
-.stats-card:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.stats-card:nth-child(3) {
-    animation-delay: 0.2s;
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    body {
-        padding: 12px;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .main-stats {
-        flex-direction: column;
-    }
-
-    .chart-container {
-        max-width: 100%;
-    }
-
-    .metric-value {
-        font-size: 20px;
-    }
-
-    .metric-label {
-        font-size: 12px;
-    }
 }
 
 .error {
