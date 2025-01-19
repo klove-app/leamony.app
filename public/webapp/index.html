@@ -6,21 +6,62 @@
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com">
     <title>Статистика - RunConnect</title>
     <script>
-        // Немедленная проверка и перенаправление
-        (function() {
-            const url = new URL(window.location.href);
-            const params = new URLSearchParams(url.search);
-            
-            // Если есть startapp, но нет tgWebAppData, перенаправляем
-            if (params.has('startapp') && !params.has('tgWebAppData')) {
-                window.location.href = 'https://t.me/rsvl_test_bot/app';
+        // Функция для логирования
+        function logDebug(message, data = {}) {
+            const debugInfo = [
+                message,
+                `Time: ${new Date().toISOString()}`,
+                `URL: ${window.location.href}`,
+                `User Agent: ${navigator.userAgent}`,
+                `Platform: ${navigator.platform}`,
+                `WebView: ${/WebView|TelegramWebView|iPhone|Android/i.test(navigator.userAgent)}`,
+                `Data: ${JSON.stringify(data, null, 2)}`
+            ].join('\n');
+            console.log(debugInfo);
+            return debugInfo;
+        }
+
+        // Функция для проверки параметров
+        function checkTelegramParams() {
+            try {
+                const url = new URL(window.location.href);
+                const params = new URLSearchParams(url.search);
+                const allParams = {};
+                for (const [key, value] of params.entries()) {
+                    allParams[key] = value;
+                }
+                
+                logDebug('URL parameters check:', allParams);
+
+                // Если открыто не через Telegram, перенаправляем
+                if (!params.has('tgWebAppData') && !params.has('tgWebAppVersion')) {
+                    logDebug('Redirecting to Telegram:', { reason: 'Missing required parameters' });
+                    window.location.href = 'https://t.me/rsvl_test_bot/app';
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                logDebug('Error in checkTelegramParams:', { error: error.message });
+                return false;
             }
-            
-            // Если нет WebView, тоже перенаправляем
-            if (!/WebView|TelegramWebView|iPhone.*like Mac OS X/i.test(navigator.userAgent)) {
-                window.location.href = 'https://t.me/rsvl_test_bot/app';
-            }
-        })();
+        }
+
+        // Проверяем при загрузке
+        if (!checkTelegramParams()) {
+            document.addEventListener('DOMContentLoaded', () => {
+                const errorDiv = document.getElementById('error');
+                if (errorDiv) {
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerHTML = `
+                        <div style="color: red;">Ошибка: Приложение должно быть открыто через Telegram</div>
+                        <div style="color: gray; font-size: 12px; margin-top: 8px;">
+                            ${logDebug('Initial check failed')}
+                        </div>
+                    `;
+                }
+            });
+        }
     </script>
     <script src="telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -121,6 +162,7 @@
             if (loadingDiv) {
                 loadingDiv.innerHTML = message;
             }
+            logDebug('Status update:', { message });
         }
         
         // Функция для показа ошибки
@@ -134,6 +176,7 @@
                 }
             }
             document.getElementById('loading').style.display = 'none';
+            logDebug('Error shown:', { message, details });
         }
 
         // Функция проверки готовности Telegram WebApp
@@ -145,14 +188,24 @@
 
                 function check() {
                     attempts++;
+                    const state = {
+                        attempts,
+                        windowTelegram: !!window.Telegram,
+                        webAppExists: !!window.Telegram?.WebApp,
+                        userAgent: navigator.userAgent,
+                        url: window.location.href,
+                        referrer: document.referrer
+                    };
+                    
+                    logDebug('Telegram check:', state);
+                    
                     const details = [
                         `Попытка: ${attempts}/${maxAttempts}`,
-                        `window.Telegram: ${!!window.Telegram}`,
-                        `window.Telegram?.WebApp: ${!!window.Telegram?.WebApp}`,
-                        `User Agent: ${navigator.userAgent}`,
-                        `URL: ${window.location.href}`,
-                        `Referrer: ${document.referrer}`,
-                        `WebView: ${/WebView|TelegramWebView|iPhone.*like Mac OS X/i.test(navigator.userAgent)}`
+                        `window.Telegram: ${state.windowTelegram}`,
+                        `window.Telegram?.WebApp: ${state.webAppExists}`,
+                        `User Agent: ${state.userAgent}`,
+                        `URL: ${state.url}`,
+                        `Referrer: ${state.referrer}`
                     ].join('<br>');
                     
                     updateStatus(`Ожидание Telegram WebApp...<br><span style="font-size: 12px; color: gray;">${details}</span>`);
