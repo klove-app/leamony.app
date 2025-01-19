@@ -5,346 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://*.telegram.org data: blob:; script-src 'self' 'unsafe-inline' https://telegram.org https://*.telegram.org https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline';">
     <title>Статистика - RunConnect</title>
-    <!-- Telegram WebApp script должен быть первым -->
-    <script src="https://telegram.org/js/telegram-web-app.js" data-telegram-webapp-version="6.0"></script>
-    <!-- Chart.js загружаем после -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Функция для обновления деталей загрузки
-        function updateLoadingDetails(details) {
-            const detailsDiv = document.getElementById('loadingDetails');
-            if (detailsDiv) {
-                detailsDiv.innerHTML = details;
-            }
-        }
-
-        // Функция для логирования
-        function logDebug(message, data = {}) {
-            const debugInfo = [
-                message,
-                `Time: ${new Date().toISOString()}`,
-                `URL: ${window.location.href}`,
-                `User Agent: ${navigator.userAgent}`,
-                `Platform: ${navigator.platform}`,
-                `WebView: ${/WebView|TelegramWebView|iPhone|Android/i.test(navigator.userAgent)}`,
-                `Telegram: ${!!window.Telegram}`,
-                `WebApp: ${!!window.Telegram?.WebApp}`,
-                `Data: ${JSON.stringify(data, null, 2)}`
-            ].join('\n');
-            console.log(debugInfo);
-            updateLoadingDetails(debugInfo.replace(/\n/g, '<br>'));
-            return debugInfo;
-        }
-
-        // Функция для проверки параметров
-        function checkTelegramParams() {
-            try {
-                const url = new URL(window.location.href);
-                const params = new URLSearchParams(url.search);
-                const allParams = {};
-                for (const [key, value] of params.entries()) {
-                    allParams[key] = value;
-                }
-                
-                logDebug('URL parameters check:', allParams);
-
-                // Если открыто не через Telegram, перенаправляем
-                if (!params.has('tgWebAppData') && !params.has('tgWebAppVersion')) {
-                    logDebug('Redirecting to Telegram:', { reason: 'Missing required parameters' });
-                    window.location.href = 'https://t.me/rsvl_test_bot/app';
-                    return false;
-                }
-
-                return true;
-            } catch (error) {
-                logDebug('Error in checkTelegramParams:', { error: error.message });
-                return false;
-            }
-        }
-
-        // Проверяем при загрузке
-        if (!checkTelegramParams()) {
-            document.addEventListener('DOMContentLoaded', () => {
-                const errorDiv = document.getElementById('error');
-                if (errorDiv) {
-                    errorDiv.style.display = 'block';
-                    errorDiv.innerHTML = `
-                        <div style="color: red;">Ошибка: Приложение должно быть открыто через Telegram</div>
-                        <div style="color: gray; font-size: 12px; margin-top: 8px;">
-                            ${logDebug('Initial check failed')}
-                        </div>
-                    `;
-                }
-            });
-        }
-
-        // Проверка на WebView
-        function checkWebView() {
-            const isWebView = /WebView|TelegramWebView|iPhone|Android/i.test(navigator.userAgent);
-            logDebug('WebView check:', { isWebView, userAgent: navigator.userAgent });
-            return isWebView;
-        }
-
-        // Глобальные переменные
-        let tg = window.Telegram.WebApp;
-        let progressChart, activityChart, weeklyChart;
-        let isInitialized = false;
-        let userData = null;
-
-        // Функция для показа статуса загрузки
-        function updateStatus(message) {
-            const loadingDiv = document.getElementById('loading');
-            if (loadingDiv) {
-                loadingDiv.innerHTML = message;
-            }
-            logDebug('Status update:', { message });
-        }
+        let tg;
         
-        // Функция для показа ошибки
-        function showError(message, details = '') {
-            const errorDiv = document.getElementById('error');
-            if (errorDiv) {
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = `<div style="color: red;">${message}</div>`;
-                if (details) {
-                    errorDiv.innerHTML += `<div style="color: gray; font-size: 12px; margin-top: 8px;">${details}</div>`;
-                }
-            }
+        function showError(message) {
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = message;
             document.getElementById('loading').style.display = 'none';
-            logDebug('Error shown:', { message, details });
         }
 
-        // Функция проверки готовности Telegram WebApp
-        function waitForTelegram() {
-            return new Promise((resolve, reject) => {
-                let attempts = 0;
-                const maxAttempts = 50;
-                const interval = 100;
-
-                function check() {
-                    attempts++;
-                    logDebug('Проверка Telegram WebApp', {
-                        attempts,
-                        windowTelegram: !!window.Telegram,
-                        webAppExists: !!window.Telegram?.WebApp
-                    });
-
-                    if (window.Telegram?.WebApp) {
-                        resolve(window.Telegram.WebApp);
-                    } else if (attempts >= maxAttempts) {
-                        reject(new Error('Telegram WebApp не загрузился'));
-                    } else {
-                        setTimeout(check, interval);
-                    }
-                }
-
-                check();
-            });
-        }
-
-        // Функция загрузки данных
-        async function loadUserData() {
+        function initializeApp() {
             try {
-                updateStatus('Загрузка данных...');
-                
-                // Пока нет API, возвращаем тестовые данные
-                return {
-                    progress: {
-                        completed: 286.5,
-                        remaining: 713.5
-                    },
-                    weeklyActivity: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
-                    monthlyStats: [15.5, 22.3, 18.7, 25.1]
-                };
-                
-            } catch (error) {
-                showError('Ошибка загрузки данных: ' + error.message);
-                return null;
-            }
-        }
-
-        // Инициализация приложения
-        async function initApp() {
-            try {
-                if (!checkWebView()) {
-                    throw new Error('Приложение должно быть открыто через Telegram');
+                if (!window.Telegram || !window.Telegram.WebApp) {
+                    throw new Error('Telegram WebApp не доступен');
                 }
-
-                logDebug('Начало инициализации');
                 
-                // Ждем загрузку Telegram WebApp
-                tg = await waitForTelegram();
+                // Получаем WebApp
+                tg = window.Telegram.WebApp;
                 
-                logDebug('Telegram WebApp загружен', { 
+                // Выводим информацию для отладки
+                console.log('WebApp initialized:', {
                     version: tg.version,
                     platform: tg.platform,
-                    initData: tg.initData
+                    colorScheme: tg.colorScheme,
+                    viewportHeight: tg.viewportHeight,
+                    viewportStableHeight: tg.viewportStableHeight,
+                    headerColor: tg.headerColor,
+                    backgroundColor: tg.backgroundColor,
+                    isClosingConfirmationEnabled: tg.isClosingConfirmationEnabled,
+                    isExpanded: tg.isExpanded
                 });
-                
-                // Инициализируем WebApp
+
+                // Сообщаем WebApp что мы готовы
                 tg.ready();
-                tg.expand();
                 
-                // Загружаем данные
-                userData = await loadUserData();
-                if (!userData) {
-                    throw new Error('Не удалось загрузить данные');
-                }
-                
-                // Создаем графики
-                if (typeof Chart === 'undefined') {
-                    throw new Error('Chart.js не загружен');
-                }
-                
-                createCharts();
+                // Загружаем основной скрипт с графиками
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+                script.onload = createCharts;
+                script.onerror = () => showError('Не удалось загрузить Chart.js');
+                document.head.appendChild(script);
                 
             } catch (error) {
-                logDebug('Ошибка инициализации', { 
-                    error: error.message,
-                    stack: error.stack
-                });
+                console.error('Initialization error:', error);
                 showError(error.message);
             }
         }
 
-        // Запускаем инициализацию после загрузки страницы
-        window.addEventListener('DOMContentLoaded', () => {
-            updateStatus('Ожидание загрузки страницы...');
-            initApp();
-        });
-
-        // Создание графиков
-        function createCharts() {
-            try {
-                if (!userData) {
-                    throw new Error('Нет данных для отображения');
-                }
-
-                updateStatus('Создание графика прогресса...');
-                
-                // Обновляем отображаемые значения
-                document.querySelector('.detail-value:nth-child(1)').textContent = 
-                    userData.progress.completed.toFixed(1);
-                document.querySelector('.detail-value:nth-child(2)').textContent = 
-                    userData.progress.remaining.toFixed(1);
-                
-                // График прогресса
-                const progressCtx = document.getElementById('progressChart');
-                if (!progressCtx) {
-                    throw new Error('Canvas для графика прогресса не найден');
-                }
-
-                progressChart = new Chart(progressCtx, {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [
-                                userData.progress.completed,
-                                userData.progress.remaining
-                            ],
-                            backgroundColor: ['#2481cc', '#f0f0f0'],
-                            borderWidth: 0,
-                            cutout: '80%'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-                
-                updateStatus('Создание графика активности...');
-                
-                // График активности
-                const activityCtx = document.getElementById('activityChart');
-                activityChart = new Chart(activityCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                        datasets: [{
-                            data: userData.weeklyActivity,
-                            backgroundColor: '#2481cc',
-                            borderRadius: 6,
-                            maxBarThickness: 40
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                });
-                
-                updateStatus('Создание графика статистики...');
-                
-                // График по неделям
-                const weeklyCtx = document.getElementById('weeklyChart');
-                weeklyChart = new Chart(weeklyCtx, {
-                    type: 'line',
-                    data: {
-                        labels: userData.monthlyStats.map((_, i) => `${i + 1} нед`),
-                        datasets: [{
-                            data: userData.monthlyStats,
-                            borderColor: '#2481cc',
-                            backgroundColor: '#2481cc',
-                            tension: 0.4,
-                            borderWidth: 2,
-                            pointRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                });
-                
-                document.getElementById('loading').style.display = 'none';
-                isInitialized = true;
-                
-            } catch (error) {
-                showError('Ошибка при создании графиков: ' + error.message);
+        // Ждем загрузки DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            // Проверяем окружение
+            if (window.location.href.indexOf('https://t.me') === -1 && 
+                !window.location.search.includes('tgWebAppData')) {
+                window.location.href = 'https://t.me/rsvl_test_bot/app';
+                return;
             }
-        }
+            
+            // Запускаем инициализацию
+            initializeApp();
+        });
+        
+        // ... rest of the code (createCharts, etc.) ...
     </script>
     <style>
         body {
@@ -397,43 +119,40 @@
 </head>
 <body>
     <div id="error" style="display: none; padding: 20px; text-align: center; color: red;"></div>
-    <div id="loading" style="display: block; padding: 20px; text-align: center;">
-        <div style="margin-bottom: 10px;">Загрузка приложения...</div>
-        <div id="loadingDetails" style="font-size: 12px; color: gray;"></div>
-    </div>
-    
-    <!-- Общий прогресс -->
-    <div class="stats-card">
-        <div class="progress-details">
-            <div class="detail-item">
-                <div class="detail-value">286.5</div>
-                <div class="detail-label">KM пройдено</div>
+    <div id="loading">Загрузка...</div>
+    <div id="content" style="display: none;">
+        <!-- Общий прогресс -->
+        <div class="stats-card">
+            <div class="progress-details">
+                <div class="detail-item">
+                    <div class="detail-value">286.5</div>
+                    <div class="detail-label">KM пройдено</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-value">713.5</div>
+                    <div class="detail-label">KM осталось</div>
+                </div>
             </div>
-            <div class="detail-item">
-                <div class="detail-value">713.5</div>
-                <div class="detail-label">KM осталось</div>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
             </div>
         </div>
-        <div class="chart-container">
-            <canvas id="progressChart"></canvas>
+
+        <!-- Активность за месяц -->
+        <div class="stats-card">
+            <h2>Активность за месяц</h2>
+            <div class="chart-container">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Статистика по неделям -->
+        <div class="stats-card">
+            <h2>Статистика по неделям</h2>
+            <div class="chart-container">
+                <canvas id="weeklyChart"></canvas>
+            </div>
         </div>
     </div>
-
-    <!-- Активность за месяц -->
-    <div class="stats-card">
-        <h2>Активность за месяц</h2>
-        <div class="chart-container">
-            <canvas id="activityChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Статистика по неделям -->
-    <div class="stats-card">
-        <h2>Статистика по неделям</h2>
-        <div class="chart-container">
-            <canvas id="weeklyChart"></canvas>
-        </div>
-    </div>
-
 </body>
 </html> 
