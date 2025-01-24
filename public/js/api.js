@@ -32,6 +32,11 @@ async function login(email, password) {
             };
         }
 
+        // Сохраняем токен
+        if (data.access_token) {
+            localStorage.setItem('access_token', data.access_token);
+        }
+
         return { success: true, user: data.user };
     } catch (error) {
         console.error('Ошибка при входе:', error);
@@ -81,6 +86,11 @@ async function register(email, password) {
             };
         }
 
+        // Сохраняем токен, если он есть в ответе
+        if (data.access_token) {
+            localStorage.setItem('access_token', data.access_token);
+        }
+
         return { success: true, user: data.user };
     } catch (error) {
         console.error('Ошибка при регистрации:', error);
@@ -96,18 +106,36 @@ async function checkAuth() {
     console.log('Проверка авторизации...');
     
     try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            console.log('Токен не найден');
+            return null;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+            method: 'GET',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             credentials: 'include'
         });
 
         console.log('Ответ сервера:', response.status, response.statusText);
 
-        if (!response.ok) {
-            console.log('Пользователь не авторизован');
+        // Проверяем статус ответа
+        if (response.status === 401) {
+            // Только при явной ошибке авторизации удаляем токен
+            console.log('Токен недействителен');
+            localStorage.removeItem('access_token');
             return null;
+        }
+
+        if (!response.ok) {
+            // При других ошибках не удаляем токен
+            console.log('Ошибка сервера:', response.status);
+            throw new Error(`Ошибка сервера: ${response.status}`);
         }
 
         const data = await response.json();
@@ -115,6 +143,10 @@ async function checkAuth() {
         return data.user;
     } catch (error) {
         console.error('Ошибка при проверке авторизации:', error);
+        // Не удаляем токен при ошибках сети
+        if (error.message.includes('401')) {
+            localStorage.removeItem('access_token');
+        }
         return null;
     }
 }
@@ -124,18 +156,68 @@ async function logout() {
     console.log('Отправка запроса на выход');
     
     try {
+        const token = localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
             },
             credentials: 'include'
         });
 
         console.log('Ответ сервера:', response.status, response.statusText);
+        
+        // Удаляем токен в любом случае
+        localStorage.removeItem('access_token');
+        
         return response.ok;
     } catch (error) {
         console.error('Ошибка при выходе:', error);
+        // Удаляем токен даже при ошибке
+        localStorage.removeItem('access_token');
         return false;
+    }
+}
+
+// Получение статистики пользователя
+async function getUserStats() {
+    console.log('Получение статистики пользователя...');
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/profile/me`, {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include'
+        });
+
+        console.log('Ответ сервера:', response.status, response.statusText);
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user stats');
+        }
+
+        const data = await response.json();
+        console.log('Данные статистики:', data);
+
+        // Преобразуем данные в формат для графиков
+        return {
+            totalProgress: {
+                completed: data.stats?.total_distance || 0,
+                remaining: data.stats?.goal_distance || 1000 - (data.stats?.total_distance || 0)
+            },
+            weeklyActivity: data.stats?.weekly_activity || [0, 0, 0, 0, 0, 0, 0],
+            monthlyStats: data.stats?.monthly_stats || [0, 0, 0, 0]
+        };
+    } catch (error) {
+        console.error('Ошибка при получении статистики:', error);
+        throw error;
     }
 }

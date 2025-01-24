@@ -6,32 +6,48 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Проверяем авторизацию
         const user = await checkAuth();
         if (!user) {
-            window.location.href = '/';
+            console.log('Пользователь не авторизован, перенаправление на главную');
+            window.location.href = '/?auth=failed';
             return;
         }
 
+        console.log('Пользователь авторизован:', user);
+
         // Отображаем email пользователя
-        document.getElementById('userEmail').textContent = user.email;
+        const userEmailElement = document.getElementById('userEmail');
+        if (userEmailElement) {
+            userEmailElement.textContent = user.email || 'Пользователь';
+        }
 
         // Инициализируем графики
         await initCharts();
         
-        // Загружаем тестовые данные
-        const testData = {
-            totalProgress: {
-                completed: 286.5,
-                remaining: 713.5
-            },
-            weeklyActivity: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
-            monthlyStats: [15.5, 22.3, 18.7, 25.1]
-        };
-        
-        // Обновляем графики
-        updateCharts(testData);
+        // Загружаем реальные данные
+        try {
+            const stats = await getUserStats();
+            updateCharts(stats);
+            
+            // Запускаем автообновление каждые 5 минут
+            setInterval(async () => {
+                try {
+                    const newStats = await getUserStats();
+                    updateCharts(newStats);
+                } catch (error) {
+                    console.error('Ошибка при обновлении данных:', error);
+                    // Не показываем ошибку пользователю при проблемах с обновлением
+                }
+            }, 5 * 60 * 1000);
+        } catch (error) {
+            console.error('Ошибка при загрузке статистики:', error);
+            showError('Не удалось загрузить статистику. Попробуйте обновить страницу.');
+        }
         
     } catch (error) {
         console.error('Ошибка инициализации:', error);
-        showError('Не удалось загрузить данные: ' + error.message);
+        // Показываем ошибку только если это не связано с авторизацией
+        if (!error.message.includes('auth')) {
+            showError('Произошла ошибка при загрузке данных. Попробуйте обновить страницу.');
+        }
     }
 });
 
@@ -167,6 +183,12 @@ function updateCharts(data) {
                 data.totalProgress.remaining
             ];
             progressChart.update();
+
+            // Обновляем текстовые значения
+            document.querySelector('.detail-value:nth-child(1)').textContent = 
+                data.totalProgress.completed.toFixed(1);
+            document.querySelector('.detail-value:nth-child(2)').textContent = 
+                data.totalProgress.remaining.toFixed(1);
         }
 
         if (activityChart && data.weeklyActivity) {
