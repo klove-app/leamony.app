@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta property="og:title" content="RunConnect - Умный помощник для бега">
-    <meta property="og:description" content="Отслеживайте тренировки, получайте уникальные достижения и присоединяйтесь к сообществу бегунов">
+    <meta property="og:title" content="RunConnect - AI-Powered Running Assistant">
+    <meta property="og:description" content="Track your runs, earn unique achievements, and join a community of runners">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://runconnect.app">
-    <title>RunConnect - Умный помощник для бега</title>
+    <title>RunConnect - AI-Powered Running Assistant</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/instructions.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,16 +22,18 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="logo">RunConnect</a>
+            <a href="/" class="logo">
+                <img src="/images/logo.svg" alt="RunConnect" width="32" height="32">
+                RunConnect
+            </a>
             <div class="nav-links">
-                <a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener" class="nav-link support-link">Поддержать</a>
-                <a href="/" class="nav-link active">Главная</a>
-                <a href="#instructions" class="nav-link">Инструкция</a>
-                <a href="#" class="nav-link" id="loginButton">Войти</a>
-                <div class="language-switcher">
-                    <a href="/" class="lang-link active">🇷🇺</a>
-                    <a href="/en" class="lang-link">🇬🇧</a>
-                </div>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="https://docs.runconnect.app" target="_blank" class="nav-link">Docs</a>
+                <a href="#" class="nav-link" id="loginButton">Sign In</a>
+                <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                    Get Started
+                </a>
             </div>
         </div>
     </nav>
@@ -39,25 +41,47 @@
     <main>
         <section class="hero-section">
             <div class="container">
-                <div class="hero-grid">
-                    <div class="hero-content">
-                        <h1>Бегайте с поддержкой единомышленников и ИИ</h1>
-                        <p class="hero-description">
-                            Присоединяйтесь к активному беговому сообществу, где каждая пробежка становится интереснее благодаря умному ИИ-помощнику. Отслеживайте прогресс, получайте уникальные достижения и делитесь успехами с теми, кто разделяет вашу страсть к бегу.
-                        </p>
-                        <div class="cta-group">
-                            <a href="https://t.me/sl_run_bot" target="_blank" rel="noopener" class="cta-button primary">
-                                <img src="/images/telegram.svg" alt="Telegram" class="button-icon">
-                                Начать бегать
-                            </a>
-                            <a href="#features" class="cta-button secondary">Узнать больше</a>
-                        </div>
+                <div class="hero-content animate-fade-in">
+                    <h1 class="hero-title">Transform Your Running Journey with AI</h1>
+                    <p class="hero-description">
+                        Join an active running community where every run becomes more engaging with our AI assistant. Track progress, earn unique achievements, and share your success with fellow runners.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                            Start Running Now
+                        </a>
+                        <a href="#features" class="button button-secondary">
+                            Learn More
+                        </a>
                     </div>
-                    <div class="hero-illustration">
-                        <div class="hero-image-wrapper">
-                            <div class="hero-image-decoration"></div>
-                            <img src="/images/illustrations/Personal Running Coach.png" alt="Начать работу с ботом" class="hero-image">
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features-section">
+            <div class="container">
+                <h2>Powerful Features for Runners</h2>
+                <div class="features-grid">
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <img src="/images/icons/achievement.svg" alt="Achievements">
                         </div>
+                        <h3 class="feature-title">Smart Achievements</h3>
+                        <p>Earn unique, AI-generated achievements that reflect your running milestones and progress</p>
+                    </div>
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <img src="/images/icons/stats.svg" alt="Statistics">
+                        </div>
+                        <h3 class="feature-title">Detailed Analytics</h3>
+                        <p>Get comprehensive insights into your running patterns, progress, and performance metrics</p>
+                    </div>
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <img src="/images/icons/community.svg" alt="Community">
+                        </div>
+                        <h3 class="feature-title">Active Community</h3>
+                        <p>Connect with fellow runners, share achievements, and participate in group challenges</p>
                     </div>
                 </div>
             </div>
@@ -66,324 +90,64 @@
         <section class="stats-section">
             <div class="container">
                 <div class="stats-grid">
-                    <div class="stats-visualization">
-                        <img src="/images/illustrations/Online Goal Tracking.png" alt="Визуализация статистики" class="stats-image">
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">1,000+</div>
+                        <div class="stat-label">Active Runners</div>
                     </div>
-                    <div class="stats-content">
-                        <h2>Объединяем данные для аналитики в реальном времени</h2>
-                        <p class="stats-description">
-                            Подключите все свои беговые данные к умному боту, чтобы ваша команда могла принимать более обоснованные решения с помощью аналитики и получить полное представление о прогрессе. Интеграция с различными источниками данных открывает возможности для кросс-канального взаимодействия.
-                        </p>
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">50,000+</div>
+                        <div class="stat-label">Kilometers Run</div>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="security-section">
-            <div class="container">
-                <div class="security-grid">
-                    <div class="security-content">
-                        <h2>Безопасность и надёжность</h2>
-                        <p class="security-description">
-                            Получите все необходимые инструменты для защиты данных, соответствия требованиям и безопасности на самой надёжной платформе. Создавайте защищённые приложения, проактивно решайте вопросы безопасности и защищайте конфиденциальные данные с помощью встроенных инструментов.
-                        </p>
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">10,000+</div>
+                        <div class="stat-label">Training Sessions</div>
                     </div>
-                    <div class="security-illustration">
-                        <img src="/images/illustrations/Health Insurance Package.png" alt="Безопасность и надежность" class="security-image">
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Goals Achieved</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="instructions" class="instructions">
+        <section id="pricing" class="pricing-section">
             <div class="container">
-                <h2 class="section-title">Три простых шага к бегу</h2>
-                
-                <div class="step-grid">
-                    <div class="step-content text-left">
-                        <div class="step-number">1</div>
-                        <h3>Начните общение с ботом</h3>
-                        <p>Откройте бота в Telegram и нажмите кнопку "Старт". Бот поприветствует вас и будет готов помогать с записью ваших пробежек.</p>
-                        <a href="https://t.me/sl_run_bot" target="_blank" rel="noopener" class="cta-button primary">
-                            <img src="/images/telegram.svg" alt="Telegram" class="button-icon">
-                            Открыть бота
+                <h2>Simple, Transparent Pricing</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-card animate-fade-in">
+                        <div class="pricing-header">
+                            <h3>Free</h3>
+                            <div class="price">$0</div>
+                            <p>Perfect for getting started</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li>Basic run tracking</li>
+                            <li>Community access</li>
+                            <li>Standard achievements</li>
+                            <li>Basic statistics</li>
+                        </ul>
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-secondary">
+                            Start Free
                         </a>
                     </div>
-                    <div class="step-illustration">
-                        <img src="/images/010-add-user.png" alt="Начало работы с ботом" class="step-image">
-                    </div>
-                </div>
-
-                <div class="step-grid">
-                    <div class="step-illustration">
-                        <img src="/images/039-stopwatch.png" alt="Запись пробежек" class="step-image">
-                    </div>
-                    <div class="step-content text-right">
-                        <div class="step-number">2</div>
-                        <h3>Записывайте пробежки</h3>
-                        <p>Отправляйте боту сообщения о своих пробежках. Это может быть текст (например, "5 км за 30 минут") или фото с подписью о дистанции.</p>
-                        <div class="message-examples">
-                            <div class="message-example">5 км за 30 минут</div>
-                            <div class="message-example">3 км</div>
+                    <div class="pricing-card featured animate-fade-in">
+                        <div class="pricing-header">
+                            <h3>Pro</h3>
+                            <div class="price">$5</div>
+                            <p>For dedicated runners</p>
                         </div>
-                    </div>
-                </div>
-
-                <div class="step-grid">
-                    <div class="step-content text-left">
-                        <div class="step-number">3</div>
-                        <h3>Следите за прогрессом</h3>
-                        <p>Бот будет вести статистику ваших пробежек, показывать прогресс и создавать уникальные изображения-достижения для каждой тренировки.</p>
-                        <div class="progress-features">
-                            <div class="progress-item">Статистика по месяцам</div>
-                            <div class="progress-item">Анализ прогресса</div>
-                            <div class="progress-item">Уникальные достижения</div>
-                        </div>
-                    </div>
-                    <div class="step-illustration">
-                        <img src="/images/illustrations/Progress Journal.png" alt="Следите за прогрессом" class="step-image">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="features" class="features">
-            <div class="container">
-                <h2 class="section-title">Возможности бота</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="/images/001-trophy.png" alt="Уникальные достижения">
-                        </div>
-                        <h3 class="feature-title">Уникальные достижения</h3>
-                        <p class="feature-description">
-                            Автоматическая генерация персонализированных изображений с градацией цветов в стиле поясов киокушин карате
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="/images/003-calculator.png" alt="Умная статистика">
-                        </div>
-                        <h3 class="feature-title">Умная статистика</h3>
-                        <p class="feature-description">
-                            Детальный трекинг пробежек, персональная и групповая статистика, визуализация прогресса
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="/images/004-light-bulb.png" alt="Система целей">
-                        </div>
-                        <h3 class="feature-title">Система целей</h3>
-                        <p class="feature-description">
-                            Установка персональных годовых целей с наглядным прогресс-баром и гибкой настройкой
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="/images/011-group.png" alt="Социальные функции">
-                        </div>
-                        <h3 class="feature-title">Социальные функции</h3>
-                        <p class="feature-description">
-                            Общий рейтинг бегунов, система мотивации и поддержки. Групповые челленджи и соревнования (coming soon)
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="/images/023-medal.png" alt="Достижения и мотивация">
-                        </div>
-                        <h3 class="feature-title">Достижения и мотивация</h3>
-                        <p class="feature-description">
-                            Автоматическое определение личных рекордов и мотивирующие сообщения. Система уровней (coming soon)
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="/images/026-settings.png" alt="Технические преимущества">
-                        </div>
-                        <h3 class="feature-title">Технические преимущества</h3>
-                        <p class="feature-description">
-                            Интуитивно понятный интерфейс, мгновенная обработка данных и надежное хранение информации
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="target-audience">
-            <div class="container">
-                <h2 class="section-title">Для кого создан бот</h2>
-                <div class="audience-grid">
-                    <div class="audience-card">
-                        <div class="audience-icon">
-                            <img src="/images/009-lifesaver.png" alt="Начинающие бегуны">
-                        </div>
-                        <h3>Начинающие бегуны</h3>
-                        <ul class="audience-features">
-                            <li>Простой старт без сложных настроек</li>
-                            <li>Понятная система отслеживания прогресса</li>
-                            <li>Поддержка сообщества</li>
-                            <li>Базовые рекомендации по тренировкам <span class="coming-soon">coming soon</span></li>
+                        <ul class="pricing-features">
+                            <li>Advanced run tracking</li>
+                            <li>Priority support</li>
+                            <li>Custom achievements</li>
+                            <li>Detailed analytics</li>
+                            <li>Training plans</li>
+                            <li>Group challenges</li>
                         </ul>
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                            Go Pro
+                        </a>
                     </div>
-                    <div class="audience-card">
-                        <div class="audience-icon">
-                            <img src="/images/023-medal.png" alt="Опытные спортсмены">
-                        </div>
-                        <h3>Опытные спортсмены</h3>
-                        <ul class="audience-features">
-                            <li>Детальная статистика тренировок</li>
-                            <li>Продвинутые инструменты анализа <span class="coming-soon">coming soon</span></li>
-                            <li>Возможность делиться опытом <span class="coming-soon">coming soon</span></li>
-                            <li>Участие в соревнованиях <span class="coming-soon">coming soon</span></li>
-                        </ul>
-                    </div>
-                    <div class="audience-card">
-                        <div class="audience-icon">
-                            <img src="/images/010-add-user.png" alt="Беговые клубы">
-                        </div>
-                        <h3>Беговые клубы</h3>
-                        <ul class="audience-features">
-                            <li>Управление групповыми активностями <span class="coming-soon">coming soon</span></li>
-                            <li>Организация соревнований <span class="coming-soon">coming soon</span></li>
-                            <li>Мониторинг прогресса участников</li>
-                            <li>Инструменты для построения сообщества <span class="coming-soon">coming soon</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="examples">
-            <div class="container">
-                <h2 class="section-title">Как это работает</h2>
-                <div class="example-grid">
-                    <div class="example-card">
-                        <img src="/images/placeholder.svg" alt="Пример 1" class="example-image">
-                        <div class="example-content">
-                            <h3 class="example-title">Простой старт</h3>
-                            <p>Начните использовать бота прямо сейчас - просто найдите @sl_run_bot в Telegram и нажмите /start</p>
-                        </div>
-                    </div>
-                    <div class="example-card">
-                        <img src="/images/placeholder.svg" alt="Пример 2" class="example-image">
-                        <div class="example-content">
-                            <h3 class="example-title">Удобная запись</h3>
-                            <p>Записывайте тренировки в свободной форме - бот поймет вас и сохранит все важные данные</p>
-                        </div>
-                    </div>
-                    <div class="example-card">
-                        <img src="/images/placeholder.svg" alt="Пример 3" class="example-image">
-                        <div class="example-content">
-                            <h3 class="example-title">Полезная статистика</h3>
-                            <p>Получайте наглядные отчеты о прогрессе и рекомендации по улучшению результатов</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="testimonials">
-            <div class="container">
-                <h2 class="section-title">Отзывы пользователей</h2>
-                <div class="testimonial-grid">
-                    <div class="testimonial-card">
-                        <p class="testimonial-text">
-                            "Отличный бот! Помогает отслеживать прогресс и мотивирует бегать регулярно."
-                        </p>
-                        <div class="testimonial-author">
-                            <img src="/images/placeholder.svg" alt="Автор" class="author-avatar">
-                            <div>
-                                <div class="author-name">Александр</div>
-                                <div class="author-title">Любитель бега</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <p class="testimonial-text">
-                            "Удобный интерфейс и полезная статистика. Теперь бегаю с удовольствием!"
-                        </p>
-                        <div class="testimonial-author">
-                            <img src="/images/placeholder.svg" alt="Автор" class="author-avatar">
-                            <div>
-                                <div class="author-name">Мария</div>
-                                <div class="author-title">Начинающий бегун</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <p class="testimonial-text">
-                            "Бот помог мне подготовиться к марафону. Очень рекомендую!"
-                        </p>
-                        <div class="testimonial-author">
-                            <img src="/images/placeholder.svg" alt="Автор" class="author-avatar">
-                            <div>
-                                <div class="author-name">Дмитрий</div>
-                                <div class="author-title">Марафонец</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="statistics" data-aos="fade-up" data-aos-delay="100">
-            <div class="container">
-                <h2 class="section-title">Статистика бота</h2>
-                <div class="statistics-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">1000+</div>
-                        <div class="stat-label">Активных бегунов</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">50,000+</div>
-                        <div class="stat-label">Километров пробега</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">10,000+</div>
-                        <div class="stat-label">Тренировок</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">500+</div>
-                        <div class="stat-label">Достигнутых целей</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="blog" data-aos="fade-up" data-aos-delay="100">
-            <div class="container">
-                <h2 class="section-title">Советы по бегу</h2>
-                <div class="blog-grid">
-                    <article class="blog-card">
-                        <div class="blog-image">
-                            <img src="/images/blog-1.jpg" alt="Советы для начинающих">
-                        </div>
-                        <div class="blog-content">
-                            <h3>Руководство для начинающих</h3>
-                            <p>Основные советы для тех, кто только начинает свой путь в беге.</p>
-                            <a href="/blog/beginners-guide.html" class="blog-link">Читать далее →</a>
-                        </div>
-                    </article>
-                    <article class="blog-card">
-                        <div class="blog-image">
-                            <img src="/images/blog-2.jpg" alt="Подготовка к марафону">
-                        </div>
-                        <div class="blog-content">
-                            <h3>План подготовки к марафону</h3>
-                            <p>Как подготовиться к своему первому марафону с помощью нашего бота.</p>
-                            <a href="/blog/marathon-training.html" class="blog-link">Читать далее →</a>
-                        </div>
-                    </article>
-                    <article class="blog-card">
-                        <div class="blog-image">
-                            <img src="/images/blog-3.jpg" alt="Анализ бега">
-                        </div>
-                        <div class="blog-content">
-                            <h3>Понимание статистики бега</h3>
-                            <p>Учимся анализировать данные о беге для улучшения результатов.</p>
-                            <a href="/blog/running-analytics.html" class="blog-link">Читать далее →</a>
-                        </div>
-                    </article>
                 </div>
             </div>
         </section>
@@ -393,76 +157,58 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-column">
-                    <h3>О проекте</h3>
+                    <h3>Product</h3>
                     <ul class="footer-links">
-                        <li><a href="#instructions">Инструкция</a></li>
-                        <li><a href="#features">Возможности</a></li>
-                        <li><a href="#examples">Как это работает</a></li>
-                        <li><a href="#testimonials">Отзывы</a></li>
+                        <li><a href="#features" class="footer-link">Features</a></li>
+                        <li><a href="#pricing" class="footer-link">Pricing</a></li>
+                        <li><a href="https://docs.runconnect.app" class="footer-link">Documentation</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
-                    <h3>Поддержка</h3>
+                    <h3>Company</h3>
                     <ul class="footer-links">
-                        <li><a href="https://t.me/sl_run_bot" target="_blank" rel="noopener">Telegram Бот</a></li>
-                        <li><a href="https://t.me/sl_run_support" target="_blank" rel="noopener">Поддержка</a></li>
+                        <li><a href="/about" class="footer-link">About Us</a></li>
+                        <li><a href="/blog" class="footer-link">Blog</a></li>
+                        <li><a href="/careers" class="footer-link">Careers</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
-                    <h3>Помочь проекту</h3>
+                    <h3>Support</h3>
                     <ul class="footer-links">
-                        <li><a href="https://yoomoney.ru/to/4100118963809958" target="_blank" rel="noopener">Поддержать проект</a></li>
+                        <li><a href="https://t.me/sl_run_support" class="footer-link">Help Center</a></li>
+                        <li><a href="/privacy" class="footer-link">Privacy Policy</a></li>
+                        <li><a href="/terms" class="footer-link">Terms of Service</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 RunConnect. Все права защищены.</p>
+                <p>&copy; 2024 RunConnect. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Модальное окно для авторизации -->
+    <!-- Auth Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
-            <span id="closeModalBtn" class="close">&times;</span>
-            
-            <!-- Вкладки -->
-            <div class="auth-tabs">
-                <div class="auth-tab active" data-tab="login">Вход</div>
-                <div class="auth-tab" data-tab="register">Регистрация</div>
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <button class="close-button" id="closeModalBtn">&times;</button>
             </div>
-
-            <!-- Форма входа -->
-            <form id="loginForm" class="auth-form active">
+            <form id="loginForm" class="auth-form">
                 <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required>
+                    <label class="form-label" for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label for="loginPassword">Пароль</label>
-                    <input type="password" id="loginPassword" required>
+                    <label class="form-label" for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" required>
                 </div>
-                <div id="loginError" class="error-message"></div>
-                <button type="submit" class="submit-button">Войти</button>
+                <div id="loginError" class="form-error"></div>
+                <button type="submit" class="button button-primary">Sign In</button>
             </form>
-
-            <!-- Форма регистрации -->
-            <form id="registerForm" class="auth-form" style="display: none;">
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Пароль</label>
-                    <input type="password" id="registerPassword" required minlength="6">
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Подтвердите пароль</label>
-                    <input type="password" id="confirmPassword" required minlength="6">
-                </div>
-                <div id="registerError" class="error-message"></div>
-                <button type="submit" class="submit-button">Зарегистрироваться</button>
-            </form>
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="https://t.me/sl_run_bot" target="_blank">Get Started</a></p>
+            </div>
         </div>
     </div>
 </body>
