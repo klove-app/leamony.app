@@ -191,7 +191,7 @@ p {
     background: white;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
     text-align: center;
 }
 
@@ -203,12 +203,11 @@ p {
 .feature-icon {
     width: 64px;
     height: 64px;
-    margin-bottom: 1.5rem;
+    margin: 0 auto 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(79, 70, 229, 0.1);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1rem;
 }
 
@@ -216,6 +215,7 @@ p {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    filter: brightness(0) invert(1);
 }
 
 .feature-title {
@@ -592,13 +592,20 @@ p {
 
 /* Feature Cards with new accent colors */
 .feature-card:nth-child(1) .feature-icon {
-    background: rgba(255, 105, 180, 0.1);
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
 }
 
 .feature-card:nth-child(2) .feature-icon {
-    background: rgba(147, 112, 219, 0.1);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
 }
 
 .feature-card:nth-child(3) .feature-icon {
-    background: rgba(255, 215, 0, 0.1);
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-color));
+}
+
+.feature-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
 }
