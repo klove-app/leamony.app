@@ -1,16 +1,21 @@
 import { login, register, checkAuth } from './api.js';
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM загружен, инициализация...');
     checkElements();
     setupEventListeners();
     
-    // Проверяем авторизацию
-    const user = await checkAuth();
-    if (user) {
-        console.log('Пользователь авторизован:', user);
-        updateUIForLoggedInUser(user);
+    // Проверяем авторизацию только если есть сохраненная сессия
+    if (document.cookie.includes('session')) {
+        checkAuth().then(user => {
+            if (user) {
+                console.log('Пользователь авторизован:', user);
+                updateUIForLoggedInUser(user);
+            }
+        }).catch(error => {
+            console.log('Ошибка проверки авторизации:', error);
+        });
     }
 });
 
