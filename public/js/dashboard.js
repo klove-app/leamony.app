@@ -1,4 +1,6 @@
-let progressChart, activityChart, weeklyChart;
+import { checkAuth, getUserStats } from './api.js';
+
+let progressChart, activityChart, monthlyChart;
 
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', async function() {
@@ -13,11 +15,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         console.log('Пользователь авторизован:', user);
 
-        // Отображаем email пользователя
-        const userEmailElement = document.getElementById('userEmail');
-        if (userEmailElement) {
-            userEmailElement.textContent = user.email || 'Пользователь';
-        }
+        // Обновляем информацию о пользователе
+        updateUserInfo(user);
 
         // Инициализируем графики
         await initCharts();
@@ -25,16 +24,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Загружаем реальные данные
         try {
             const stats = await getUserStats();
-            updateCharts(stats);
+            updateDashboard(stats);
             
             // Запускаем автообновление каждые 5 минут
             setInterval(async () => {
                 try {
                     const newStats = await getUserStats();
-                    updateCharts(newStats);
+                    updateDashboard(newStats);
                 } catch (error) {
                     console.error('Ошибка при обновлении данных:', error);
-                    // Не показываем ошибку пользователю при проблемах с обновлением
                 }
             }, 5 * 60 * 1000);
         } catch (error) {
@@ -44,7 +42,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         
     } catch (error) {
         console.error('Ошибка инициализации:', error);
-        // Показываем ошибку только если это не связано с авторизацией
         if (!error.message.includes('auth')) {
             showError('Произошла ошибка при загрузке данных. Попробуйте обновить страницу.');
         }
@@ -54,8 +51,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Инициализация графиков
 async function initCharts() {
     try {
-        // График прогресса (круговой)
-        const progressCtx = document.getElementById('progressChart');
+        // График прогресса
+        const progressCtx = document.getElementById('progressChart').getContext('2d');
         if (!progressCtx) {
             throw new Error('Элемент progressChart не найден');
         }
@@ -63,9 +60,13 @@ async function initCharts() {
         progressChart = new Chart(progressCtx, {
             type: 'doughnut',
             data: {
+                labels: ['Completed', 'Remaining'],
                 datasets: [{
-                    data: [286.5, 713.5],
-                    backgroundColor: ['#2481cc', '#f0f0f0'],
+                    data: [0, 1000],
+                    backgroundColor: [
+                        'rgb(var(--primary-rgb))',
+                        '#E5E7EB'
+                    ],
                     borderWidth: 0,
                     cutout: '80%'
                 }]
@@ -77,16 +78,12 @@ async function initCharts() {
                     legend: {
                         display: false
                     }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true
                 }
             }
         });
 
-        // График активности за месяц
-        const activityCtx = document.getElementById('activityChart');
+        // График активности
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
         if (!activityCtx) {
             throw new Error('Элемент activityChart не найден');
         }
@@ -94,17 +91,24 @@ async function initCharts() {
         activityChart = new Chart(activityCtx, {
             type: 'bar',
             data: {
-                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [{
-                    data: [5.2, 3.1, 4.5, 6.8, 2.3, 7.4, 4.2],
-                    backgroundColor: '#2481cc',
-                    borderRadius: 8,
-                    maxBarThickness: 40
+                    label: 'Distance (km)',
+                    data: Array(7).fill(0),
+                    backgroundColor: 'rgba(var(--primary-rgb), 0.2)',
+                    borderColor: 'rgb(var(--primary-rgb))',
+                    borderWidth: 2,
+                    borderRadius: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -116,37 +120,39 @@ async function initCharts() {
                         grid: {
                             display: false
                         }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
                     }
                 }
             }
         });
 
-        // График статистики по неделям
-        const weeklyCtx = document.getElementById('weeklyChart');
-        if (!weeklyCtx) {
-            throw new Error('Элемент weeklyChart не найден');
+        // График за месяц
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        if (!monthlyCtx) {
+            throw new Error('Элемент monthlyChart не найден');
         }
 
-        weeklyChart = new Chart(weeklyCtx, {
+        monthlyChart = new Chart(monthlyCtx, {
             type: 'line',
             data: {
-                labels: ['1 нед', '2 нед', '3 нед', '4 нед'],
+                labels: Array.from({length: 30}, (_, i) => i + 1),
                 datasets: [{
-                    data: [15.5, 22.3, 18.7, 25.1],
-                    borderColor: '#2481cc',
-                    backgroundColor: 'rgba(36, 129, 204, 0.1)',
-                    tension: 0.4,
-                    fill: true
+                    label: 'Distance (km)',
+                    data: Array(30).fill(0),
+                    borderColor: 'rgb(var(--primary-rgb))',
+                    backgroundColor: 'rgba(var(--primary-rgb), 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -157,12 +163,10 @@ async function initCharts() {
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 10
                         }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
                     }
                 }
             }
@@ -174,35 +178,67 @@ async function initCharts() {
     }
 }
 
-// Обновление графиков
-function updateCharts(data) {
-    try {
-        if (progressChart && data.totalProgress) {
-            progressChart.data.datasets[0].data = [
-                data.totalProgress.completed,
-                data.totalProgress.remaining
-            ];
-            progressChart.update();
+// Обновление информации о пользователе
+function updateUserInfo(user) {
+    const userNameElement = document.getElementById('userName');
+    const userEmailElement = document.getElementById('userEmail');
+    
+    if (userNameElement) {
+        userNameElement.textContent = user.username;
+    }
+    if (userEmailElement) {
+        userEmailElement.textContent = user.email;
+    }
+}
 
-            // Обновляем текстовые значения
-            document.querySelector('.detail-value:nth-child(1)').textContent = 
-                data.totalProgress.completed.toFixed(1);
-            document.querySelector('.detail-value:nth-child(2)').textContent = 
-                data.totalProgress.remaining.toFixed(1);
-        }
+// Обновление данных дашборда
+function updateDashboard(stats) {
+    updateProgressChart(stats);
+    updateActivityChart(stats);
+    updateMonthlyChart(stats);
+    updateProgressDetails(stats);
+}
 
-        if (activityChart && data.weeklyActivity) {
-            activityChart.data.datasets[0].data = data.weeklyActivity;
-            activityChart.update();
-        }
+// График общего прогресса
+function updateProgressChart(stats) {
+    const completed = stats.total_distance || 0;
+    const goal = stats.yearly_goal || 1000;
+    const remaining = Math.max(0, goal - completed);
 
-        if (weeklyChart && data.monthlyStats) {
-            weeklyChart.data.datasets[0].data = data.monthlyStats;
-            weeklyChart.update();
-        }
-    } catch (error) {
-        console.error('Ошибка при обновлении графиков:', error);
-        showError('Не удалось обновить графики: ' + error.message);
+    progressChart.data.datasets[0].data = [completed, remaining];
+    progressChart.update();
+
+    // Обновляем значения в центре графика
+    const progressValue = document.querySelector('.progress-value');
+    if (progressValue) {
+        progressValue.textContent = completed.toFixed(1);
+    }
+}
+
+// График активности за неделю
+function updateActivityChart(stats) {
+    const weeklyData = stats.weekly_activity || Array(7).fill(0);
+    activityChart.data.datasets[0].data = weeklyData;
+    activityChart.update();
+}
+
+// График статистики за месяц
+function updateMonthlyChart(stats) {
+    const monthlyData = stats.monthly_stats || Array(30).fill(0);
+    monthlyChart.data.datasets[0].data = monthlyData;
+    monthlyChart.update();
+}
+
+// Обновление деталей прогресса
+function updateProgressDetails(stats) {
+    const completedElement = document.querySelector('.detail-value');
+    const goalElement = document.querySelectorAll('.detail-value')[1];
+    
+    if (completedElement) {
+        completedElement.textContent = (stats.total_distance || 0).toFixed(1);
+    }
+    if (goalElement) {
+        goalElement.textContent = stats.yearly_goal || 1000;
     }
 }
 
@@ -215,11 +251,20 @@ function showError(message) {
 }
 
 // Функция выхода из аккаунта
-async function logout() {
+window.logout = async function() {
     try {
-        const success = await api.logout();
-        if (success) {
+        const response = await fetch(`${config.API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
             window.location.href = '/';
+        } else {
+            throw new Error('Logout failed');
         }
     } catch (error) {
         console.error('Ошибка при выходе:', error);
