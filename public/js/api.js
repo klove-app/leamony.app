@@ -132,14 +132,26 @@ async function login(username, password) {
 // Функция обновления токена
 async function refreshToken() {
     try {
+        // Получаем refresh_token из куки
+        const cookies = document.cookie.split(';');
+        const refreshTokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
+        if (!refreshTokenCookie) {
+            console.log('Refresh token не найден в куки');
+            return { success: false };
+        }
+        
+        const refreshToken = refreshTokenCookie.split('=')[1].trim();
         console.log('Отправляем запрос на обновление токена...');
-        const response = await fetch(`${config.API_URL}/auth/refresh`, {
+        
+        const params = new URLSearchParams({ refresh_token: refreshToken });
+        const response = await fetch(`${config.API_URL}/auth/refresh?${params}`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json'
             },
             credentials: 'include'
         });
+        
         console.log('Ответ на обновление токена:', response.status, response.statusText);
 
         if (!response.ok) {
