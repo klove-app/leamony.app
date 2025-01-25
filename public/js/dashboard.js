@@ -94,10 +94,31 @@
                     throw new Error('Неверный формат данных о пробежках');
                 }
 
+                console.log('Получены пробежки:', runs);
+                
+                // Обрабатываем данные
+                const stats = processRunsData(runs);
+                console.log('Обработанные данные:', stats);
+
                 // Обновляем графики
-                updateProgressChart(runs);
-                updateActivityChart(runs);
-                updateMonthlyChart(runs);
+                if (progressChart) {
+                    progressChart.updateSeries([Math.min(100, (stats.total_distance / 100) * 100)]);
+                    document.querySelector('.progress-value').textContent = `${stats.total_distance.toFixed(1)} km`;
+                }
+
+                if (activityChart) {
+                    activityChart.updateSeries([{
+                        name: 'Distance',
+                        data: stats.weekly_activity
+                    }]);
+                }
+
+                if (monthlyChart) {
+                    monthlyChart.updateSeries([{
+                        name: 'Distance',
+                        data: stats.monthly_stats
+                    }]);
+                }
                 
                 // Обновляем время последней синхронизации
                 document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
