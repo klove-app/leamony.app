@@ -334,9 +334,10 @@
         }
 
         // График общего прогресса
-        function updateProgressChart(stats) {
-            const completed = stats.total_distance || 0;
-            const goal = stats.yearly_goal || 1000;
+        function updateProgressChart(runs) {
+            console.log('Обновляем график прогресса:', runs);
+            const completed = runs.reduce((total, run) => total + (run.km || 0), 0);
+            const goal = 1000; // TODO: получать из профиля пользователя
             const percentage = Math.min(100, (completed / goal) * 100);
 
             progressChart.updateSeries([percentage]);
@@ -354,21 +355,68 @@
         }
 
         // График активности за неделю
-        function updateActivityChart(stats) {
-            const weeklyData = stats.weekly_activity || Array(7).fill(0);
+        function updateActivityChart(runs) {
+            console.log('Обновляем график активности:', runs);
+            const weeklyData = Array(7).fill(0);
+            const today = new Date();
+            const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+            
+            runs.forEach(run => {
+                const runDate = new Date(run.date_added);
+                if (runDate >= weekStart) {
+                    const dayOfWeek = runDate.getDay();
+                    weeklyData[dayOfWeek] += run.km || 0;
+                }
+            });
+
             activityChart.updateSeries([{
                 name: 'Distance',
                 data: weeklyData
             }]);
+
+            // Обновляем статистику
+            const weekTotal = weeklyData.reduce((a, b) => a + b, 0);
+            const weekAvg = weekTotal / 7;
+
+            const weekTotalElement = document.getElementById('weekTotal');
+            const weekAvgElement = document.getElementById('weekAvg');
+
+            if (weekTotalElement) weekTotalElement.textContent = weekTotal.toFixed(1);
+            if (weekAvgElement) weekAvgElement.textContent = weekAvg.toFixed(1);
         }
 
         // График статистики за месяц
-        function updateMonthlyChart(stats) {
-            const monthlyData = stats.monthly_stats || Array(30).fill(0);
+        function updateMonthlyChart(runs) {
+            console.log('Обновляем месячный график:', runs);
+            const monthlyData = Array(30).fill(0);
+            const today = new Date();
+            const monthStart = new Date(today.setDate(today.getDate() - 29));
+            
+            runs.forEach(run => {
+                const runDate = new Date(run.date_added);
+                if (runDate >= monthStart) {
+                    const daysAgo = Math.floor((today - runDate) / (1000 * 60 * 60 * 24));
+                    const index = 29 - daysAgo;
+                    if (index >= 0 && index < 30) {
+                        monthlyData[index] += run.km || 0;
+                    }
+                }
+            });
+
             monthlyChart.updateSeries([{
                 name: 'Distance',
                 data: monthlyData
             }]);
+
+            // Обновляем статистику
+            const monthTotal = monthlyData.reduce((a, b) => a + b, 0);
+            const monthAvg = monthTotal / 30;
+
+            const monthTotalElement = document.getElementById('monthTotal');
+            const monthAvgElement = document.getElementById('monthAvg');
+
+            if (monthTotalElement) monthTotalElement.textContent = monthTotal.toFixed(1);
+            if (monthAvgElement) monthAvgElement.textContent = monthAvg.toFixed(1);
         }
 
         // Обновление недельной статистики
