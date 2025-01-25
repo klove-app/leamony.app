@@ -239,8 +239,11 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
         
         if (response.status === 401) {
             console.log('Требуется обновление токена');
-            await refreshToken();
-            return getRuns(startDate, endDate, limit, offset);
+            const refreshResult = await refreshToken();
+            if (refreshResult.success) {
+                return getRuns(startDate, endDate, limit, offset);
+            }
+            throw new Error('Не удалось обновить токен');
         }
 
         if (!response.ok) {
@@ -248,7 +251,7 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
         }
 
         const data = await response.json();
-        console.log('Получены данные о пробежках:', data);
+        console.log('Получены данные:', data);
         console.groupEnd();
         return data;
     } catch (error) {
