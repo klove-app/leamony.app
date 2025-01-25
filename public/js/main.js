@@ -73,9 +73,13 @@ async function handleLogin(e) {
             closeAuthModal();
             
             console.log('Подготовка к редиректу на дашборд...');
-            // Добавляем небольшую задержку, чтобы успеть увидеть логи
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Добавляем задержку перед редиректом
+            await new Promise(resolve => setTimeout(resolve, 2000));
             console.log('Выполняем редирект на /dashboard.html');
+            
+            // Сохраняем информацию о пользователе перед редиректом
+            localStorage.setItem('lastLoginUser', JSON.stringify(result.user));
+            
             window.location.href = '/dashboard.html';
         } else {
             console.log('Ошибка входа:', result.error);

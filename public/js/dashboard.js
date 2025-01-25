@@ -6,6 +6,12 @@ console.log('Загрузка dashboard.js...');
 console.log('Модули успешно импортированы');
 console.log('API URL:', config.API_URL);
 
+// Проверяем информацию о последнем входе
+const lastLoginUser = localStorage.getItem('lastLoginUser');
+if (lastLoginUser) {
+    console.log('Найдена информация о последнем входе:', JSON.parse(lastLoginUser));
+}
+
 let progressChart, activityChart, monthlyChart;
 
 try {
@@ -17,7 +23,7 @@ try {
             // Проверяем наличие токена в куках
             console.log('Проверяем куки:', document.cookie);
             if (!document.cookie.includes('session')) {
-                console.log('Сессия не найдена, перенаправляем на главную');
+                console.error('Сессия не найдена в куках');
                 window.location.href = '/?auth=failed';
                 return;
             }
@@ -33,12 +39,17 @@ try {
                 'monthlyChart'
             ];
 
+            const missingElements = [];
             for (const elementId of requiredElements) {
                 const element = document.getElementById(elementId);
-                console.log(`Элемент ${elementId}:`, element ? 'найден' : 'не найден');
                 if (!element) {
-                    throw new Error(`Элемент ${elementId} не найден`);
+                    missingElements.push(elementId);
                 }
+                console.log(`Элемент ${elementId}:`, element ? 'найден' : 'не найден');
+            }
+
+            if (missingElements.length > 0) {
+                throw new Error(`Не найдены элементы: ${missingElements.join(', ')}`);
             }
 
             // Настраиваем обработчик выхода
@@ -48,7 +59,9 @@ try {
                 try {
                     const success = await logout();
                     if (success) {
-                        console.log('Выход успешен, перенаправляем на главную...');
+                        console.log('Выход успешен, очищаем данные...');
+                        localStorage.removeItem('lastLoginUser');
+                        console.log('Перенаправляем на главную...');
                         window.location.href = '/';
                     } else {
                         console.error('Ошибка при выходе');
@@ -65,7 +78,8 @@ try {
             console.log('Результат проверки авторизации:', user);
             
             if (!user) {
-                console.log('Пользователь не авторизован, перенаправляем на главную');
+                console.error('Пользователь не авторизован');
+                localStorage.removeItem('lastLoginUser');
                 window.location.href = '/?auth=failed';
                 return;
             }
