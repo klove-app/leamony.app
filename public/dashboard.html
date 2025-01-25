@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Chart.js из CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     
     <!-- Наши модули -->
     <script type="module" src="/js/config.js"></script>
@@ -50,7 +50,7 @@
                 <div class="card progress-card">
                     <h2>Overall Progress</h2>
                     <div class="progress-chart-container">
-                        <canvas id="progressChart"></canvas>
+                        <div id="progressChart"></div>
                         <div class="progress-center">
                             <div class="progress-value">0</div>
                             <div class="progress-label">km</div>
@@ -74,7 +74,7 @@
                 <div class="card activity-card">
                     <h2>Weekly Activity</h2>
                     <div class="chart-container">
-                        <canvas id="activityChart"></canvas>
+                        <div id="activityChart"></div>
                     </div>
                     <div class="activity-stats">
                         <div class="stat-item">
@@ -92,7 +92,7 @@
                 <div class="card monthly-card">
                     <h2>Monthly Progress</h2>
                     <div class="chart-container">
-                        <canvas id="monthlyChart"></canvas>
+                        <div id="monthlyChart"></div>
                     </div>
                     <div class="monthly-stats">
                         <div class="stat-item">

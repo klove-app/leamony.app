@@ -3,13 +3,13 @@
     try {
         console.log('Начало загрузки dashboard.js');
         
-        // Проверяем загрузку Chart.js
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js не загружен');
+        // Проверяем загрузку ApexCharts
+        if (typeof ApexCharts === 'undefined') {
+            console.error('ApexCharts не загружен');
             showError('Не удалось загрузить необходимые компоненты. Пожалуйста, обновите страницу.');
             return;
         }
-        console.log('Chart.js загружен успешно');
+        console.log('ApexCharts загружен успешно');
 
         // Импортируем модули
         const { checkAuth, getRuns, logout } = await import('./api.js');
@@ -148,114 +148,161 @@
         // Инициализация графиков
         async function initCharts() {
             try {
-                // График прогресса
-                const progressCtx = document.getElementById('progressChart').getContext('2d');
-                progressChart = new Chart(progressCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Completed', 'Remaining'],
-                        datasets: [{
-                            data: [0, 1000],
-                            backgroundColor: [
-                                'rgb(var(--primary-rgb))',
-                                '#E5E7EB'
-                            ],
-                            borderWidth: 0,
-                            cutout: '80%'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
+                // График прогресса (радиальный)
+                const progressOptions = {
+                    series: [0],
+                    chart: {
+                        height: 250,
+                        type: 'radialBar',
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800
                         }
-                    }
-                });
-
-                // График активности
-                const activityCtx = document.getElementById('activityChart').getContext('2d');
-                activityChart = new Chart(activityCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                        datasets: [{
-                            label: 'Distance (km)',
-                            data: Array(7).fill(0),
-                            backgroundColor: 'rgba(var(--primary-rgb), 0.2)',
-                            borderColor: 'rgb(var(--primary-rgb))',
-                            borderWidth: 2,
-                            borderRadius: 4
-                        }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    display: false
-                                }
+                    plotOptions: {
+                        radialBar: {
+                            hollow: {
+                                size: '70%'
                             },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                });
-
-                // График за месяц
-                const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-                monthlyChart = new Chart(monthlyCtx, {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: 30}, (_, i) => i + 1),
-                        datasets: [{
-                            label: 'Distance (km)',
-                            data: Array(30).fill(0),
-                            borderColor: 'rgb(var(--primary-rgb))',
-                            backgroundColor: 'rgba(var(--primary-rgb), 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    display: false
-                                }
+                            track: {
+                                background: '#E5E7EB'
                             },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    maxTicksLimit: 10
-                                }
+                            dataLabels: {
+                                show: false
+                            }
+                        }
+                    },
+                    colors: ['rgb(var(--primary-rgb))'],
+                    stroke: {
+                        lineCap: 'round'
+                    }
+                };
+                progressChart = new ApexCharts(document.getElementById('progressChart'), progressOptions);
+                progressChart.render();
+
+                // График активности (столбчатый)
+                const activityOptions = {
+                    series: [{
+                        name: 'Distance',
+                        data: Array(7).fill(0)
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 250,
+                        toolbar: {
+                            show: false
+                        },
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            borderRadius: 4,
+                            columnWidth: '60%'
+                        }
+                    },
+                    colors: ['rgb(var(--primary-rgb))'],
+                    xaxis: {
+                        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        axisBorder: {
+                            show: false
+                        },
+                        axisTicks: {
+                            show: false
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: function(val) {
+                                return val.toFixed(1) + ' km';
+                            }
+                        }
+                    },
+                    grid: {
+                        show: false
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val.toFixed(1) + ' km';
                             }
                         }
                     }
-                });
+                };
+                activityChart = new ApexCharts(document.getElementById('activityChart'), activityOptions);
+                activityChart.render();
+
+                // График за месяц (линейный)
+                const monthlyOptions = {
+                    series: [{
+                        name: 'Distance',
+                        data: Array(30).fill(0)
+                    }],
+                    chart: {
+                        type: 'area',
+                        height: 250,
+                        toolbar: {
+                            show: false
+                        },
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800
+                        }
+                    },
+                    colors: ['rgb(var(--primary-rgb))'],
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            shadeIntensity: 1,
+                            opacityFrom: 0.7,
+                            opacityTo: 0.2,
+                            stops: [0, 90, 100]
+                        }
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 2
+                    },
+                    xaxis: {
+                        categories: Array.from({length: 30}, (_, i) => i + 1),
+                        axisBorder: {
+                            show: false
+                        },
+                        axisTicks: {
+                            show: false
+                        },
+                        labels: {
+                            show: true,
+                            formatter: function(val) {
+                                return val % 5 === 0 ? val : '';
+                            }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: function(val) {
+                                return val.toFixed(1) + ' km';
+                            }
+                        }
+                    },
+                    grid: {
+                        show: false
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val.toFixed(1) + ' km';
+                            }
+                        }
+                    }
+                };
+                monthlyChart = new ApexCharts(document.getElementById('monthlyChart'), monthlyOptions);
+                monthlyChart.render();
                 
             } catch (error) {
                 console.error('Ошибка при инициализации графиков:', error);
@@ -288,10 +335,9 @@
         function updateProgressChart(stats) {
             const completed = stats.total_distance || 0;
             const goal = stats.yearly_goal || 1000;
-            const remaining = Math.max(0, goal - completed);
+            const percentage = Math.min(100, (completed / goal) * 100);
 
-            progressChart.data.datasets[0].data = [completed, remaining];
-            progressChart.update();
+            progressChart.updateSeries([percentage]);
 
             // Обновляем значения
             const progressValue = document.querySelector('.progress-value');
@@ -308,15 +354,19 @@
         // График активности за неделю
         function updateActivityChart(stats) {
             const weeklyData = stats.weekly_activity || Array(7).fill(0);
-            activityChart.data.datasets[0].data = weeklyData;
-            activityChart.update();
+            activityChart.updateSeries([{
+                name: 'Distance',
+                data: weeklyData
+            }]);
         }
 
         // График статистики за месяц
         function updateMonthlyChart(stats) {
             const monthlyData = stats.monthly_stats || Array(30).fill(0);
-            monthlyChart.data.datasets[0].data = monthlyData;
-            monthlyChart.update();
+            monthlyChart.updateSeries([{
+                name: 'Distance',
+                data: monthlyData
+            }]);
         }
 
         // Обновление недельной статистики
