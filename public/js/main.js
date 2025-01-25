@@ -108,20 +108,33 @@ function showError(elementId, message) {
 }
 
 function updateUIForLoggedInUser(user) {
+    console.log('Обновление UI для авторизованного пользователя:', user);
     const loginButton = document.getElementById('loginButton');
     if (loginButton) {
         loginButton.textContent = user.username;
         loginButton.href = '/dashboard.html';
     }
+    // Редирект на дашборд после успешного входа
+    window.location.href = '/dashboard.html';
 }
 
 // Глобальные функции для работы с модальным окном
 function openAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';  // Используем flex для центрирования
         modal.style.visibility = 'visible';
         modal.style.opacity = '1';
+        
+        // Очищаем поля формы при открытии
+        const usernameInput = document.getElementById('loginUsername');
+        const passwordInput = document.getElementById('loginPassword');
+        if (usernameInput) usernameInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+        
+        // Скрываем сообщения об ошибках
+        const errorElement = document.getElementById('loginError');
+        if (errorElement) errorElement.style.display = 'none';
     }
 }
 
