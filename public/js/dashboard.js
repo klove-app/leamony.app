@@ -1,12 +1,21 @@
 import { checkAuth, getUserStats, logout } from './api.js';
+import config from './config.js';
 
 let progressChart, activityChart, monthlyChart;
 
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Dashboard: DOM загружен, начинаем инициализацию...');
+    console.log('Config:', config);
     
     try {
+        // Проверяем наличие токена в куках
+        if (!document.cookie.includes('session')) {
+            console.log('Сессия не найдена, перенаправляем на главную');
+            window.location.href = '/?auth=failed';
+            return;
+        }
+
         // Настраиваем обработчик выхода
         const logoutButton = document.getElementById('logoutButton');
         if (logoutButton) {
@@ -270,26 +279,4 @@ function showError(message) {
     errorDiv.className = 'error';
     errorDiv.textContent = message;
     document.body.prepend(errorDiv);
-}
-
-// Функция выхода из аккаунта
-window.logout = async function() {
-    try {
-        const response = await fetch(`${config.API_URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json'
-            },
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            window.location.href = '/';
-        } else {
-            throw new Error('Logout failed');
-        }
-    } catch (error) {
-        console.error('Ошибка при выходе:', error);
-        showError('Не удалось выйти из аккаунта');
-    }
 } 
