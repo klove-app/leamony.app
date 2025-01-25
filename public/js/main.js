@@ -5,24 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM загружен, инициализация...');
     
     // Добавляем обработчики событий
-    setupEventListeners();
-    
-    // Проверяем авторизацию только если есть сохраненная сессия
-    if (document.cookie.includes('session')) {
-        checkAuth().then(user => {
-            if (user) {
-                console.log('Пользователь авторизован:', user);
-                updateUIForLoggedInUser(user);
-            }
-        }).catch(error => {
-            console.error('Ошибка проверки авторизации:', error);
-        });
-    }
-});
-
-// Настройка обработчиков событий
-function setupEventListeners() {
-    // Обработчик для кнопки входа
     const loginButton = document.getElementById('loginButton');
     if (loginButton) {
         loginButton.addEventListener('click', (e) => {
@@ -42,7 +24,19 @@ function setupEventListeners() {
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
-}
+    
+    // Проверяем авторизацию только если есть сохраненная сессия
+    if (document.cookie.includes('session')) {
+        checkAuth().then(user => {
+            if (user) {
+                console.log('Пользователь авторизован:', user);
+                updateUIForLoggedInUser(user);
+            }
+        }).catch(error => {
+            console.error('Ошибка проверки авторизации:', error);
+        });
+    }
+});
 
 // Обработчики форм
 async function handleLogin(e) {
@@ -112,6 +106,6 @@ function closeAuthModal() {
     }
 }
 
-// Экспортируем функции в глобальную область
+// Делаем функции доступными глобально
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
