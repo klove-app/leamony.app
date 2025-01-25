@@ -79,29 +79,31 @@
 
         // Обновление статистики
         async function updateStats() {
+            console.log('Обновляем статистику...');
             try {
-                console.log('Начинаем загрузку пробежек...');
-                
                 // Получаем данные за последний месяц
                 const endDate = new Date().toISOString().split('T')[0];
-                const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                const startDate = new Date(new Date().setMonth(new Date().getMonth() - 1))
                     .toISOString().split('T')[0];
                 
+                console.log('Запрашиваем пробежки за период:', { startDate, endDate });
                 const runs = await getRuns(startDate, endDate, 100);
-                console.log('Получены данные о пробежках:', runs);
                 
-                if (!runs) {
-                    throw new Error('Не удалось получить данные о пробежках');
+                if (!runs || !Array.isArray(runs)) {
+                    console.error('Неверный формат данных о пробежках:', runs);
+                    throw new Error('Неверный формат данных о пробежках');
                 }
+
+                // Обновляем графики
+                updateProgressChart(runs);
+                updateActivityChart(runs);
+                updateMonthlyChart(runs);
                 
-                // Преобразуем данные для графиков
-                const stats = processRunsData(runs);
-                updateDashboard(stats);
-                updateLastSync();
-                
+                // Обновляем время последней синхронизации
+                document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
             } catch (error) {
-                console.error('Ошибка при загрузке пробежек:', error);
-                showError('Не удалось загрузить данные: ' + error.message);
+                console.error('Ошибка при обновлении статистики:', error);
+                showError('Не удалось загрузить статистику: ' + error.message);
             }
         }
 

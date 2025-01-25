@@ -212,23 +212,21 @@ async function checkAuth() {
 }
 
 // Получение списка пробежек
-async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0) {
-    try {
-        console.group('Запрос пробежек');
-        console.log('Параметры запроса:', { startDate, endDate, limit, offset });
-        
-        let url = `${config.API_URL}/runs/?limit=${limit}&offset=${offset}`;
-        
-        if (startDate) {
-            url += `&start_date=${startDate}`;
-        }
-        if (endDate) {
-            url += `&end_date=${endDate}`;
-        }
+export async function getRuns(startDate, endDate, limit = 50, offset = 0) {
+    console.group('Запрос пробежек');
+    console.log('Параметры запроса:', { startDate, endDate, limit, offset });
 
-        console.log('URL запроса:', url);
-        console.log('Отправляем запрос...');
-        
+    const params = new URLSearchParams({
+        start_date: startDate,
+        end_date: endDate,
+        limit: limit.toString(),
+        offset: offset.toString()
+    });
+
+    const url = `${config.API_URL}/runs/?${params}`;
+    console.log('URL запроса:', url);
+
+    try {
         const response = await fetch(url, {
             method: 'GET',
             credentials: 'include',
@@ -237,32 +235,20 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             }
         });
 
-        console.log('Получен ответ:', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
+        console.log('Статус ответа:', response.status, response.statusText);
         
+        if (response.status === 401) {
+            console.log('Требуется обновление токена');
+            await refreshToken();
+            return getRuns(startDate, endDate, limit, offset);
+        }
+
         if (!response.ok) {
-            if (response.status === 401) {
-                console.log('Требуется обновление токена...');
-                // Пробуем обновить токен
-                const refreshed = await refreshToken();
-                console.log('Результат обновления токена:', refreshed);
-                if (refreshed) {
-                    console.log('Токен обновлен, повторяем запрос...');
-                    console.groupEnd();
-                    // Повторяем запрос
-                    return getRuns(startDate, endDate, limit, offset);
-                }
-            }
-            console.error('Ошибка при получении пробежек:', response.status, response.statusText);
-            console.groupEnd();
-            throw new Error(`Failed to get runs: ${response.status}`);
+            throw new Error(`Ошибка получения пробежек: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('Получены данные:', data);
+        console.log('Получены данные о пробежках:', data);
         console.groupEnd();
         return data;
     } catch (error) {
