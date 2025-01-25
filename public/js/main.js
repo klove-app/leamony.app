@@ -6,6 +6,34 @@ document.addEventListener('DOMContentLoaded', () => {
     checkElements();
     setupEventListeners();
     
+    // Добавляем обработчик для кнопки Sign In
+    const loginButton = document.getElementById('loginButton');
+    console.log('Login button:', loginButton);
+    if (loginButton) {
+        loginButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Login button clicked');
+            openAuthModal();
+        });
+    }
+
+    // Добавляем обработчик для кнопки закрытия модального окна
+    const closeButton = document.querySelector('.close-button');
+    if (closeButton) {
+        closeButton.addEventListener('click', closeAuthModal);
+    }
+
+    // Добавляем обработчик для формы входа
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
+    }
+
     // Проверяем авторизацию только если есть сохраненная сессия
     if (document.cookie.includes('session')) {
         checkAuth().then(user => {
@@ -30,21 +58,6 @@ function checkElements() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Обработчик для кнопки входа
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            openAuthModal();
-        });
-    }
-
-    // Обработчик для кнопки закрытия модального окна
-    const closeButton = document.querySelector('.close-button');
-    if (closeButton) {
-        closeButton.addEventListener('click', closeAuthModal);
-    }
-
     // Обработчики форм
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
