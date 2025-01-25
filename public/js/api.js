@@ -249,7 +249,7 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
         const data = await response.json();
         console.log('Получены данные:', data);
         console.groupEnd();
-        return data;
+        return data.runs || data;
     } catch (error) {
         console.error('Ошибка при получении пробежек:', error);
         console.groupEnd();
