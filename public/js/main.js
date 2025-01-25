@@ -1,151 +1,186 @@
 import { login, register, checkAuth } from './api.js';
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM загружен, инициализация...');
-    checkElements();
-    setupEventListeners();
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Инициализация главной страницы...');
     
-    // Проверяем авторизацию только если есть сохраненная сессия
-    if (document.cookie.includes('session')) {
-        checkAuth().then(user => {
-            if (user) {
-                console.log('Пользователь авторизован:', user);
-                updateUIForLoggedInUser(user);
-            }
-        }).catch(error => {
-            console.log('Ошибка проверки авторизации:', error);
-        });
+    try {
+        // Проверяем авторизацию
+        const user = await checkAuth();
+        console.log('Результат проверки авторизации:', user);
+        
+        if (user) {
+            // Если пользователь авторизован, обновляем UI
+            updateAuthUI(true, user.username);
+        } else {
+            // Если не авторизован, показываем кнопку входа
+            updateAuthUI(false);
+        }
+
+        // Настраиваем обработчики событий
+        setupEventListeners();
+        
+    } catch (error) {
+        console.error('Ошибка при инициализации:', error);
+        showError('Произошла ошибка при загрузке страницы');
     }
 });
 
-// Функция для проверки загрузки DOM и всех элементов
-function checkElements() {
-    console.log('Проверка элементов:');
-    const modal = document.getElementById('authModal');
-    console.log('Модальное окно:', modal);
-    const loginLink = document.querySelector('a.nav-link[href="#"]');
-    console.log('Ссылка входа:', loginLink);
+// Обновление UI в зависимости от состояния авторизации
+function updateAuthUI(isAuthenticated, username = '') {
+    const loginButton = document.getElementById('loginButton');
+    const userMenu = document.getElementById('userMenu');
+    
+    if (isAuthenticated && username) {
+        // Если пользователь авторизован
+        if (loginButton) loginButton.style.display = 'none';
+        if (userMenu) {
+            userMenu.style.display = 'flex';
+            const usernameElement = userMenu.querySelector('.username');
+            if (usernameElement) usernameElement.textContent = username;
+        }
+    } else {
+        // Если пользователь не авторизован
+        if (loginButton) loginButton.style.display = 'block';
+        if (userMenu) userMenu.style.display = 'none';
+    }
 }
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Обработчик для кнопки входа
+    // Открытие модального окна
     const loginButton = document.getElementById('loginButton');
     if (loginButton) {
-        loginButton.addEventListener('click', (e) => {
-            e.preventDefault();
+        loginButton.addEventListener('click', () => {
+            console.log('Открываем модальное окно авторизации');
             openAuthModal();
         });
     }
 
-    // Обработчик для кнопки закрытия модального окна
+    // Закрытие модального окна
     const closeButton = document.querySelector('.close-button');
     if (closeButton) {
         closeButton.addEventListener('click', closeAuthModal);
     }
 
-    // Обработчики форм
+    // Обработка формы входа
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
 
+    // Обработка формы регистрации
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
     }
 }
 
-// Обработчики форм
-async function handleLogin(event) {
-    event.preventDefault();
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
-    const errorElement = document.getElementById('loginError');
-
-    try {
-        const result = await login(username, password);
-        if (result.success) {
-            window.location.href = '/dashboard.html';
-        } else {
-            errorElement.textContent = result.error || 'Ошибка входа';
-            errorElement.style.display = 'block';
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        errorElement.textContent = 'Произошла ошибка при входе';
-        errorElement.style.display = 'block';
+// Открытие модального окна
+function openAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Очищаем поля формы
+        const inputs = modal.querySelectorAll('input');
+        inputs.forEach(input => input.value = '');
+        // Скрываем сообщения об ошибках
+        const errors = modal.querySelectorAll('.error-message');
+        errors.forEach(error => error.style.display = 'none');
     }
 }
 
-async function handleRegister(e) {
-    e.preventDefault();
+// Закрытие модального окна
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Обработка входа
+async function handleLogin(event) {
+    event.preventDefault();
+    console.log('Обработка входа...');
+
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorElement = document.querySelector('#loginForm .error-message');
+
+    try {
+        const result = await login(username, password);
+        console.log('Результат входа:', result);
+
+        if (result.success) {
+            // Перенаправляем на дашборд
+            window.location.href = '/dashboard.html';
+        } else {
+            if (errorElement) {
+                errorElement.textContent = result.error || 'Failed to login';
+                errorElement.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при входе:', error);
+        if (errorElement) {
+            errorElement.textContent = 'An error occurred during login';
+            errorElement.style.display = 'block';
+        }
+    }
+}
+
+// Обработка регистрации
+async function handleRegister(event) {
+    event.preventDefault();
+    console.log('Обработка регистрации...');
+
     const username = document.getElementById('registerUsername').value;
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
     const yearlyGoal = document.getElementById('registerYearlyGoal').value;
+    const errorElement = document.querySelector('#registerForm .error-message');
 
     try {
         const result = await register(username, email, password, yearlyGoal);
+        console.log('Результат регистрации:', result);
+
         if (result.success) {
-            closeAuthModal();
-            updateUIForLoggedInUser(result.user);
+            // Показываем сообщение об успехе и переключаемся на вкладку входа
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.textContent = 'Registration successful! Please log in.';
+            document.getElementById('registerForm').prepend(successMessage);
+            
+            // Переключаемся на вкладку входа через 2 секунды
+            setTimeout(() => {
+                document.querySelector('[data-tab="login"]').click();
+                successMessage.remove();
+            }, 2000);
         } else {
-            showError('registerError', result.error);
+            if (errorElement) {
+                errorElement.textContent = result.error || 'Failed to register';
+                errorElement.style.display = 'block';
+            }
         }
     } catch (error) {
-        showError('registerError', 'Произошла ошибка при регистрации');
-        console.error('Registration error:', error);
+        console.error('Ошибка при регистрации:', error);
+        if (errorElement) {
+            errorElement.textContent = 'An error occurred during registration';
+            errorElement.style.display = 'block';
+        }
     }
 }
 
-// Вспомогательные функции
-function showError(elementId, message) {
-    const errorElement = document.getElementById(elementId);
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-    }
-}
-
-function updateUIForLoggedInUser(user) {
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.textContent = user.username;
-        loginButton.href = '/dashboard.html';
-    }
-}
-
-// Глобальные функции для работы с модальным окном
-function openAuthModal() {
-    const modal = document.getElementById('authModal');
-    if (modal) {
-        modal.style.display = 'flex';  // Используем flex для центрирования
-        modal.style.visibility = 'visible';
-        modal.style.opacity = '1';
-        
-        // Очищаем поля формы при открытии
-        const usernameInput = document.getElementById('loginUsername');
-        const passwordInput = document.getElementById('loginPassword');
-        if (usernameInput) usernameInput.value = '';
-        if (passwordInput) passwordInput.value = '';
-        
-        // Скрываем сообщения об ошибках
-        const errorElement = document.getElementById('loginError');
-        if (errorElement) errorElement.style.display = 'none';
-    }
-}
-
-function closeAuthModal() {
-    const modal = document.getElementById('authModal');
-    if (modal) {
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300); // Задержка для анимации
-    }
+// Показ ошибки
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    document.body.prepend(errorDiv);
+    
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
 }
 
 // Функции для работы с формами авторизации
