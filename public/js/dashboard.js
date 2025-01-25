@@ -10,7 +10,7 @@
         console.log('Chart.js загружен успешно');
 
         // Импортируем модули
-        const { checkAuth, getUserStats, logout } = await import('./api.js');
+        const { checkAuth, getRuns, logout } = await import('./api.js');
         const config = await import('./config.js').then(module => module.default);
         
         console.log('Модули успешно импортированы');
@@ -78,16 +78,61 @@
         // Обновление статистики
         async function updateStats() {
             try {
-                const stats = await getUserStats();
-                console.log('Статистика получена:', stats);
+                console.log('Начинаем загрузку пробежек...');
                 
+                // Получаем данные за последний месяц
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                    .toISOString().split('T')[0];
+                
+                const runs = await getRuns(startDate, endDate, 100);
+                console.log('Получены данные о пробежках:', runs);
+                
+                if (!runs) {
+                    throw new Error('Не удалось получить данные о пробежках');
+                }
+                
+                // Преобразуем данные для графиков
+                const stats = processRunsData(runs);
                 updateDashboard(stats);
                 updateLastSync();
                 
             } catch (error) {
-                console.error('Ошибка при загрузке статистики:', error);
-                showError('Failed to load statistics');
+                console.error('Ошибка при загрузке пробежек:', error);
+                showError('Не удалось загрузить данные: ' + error.message);
             }
+        }
+
+        // Обработка данных о пробежках
+        function processRunsData(runs) {
+            const now = new Date();
+            const stats = {
+                total_distance: 0,
+                weekly_activity: Array(7).fill(0),
+                monthly_stats: Array(30).fill(0)
+            };
+
+            runs.forEach(run => {
+                const date = new Date(run.date_added);
+                const distance = run.km || 0;
+                
+                // Общая дистанция
+                stats.total_distance += distance;
+                
+                // Активность за неделю
+                const dayOfWeek = date.getDay();
+                if (now - date < 7 * 24 * 60 * 60 * 1000) {
+                    stats.weekly_activity[dayOfWeek] += distance;
+                }
+                
+                // Статистика за месяц
+                const daysAgo = Math.floor((now - date) / (24 * 60 * 60 * 1000));
+                if (daysAgo < 30) {
+                    stats.monthly_stats[29 - daysAgo] += distance;
+                }
+            });
+
+            return stats;
         }
 
         // Обновление времени последней синхронизации

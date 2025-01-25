@@ -211,32 +211,48 @@ async function checkAuth() {
     }
 }
 
-// Получение статистики пользователя
-async function getUserStats() {
+// Получение списка пробежек
+async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0) {
     try {
-        const response = await fetch(`${config.API_URL}/users/me/stats`, {
+        console.log('Запрашиваем список пробежек...');
+        let url = `${config.API_URL}/runs/?limit=${limit}&offset=${offset}`;
+        
+        if (startDate) {
+            url += `&start_date=${startDate}`;
+        }
+        if (endDate) {
+            url += `&end_date=${endDate}`;
+        }
+
+        console.log('URL запроса:', url);
+        
+        const response = await fetch(url, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json'
-            },
-            credentials: 'include'
+            }
         });
 
+        console.log('Получен ответ от API:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to fetch user stats');
+            if (response.status === 401) {
+                // Пробуем обновить токен
+                const refreshed = await refreshToken();
+                if (refreshed) {
+                    // Повторяем запрос
+                    return getRuns(startDate, endDate, limit, offset);
+                }
+            }
+            throw new Error(`Failed to get runs: ${response.status}`);
         }
 
         const data = await response.json();
-        return {
-            totalProgress: {
-                completed: data.total_distance || 0,
-                remaining: data.goal_distance || 1000 - (data.total_distance || 0)
-            },
-            weeklyActivity: data.weekly_activity || [0, 0, 0, 0, 0, 0, 0],
-            monthlyStats: data.monthly_stats || [0, 0, 0, 0]
-        };
+        console.log('Данные о пробежках:', data);
+        return data;
     } catch (error) {
-        console.error('Stats fetch error:', error);
+        console.error('Ошибка при получении пробежек:', error);
         throw error;
     }
 }
@@ -247,5 +263,5 @@ export {
     logout,
     refreshToken,
     checkAuth,
-    getUserStats
+    getRuns
 };
