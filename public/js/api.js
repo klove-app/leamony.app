@@ -130,21 +130,25 @@ async function login(username, password) {
 }
 
 // Функция обновления токена
-async function refreshToken(refresh_token) {
+async function refreshToken() {
     try {
-        const response = await fetch(`${config.API_URL}/auth/refresh?refresh_token=${encodeURIComponent(refresh_token)}`, {
+        console.log('Отправляем запрос на обновление токена...');
+        const response = await fetch(`${config.API_URL}/auth/refresh`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json'
             },
             credentials: 'include'
         });
+        console.log('Ответ на обновление токена:', response.status, response.statusText);
 
         if (!response.ok) {
+            console.log('Не удалось обновить токен');
             return { success: false };
         }
 
         const data = await response.json();
+        console.log('Токен успешно обновлен');
         return { success: true, ...data };
     } catch (error) {
         console.error('Token refresh error:', error);
@@ -173,6 +177,7 @@ async function logout() {
 // Функция для проверки авторизации
 async function checkAuth() {
     try {
+        console.log('Отправляем запрос на проверку авторизации...');
         const response = await fetch(`${config.API_URL}/users/me`, {
             method: 'GET',
             headers: {
@@ -180,12 +185,17 @@ async function checkAuth() {
             },
             credentials: 'include'
         });
+        console.log('Получен ответ:', response.status, response.statusText);
 
         if (!response.ok) {
+            console.log('Ответ не ok, статус:', response.status);
             if (response.status === 401) {
+                console.log('Пробуем обновить токен...');
                 // Try to refresh token
                 const refreshResult = await refreshToken();
+                console.log('Результат обновления токена:', refreshResult);
                 if (refreshResult.success) {
+                    console.log('Токен обновлен, повторяем проверку авторизации');
                     return await checkAuth();
                 }
             }
@@ -193,6 +203,7 @@ async function checkAuth() {
         }
 
         const data = await response.json();
+        console.log('Данные пользователя получены:', data);
         return data;
     } catch (error) {
         console.error('Auth check error:', error);

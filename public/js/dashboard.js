@@ -5,8 +5,11 @@ let progressChart, activityChart, monthlyChart;
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', async function() {
     try {
+        console.log('Начинаем проверку авторизации...');
         // Проверяем авторизацию
         const user = await checkAuth();
+        console.log('Результат проверки авторизации:', user);
+        
         if (!user) {
             console.log('Пользователь не авторизован, перенаправление на главную');
             window.location.href = '/?auth=failed';
