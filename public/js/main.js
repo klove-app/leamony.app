@@ -4,6 +4,9 @@ import { login, register, checkAuth } from './api.js';
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM загружен, инициализация...');
     
+    // Добавляем обработчики событий
+    setupEventListeners();
+    
     // Проверяем авторизацию только если есть сохраненная сессия
     if (document.cookie.includes('session')) {
         checkAuth().then(user => {
@@ -16,6 +19,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Настройка обработчиков событий
+function setupEventListeners() {
+    // Обработчик для кнопки входа
+    const loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+        loginButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAuthModal();
+        });
+    }
+
+    // Обработчик для кнопки закрытия модального окна
+    const closeButton = document.querySelector('.close-button');
+    if (closeButton) {
+        closeButton.addEventListener('click', closeAuthModal);
+    }
+
+    // Обработчик для формы входа
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+}
 
 // Обработчики форм
 async function handleLogin(e) {
@@ -54,8 +81,8 @@ function updateUIForLoggedInUser(user) {
     }
 }
 
-// Глобальные функции для работы с модальным окном
-window.openAuthModal = function() {
+// Функции для работы с модальным окном
+function openAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -74,7 +101,7 @@ window.openAuthModal = function() {
     }
 }
 
-window.closeAuthModal = function() {
+function closeAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) {
         modal.style.opacity = '0';
@@ -85,26 +112,6 @@ window.closeAuthModal = function() {
     }
 }
 
-// Добавляем обработчики после загрузки DOM
-document.addEventListener('DOMContentLoaded', () => {
-    // Обработчик для кнопки входа
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.openAuthModal();
-        });
-    }
-
-    // Обработчик для кнопки закрытия
-    const closeButton = document.querySelector('.close-button');
-    if (closeButton) {
-        closeButton.addEventListener('click', window.closeAuthModal);
-    }
-
-    // Обработчик для формы входа
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-}); 
+// Экспортируем функции в глобальную область
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
