@@ -214,7 +214,9 @@ async function checkAuth() {
 // Получение списка пробежек
 async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0) {
     try {
-        console.log('Запрашиваем список пробежек...');
+        console.group('Запрос пробежек');
+        console.log('Параметры запроса:', { startDate, endDate, limit, offset });
+        
         let url = `${config.API_URL}/runs/?limit=${limit}&offset=${offset}`;
         
         if (startDate) {
@@ -225,6 +227,7 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
         }
 
         console.log('URL запроса:', url);
+        console.log('Отправляем запрос...');
         
         const response = await fetch(url, {
             method: 'GET',
@@ -234,25 +237,37 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             }
         });
 
-        console.log('Получен ответ от API:', response.status);
+        console.log('Получен ответ:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+        });
         
         if (!response.ok) {
             if (response.status === 401) {
+                console.log('Требуется обновление токена...');
                 // Пробуем обновить токен
                 const refreshed = await refreshToken();
+                console.log('Результат обновления токена:', refreshed);
                 if (refreshed) {
+                    console.log('Токен обновлен, повторяем запрос...');
+                    console.groupEnd();
                     // Повторяем запрос
                     return getRuns(startDate, endDate, limit, offset);
                 }
             }
+            console.error('Ошибка при получении пробежек:', response.status, response.statusText);
+            console.groupEnd();
             throw new Error(`Failed to get runs: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Данные о пробежках:', data);
+        console.log('Получены данные:', data);
+        console.groupEnd();
         return data;
     } catch (error) {
         console.error('Ошибка при получении пробежек:', error);
+        console.groupEnd();
         throw error;
     }
 }
