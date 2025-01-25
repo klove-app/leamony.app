@@ -1,32 +1,53 @@
-import { checkAuth, getUserStats } from './api.js';
+import { checkAuth, getUserStats, logout } from './api.js';
 
 let progressChart, activityChart, monthlyChart;
 
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Dashboard: DOM загружен, начинаем инициализацию...');
+    
     try {
-        console.log('Начинаем проверку авторизации...');
-        // Проверяем авторизацию
+        // Настраиваем обработчик выхода
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                console.log('Выполняем выход...');
+                try {
+                    const success = await logout();
+                    if (success) {
+                        console.log('Выход успешен, перенаправляем на главную...');
+                        window.location.href = '/';
+                    } else {
+                        console.error('Ошибка при выходе');
+                        showError('Failed to logout. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при выходе:', error);
+                    showError('An error occurred during logout');
+                }
+            });
+        }
+
+        console.log('Проверяем авторизацию...');
         const user = await checkAuth();
         console.log('Результат проверки авторизации:', user);
         
         if (!user) {
-            console.log('Пользователь не авторизован, перенаправление на главную');
+            console.log('Пользователь не авторизован, перенаправляем на главную');
             window.location.href = '/?auth=failed';
             return;
         }
 
-        console.log('Пользователь авторизован:', user);
-
-        // Обновляем информацию о пользователе
+        console.log('Пользователь авторизован, обновляем информацию...');
         updateUserInfo(user);
 
-        // Инициализируем графики
+        console.log('Инициализируем графики...');
         await initCharts();
         
-        // Загружаем реальные данные
+        console.log('Загружаем статистику пользователя...');
         try {
             const stats = await getUserStats();
+            console.log('Статистика получена:', stats);
             updateDashboard(stats);
             
             // Запускаем автообновление каждые 5 минут
@@ -40,14 +61,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             }, 5 * 60 * 1000);
         } catch (error) {
             console.error('Ошибка при загрузке статистики:', error);
-            showError('Не удалось загрузить статистику. Попробуйте обновить страницу.');
+            showError('Failed to load statistics. Please refresh the page.');
         }
         
     } catch (error) {
-        console.error('Ошибка инициализации:', error);
-        if (!error.message.includes('auth')) {
-            showError('Произошла ошибка при загрузке данных. Попробуйте обновить страницу.');
-        }
+        console.error('Ошибка инициализации дашборда:', error);
+        showError('An error occurred while loading the dashboard');
     }
 });
 
