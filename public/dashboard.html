@@ -8,9 +8,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com/">
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="/js/env.js"></script>
+    
+    <!-- Сначала загружаем Chart.js -->
+    <script src="/js/lib/chart.js"></script>
+    
+    <!-- Затем загружаем наши модули -->
+    <script type="module" src="/js/config.js"></script>
+    <script type="module" src="/js/api.js"></script>
     <script type="module" src="/js/dashboard.js"></script>
+
+    <!-- Обработка ошибок загрузки -->
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('Script error:', e);
+            if (e.target.src) {
+                console.error('Failed to load:', e.target.src);
+            }
+        });
+    </script>
 </head>
 <body>
     <nav class="navbar">

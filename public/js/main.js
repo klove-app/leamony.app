@@ -58,36 +58,24 @@ function setupEventListeners() {
 }
 
 // Обработчики форм
-async function handleLogin(e) {
-    e.preventDefault();
+async function handleLogin(event) {
+    event.preventDefault();
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
+    const errorElement = document.getElementById('loginError');
 
     try {
-        console.log('Отправляем запрос на вход...');
         const result = await login(username, password);
-        console.log('Получен ответ:', result);
-        
         if (result.success) {
-            console.log('Вход успешен, закрываем модальное окно...');
-            closeAuthModal();
-            
-            console.log('Подготовка к редиректу на дашборд...');
-            // Добавляем задержку перед редиректом
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            console.log('Выполняем редирект на /dashboard.html');
-            
-            // Сохраняем информацию о пользователе перед редиректом
-            localStorage.setItem('lastLoginUser', JSON.stringify(result.user));
-            
             window.location.href = '/dashboard.html';
         } else {
-            console.log('Ошибка входа:', result.error);
-            showError('loginError', result.error || 'Login failed');
+            errorElement.textContent = result.error || 'Ошибка входа';
+            errorElement.style.display = 'block';
         }
     } catch (error) {
-        console.error('Критическая ошибка при входе:', error);
-        showError('loginError', 'An error occurred during login');
+        console.error('Login error:', error);
+        errorElement.textContent = 'Произошла ошибка при входе';
+        errorElement.style.display = 'block';
     }
 }
 
