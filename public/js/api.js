@@ -178,33 +178,17 @@ async function logout() {
 async function checkAuth() {
     try {
         console.log('Отправляем запрос на проверку авторизации...');
-        const response = await fetch(`${config.API_URL}/users/me`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            },
-            credentials: 'include'
-        });
-        console.log('Получен ответ:', response.status, response.statusText);
-
-        if (!response.ok) {
-            console.log('Ответ не ok, статус:', response.status);
-            if (response.status === 401) {
-                console.log('Пробуем обновить токен...');
-                // Try to refresh token
-                const refreshResult = await refreshToken();
-                console.log('Результат обновления токена:', refreshResult);
-                if (refreshResult.success) {
-                    console.log('Токен обновлен, повторяем проверку авторизации');
-                    return await checkAuth();
-                }
-            }
+        // Пробуем обновить токен для проверки авторизации
+        const refreshResult = await refreshToken();
+        console.log('Результат проверки авторизации:', refreshResult);
+        
+        if (!refreshResult.success) {
+            console.log('Не удалось подтвердить авторизацию');
             return null;
         }
 
-        const data = await response.json();
-        console.log('Данные пользователя получены:', data);
-        return data;
+        console.log('Авторизация подтверждена');
+        return refreshResult.user;
     } catch (error) {
         console.error('Auth check error:', error);
         return null;
