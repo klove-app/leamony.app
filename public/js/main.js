@@ -64,18 +64,26 @@ async function handleLogin(e) {
     const password = document.getElementById('loginPassword').value;
 
     try {
+        console.log('Отправляем запрос на вход...');
         const result = await login(username, password);
+        console.log('Получен ответ:', result);
+        
         if (result.success) {
-            // Сначала закрываем модальное окно
+            console.log('Вход успешен, закрываем модальное окно...');
             closeAuthModal();
-            // Затем делаем редирект на дашборд
+            
+            console.log('Подготовка к редиректу на дашборд...');
+            // Добавляем небольшую задержку, чтобы успеть увидеть логи
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            console.log('Выполняем редирект на /dashboard.html');
             window.location.href = '/dashboard.html';
         } else {
+            console.log('Ошибка входа:', result.error);
             showError('loginError', result.error || 'Login failed');
         }
     } catch (error) {
+        console.error('Критическая ошибка при входе:', error);
         showError('loginError', 'An error occurred during login');
-        console.error('Login error:', error);
     }
 }
 
