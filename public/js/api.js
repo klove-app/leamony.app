@@ -201,31 +201,25 @@ async function checkAuth() {
 }
 
 // Получение статистики пользователя
-async function getUserStats() {
+export async function getUserStats() {
     try {
         const response = await fetch(`${config.API_URL}/users/me/stats`, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json'
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
 
         if (!response.ok) {
-            throw new Error('Failed to fetch user stats');
+            throw new Error(`Failed to fetch user stats: ${response.status}`);
         }
 
         const data = await response.json();
-        return {
-            totalProgress: {
-                completed: data.total_distance || 0,
-                remaining: data.goal_distance || 1000 - (data.total_distance || 0)
-            },
-            weeklyActivity: data.weekly_activity || [0, 0, 0, 0, 0, 0, 0],
-            monthlyStats: data.monthly_stats || [0, 0, 0, 0]
-        };
+        console.log('User stats:', data);
+        return data;
     } catch (error) {
-        console.error('Stats fetch error:', error);
+        console.error('Error fetching user stats:', error);
         throw error;
     }
 }
