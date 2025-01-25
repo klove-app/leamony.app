@@ -3,7 +3,7 @@
     try {
         console.log('Начало загрузки dashboard.js');
         
-        // Проверяем загрузку модулей
+        // Проверяем загрузку Chart.js
         if (!window.Chart) {
             throw new Error('Chart.js не загружен');
         }
@@ -16,70 +16,15 @@
         console.log('Модули успешно импортированы');
         console.log('API URL:', config.API_URL);
 
-        // Проверяем информацию о последнем входе
-        const lastLoginUser = localStorage.getItem('lastLoginUser');
-        if (lastLoginUser) {
-            console.log('Найдена информация о последнем входе:', JSON.parse(lastLoginUser));
-        }
-
         let progressChart, activityChart, monthlyChart;
+        let lastStatsUpdate = new Date();
 
         // Инициализация страницы
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('Dashboard: DOM загружен, начинаем инициализацию...');
             
             try {
-                // Проверяем наличие токена в куках
-                console.log('Проверяем куки:', document.cookie);
-                if (!document.cookie.includes('session')) {
-                    throw new Error('Сессия не найдена в куках');
-                }
-
-                // Проверяем наличие необходимых элементов
-                console.log('Проверяем наличие элементов...');
-                const requiredElements = [
-                    'logoutButton',
-                    'userName',
-                    'userEmail',
-                    'progressChart',
-                    'activityChart',
-                    'monthlyChart'
-                ];
-
-                const missingElements = [];
-                for (const elementId of requiredElements) {
-                    const element = document.getElementById(elementId);
-                    if (!element) {
-                        missingElements.push(elementId);
-                    }
-                    console.log(`Элемент ${elementId}:`, element ? 'найден' : 'не найден');
-                }
-
-                if (missingElements.length > 0) {
-                    throw new Error(`Не найдены элементы: ${missingElements.join(', ')}`);
-                }
-
-                // Настраиваем обработчик выхода
-                const logoutButton = document.getElementById('logoutButton');
-                logoutButton.addEventListener('click', async () => {
-                    console.log('Выполняем выход...');
-                    try {
-                        const success = await logout();
-                        if (success) {
-                            console.log('Выход успешен, очищаем данные...');
-                            localStorage.removeItem('lastLoginUser');
-                            console.log('Перенаправляем на главную...');
-                            window.location.href = '/';
-                        } else {
-                            console.error('Ошибка при выходе');
-                            showError('Failed to logout. Please try again.');
-                        }
-                    } catch (error) {
-                        console.error('Ошибка при выходе:', error);
-                        showError('An error occurred during logout');
-                    }
-                });
-
+                // Проверяем авторизацию
                 console.log('Проверяем авторизацию...');
                 const user = await checkAuth();
                 console.log('Результат проверки авторизации:', user);
@@ -88,51 +33,76 @@
                     throw new Error('Пользователь не авторизован');
                 }
 
-                console.log('Пользователь авторизован, обновляем информацию...');
+                // Обновляем информацию о пользователе
                 updateUserInfo(user);
 
-                console.log('Инициализируем графики...');
+                // Инициализируем графики
                 await initCharts();
                 
-                console.log('Загружаем статистику пользователя...');
-                try {
-                    const stats = await getUserStats();
-                    console.log('Статистика получена:', stats);
-                    updateDashboard(stats);
-                    
-                    // Запускаем автообновление каждые 5 минут
-                    setInterval(async () => {
-                        try {
-                            const newStats = await getUserStats();
-                            updateDashboard(newStats);
-                        } catch (error) {
-                            console.error('Ошибка при обновлении данных:', error);
-                        }
-                    }, 5 * 60 * 1000);
-                } catch (error) {
-                    console.error('Ошибка при загрузке статистики:', error);
-                    showError('Failed to load statistics. Please refresh the page.');
-                }
+                // Настраиваем обработчик выхода
+                setupLogoutHandler();
+                
+                // Загружаем статистику
+                await updateStats();
+                
+                // Запускаем автообновление каждые 5 минут
+                setInterval(updateStats, 5 * 60 * 1000);
                 
             } catch (error) {
                 console.error('Ошибка инициализации дашборда:', error);
                 showError(error.message || 'An error occurred while loading the dashboard');
-                // В случае критической ошибки перенаправляем на главную
-                setTimeout(() => {
-                    window.location.href = '/?error=' + encodeURIComponent(error.message);
-                }, 3000);
+                window.location.href = '/?error=' + encodeURIComponent(error.message);
             }
         });
+
+        // Настройка обработчика выхода
+        function setupLogoutHandler() {
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    try {
+                        const success = await logout();
+                        if (success) {
+                            window.location.href = '/';
+                        } else {
+                            showError('Failed to logout. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при выходе:', error);
+                        showError('An error occurred during logout');
+                    }
+                });
+            }
+        }
+
+        // Обновление статистики
+        async function updateStats() {
+            try {
+                const stats = await getUserStats();
+                console.log('Статистика получена:', stats);
+                
+                updateDashboard(stats);
+                updateLastSync();
+                
+            } catch (error) {
+                console.error('Ошибка при загрузке статистики:', error);
+                showError('Failed to load statistics');
+            }
+        }
+
+        // Обновление времени последней синхронизации
+        function updateLastSync() {
+            const lastSync = document.getElementById('lastSync');
+            if (lastSync) {
+                lastSync.textContent = new Date().toLocaleTimeString();
+            }
+        }
 
         // Инициализация графиков
         async function initCharts() {
             try {
                 // График прогресса
                 const progressCtx = document.getElementById('progressChart').getContext('2d');
-                if (!progressCtx) {
-                    throw new Error('Элемент progressChart не найден');
-                }
-
                 progressChart = new Chart(progressCtx, {
                     type: 'doughnut',
                     data: {
@@ -160,10 +130,6 @@
 
                 // График активности
                 const activityCtx = document.getElementById('activityChart').getContext('2d');
-                if (!activityCtx) {
-                    throw new Error('Элемент activityChart не найден');
-                }
-
                 activityChart = new Chart(activityCtx, {
                     type: 'bar',
                     data: {
@@ -203,10 +169,6 @@
 
                 // График за месяц
                 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-                if (!monthlyCtx) {
-                    throw new Error('Элемент monthlyChart не найден');
-                }
-
                 monthlyChart = new Chart(monthlyCtx, {
                     type: 'line',
                     data: {
@@ -250,21 +212,18 @@
                 
             } catch (error) {
                 console.error('Ошибка при инициализации графиков:', error);
-                showError('Не удалось создать графики: ' + error.message);
+                throw new Error('Failed to initialize charts: ' + error.message);
             }
         }
 
         // Обновление информации о пользователе
         function updateUserInfo(user) {
-            const userNameElement = document.getElementById('userName');
-            const userEmailElement = document.getElementById('userEmail');
-            
-            if (userNameElement) {
-                userNameElement.textContent = user.username;
-            }
-            if (userEmailElement) {
-                userEmailElement.textContent = user.email;
-            }
+            const userNameElements = document.querySelectorAll('#userName, #userNameHeader');
+            userNameElements.forEach(element => {
+                if (element) {
+                    element.textContent = user.username;
+                }
+            });
         }
 
         // Обновление данных дашборда
@@ -273,6 +232,9 @@
             updateActivityChart(stats);
             updateMonthlyChart(stats);
             updateProgressDetails(stats);
+            updateWeeklyStats(stats);
+            updateMonthlyStats(stats);
+            updateAchievements(stats);
         }
 
         // График общего прогресса
@@ -284,11 +246,16 @@
             progressChart.data.datasets[0].data = [completed, remaining];
             progressChart.update();
 
-            // Обновляем значения в центре графика
+            // Обновляем значения
             const progressValue = document.querySelector('.progress-value');
             if (progressValue) {
                 progressValue.textContent = completed.toFixed(1);
             }
+
+            // Обновляем детали
+            const detailValues = document.querySelectorAll('.detail-value');
+            if (detailValues[0]) detailValues[0].textContent = completed.toFixed(1);
+            if (detailValues[1]) detailValues[1].textContent = goal;
         }
 
         // График активности за неделю
@@ -305,17 +272,87 @@
             monthlyChart.update();
         }
 
-        // Обновление деталей прогресса
-        function updateProgressDetails(stats) {
-            const completedElement = document.querySelector('.detail-value');
-            const goalElement = document.querySelectorAll('.detail-value')[1];
-            
-            if (completedElement) {
-                completedElement.textContent = (stats.total_distance || 0).toFixed(1);
+        // Обновление недельной статистики
+        function updateWeeklyStats(stats) {
+            const weeklyData = stats.weekly_activity || Array(7).fill(0);
+            const weekTotal = weeklyData.reduce((a, b) => a + b, 0);
+            const weekAvg = weekTotal / 7;
+
+            const weekTotalElement = document.getElementById('weekTotal');
+            const weekAvgElement = document.getElementById('weekAvg');
+
+            if (weekTotalElement) weekTotalElement.textContent = weekTotal.toFixed(1);
+            if (weekAvgElement) weekAvgElement.textContent = weekAvg.toFixed(1);
+        }
+
+        // Обновление месячной статистики
+        function updateMonthlyStats(stats) {
+            const monthlyData = stats.monthly_stats || Array(30).fill(0);
+            const monthTotal = monthlyData.reduce((a, b) => a + b, 0);
+            const monthAvg = monthTotal / monthlyData.length;
+
+            const monthTotalElement = document.getElementById('monthTotal');
+            const monthAvgElement = document.getElementById('monthAvg');
+
+            if (monthTotalElement) monthTotalElement.textContent = monthTotal.toFixed(1);
+            if (monthAvgElement) monthAvgElement.textContent = monthAvg.toFixed(1);
+        }
+
+        // Обновление достижений
+        function updateAchievements(stats) {
+            const achievementsList = document.getElementById('achievementsList');
+            if (!achievementsList) return;
+
+            // Проверяем достижения
+            const achievements = [];
+
+            // Первая пробежка
+            if (stats.total_distance > 0) {
+                achievements.push({
+                    icon: '🎯',
+                    title: 'First Run',
+                    description: 'Started your running journey!'
+                });
             }
-            if (goalElement) {
-                goalElement.textContent = stats.yearly_goal || 1000;
+
+            // Достижение недельной цели
+            const weeklyTotal = (stats.weekly_activity || []).reduce((a, b) => a + b, 0);
+            if (weeklyTotal >= 20) {
+                achievements.push({
+                    icon: '🌟',
+                    title: 'Weekly Warrior',
+                    description: `Ran ${weeklyTotal.toFixed(1)}km this week!`
+                });
             }
+
+            // Прогресс к годовой цели
+            const goalProgress = (stats.total_distance / stats.yearly_goal) * 100;
+            if (goalProgress >= 50) {
+                achievements.push({
+                    icon: '🏃',
+                    title: 'Halfway There',
+                    description: 'Reached 50% of your yearly goal!'
+                });
+            }
+
+            // Отображаем достижения
+            achievementsList.innerHTML = achievements.length > 0 ? 
+                achievements.map(achievement => `
+                    <div class="achievement">
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-details">
+                            <h3>${achievement.title}</h3>
+                            <p>${achievement.description}</p>
+                        </div>
+                    </div>
+                `).join('') :
+                `<div class="achievement">
+                    <div class="achievement-icon">🎯</div>
+                    <div class="achievement-details">
+                        <h3>Keep Running!</h3>
+                        <p>Complete more runs to unlock achievements</p>
+                    </div>
+                </div>`;
         }
 
         // Функция отображения ошибки
@@ -324,19 +361,18 @@
             errorDiv.className = 'error';
             errorDiv.textContent = message;
             document.body.prepend(errorDiv);
+            
+            // Автоматически скрываем ошибку через 5 секунд
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
         }
+
     } catch (error) {
         console.error('Критическая ошибка при загрузке модулей:', error);
         document.addEventListener('DOMContentLoaded', () => {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.textContent = 'Failed to load required modules: ' + error.message;
-            document.body.prepend(errorDiv);
-            
-            // Перенаправляем на главную через 3 секунды
-            setTimeout(() => {
-                window.location.href = '/?error=' + encodeURIComponent(error.message);
-            }, 3000);
+            showError('Failed to load required modules: ' + error.message);
+            window.location.href = '/?error=' + encodeURIComponent(error.message);
         });
     }
 })(); 

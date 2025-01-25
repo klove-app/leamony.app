@@ -5,37 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - RunConnect</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/dashboard.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="/js/env.js"></script>
-    <script type="module" src="/js/config.js"></script>
-    <script type="module" src="/js/api.js"></script>
     <script type="module" src="/js/dashboard.js"></script>
-    <script>
-        // Глобальный обработчик ошибок
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-        });
-        
-        // Отлавливаем ошибки в промисах
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('Unhandled promise rejection:', e.reason);
-        });
-    </script>
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="logo">
-                <img src="/images/logo.svg" alt="RunConnect" width="32" height="32">
-                RunConnect
-            </a>
+            <a href="/" class="logo">RunConnect</a>
             <div class="nav-links">
-                <span id="userEmail" class="user-info"></span>
-                <button id="logoutButton" class="button button-secondary">Sign Out</button>
+                <span id="userName" class="nav-link">Loading...</span>
+                <button id="logoutButton" class="nav-link">Sign Out</button>
             </div>
         </div>
     </nav>
@@ -43,237 +26,92 @@
     <main class="dashboard">
         <div class="container">
             <div class="dashboard-header">
-                <h1>Welcome back, <span id="userName">Runner</span>!</h1>
-                <p class="stats-summary">Here's your running progress</p>
+                <h1>Welcome back, <span id="userNameHeader">Runner</span>!</h1>
+                <p class="last-sync">Last updated: <span id="lastSync">Just now</span></p>
             </div>
 
             <div class="dashboard-grid">
                 <!-- Общий прогресс -->
-                <div class="dashboard-card progress-card">
+                <div class="card progress-card">
                     <h2>Overall Progress</h2>
-                    <div class="chart-container">
+                    <div class="progress-chart-container">
                         <canvas id="progressChart"></canvas>
                         <div class="progress-center">
                             <div class="progress-value">0</div>
-                            <div class="progress-label">km total</div>
+                            <div class="progress-label">km</div>
                         </div>
                     </div>
                     <div class="progress-details">
                         <div class="detail-item">
-                            <div class="detail-value">0</div>
-                            <div class="detail-label">km completed</div>
+                            <span class="detail-label">Completed</span>
+                            <span class="detail-value">0</span>
+                            <span class="detail-unit">km</span>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-value">1000</div>
-                            <div class="detail-label">km goal</div>
+                            <span class="detail-label">Goal</span>
+                            <span class="detail-value">1000</span>
+                            <span class="detail-unit">km</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Активность за неделю -->
-                <div class="dashboard-card">
+                <!-- Статистика за неделю -->
+                <div class="card activity-card">
                     <h2>Weekly Activity</h2>
                     <div class="chart-container">
                         <canvas id="activityChart"></canvas>
                     </div>
+                    <div class="activity-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="weekTotal">0</span>
+                            <span class="stat-label">km this week</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="weekAvg">0</span>
+                            <span class="stat-label">km/day avg</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Статистика за месяц -->
-                <div class="dashboard-card">
-                    <h2>Monthly Stats</h2>
+                <!-- Месячная статистика -->
+                <div class="card monthly-card">
+                    <h2>Monthly Progress</h2>
                     <div class="chart-container">
                         <canvas id="monthlyChart"></canvas>
                     </div>
+                    <div class="monthly-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="monthTotal">0</span>
+                            <span class="stat-label">km this month</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="monthAvg">0</span>
+                            <span class="stat-label">km/day avg</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Достижения -->
-            <div class="achievements-section">
-                <h2>Recent Achievements</h2>
-                <div class="achievements-grid">
-                    <div class="achievement-card">
-                        <div class="achievement-icon">🏃</div>
-                        <h3>First 5K</h3>
-                        <p>Completed your first 5 kilometer run!</p>
-                        <div class="achievement-date">Jan 20, 2024</div>
-                    </div>
-                    <div class="achievement-card">
-                        <div class="achievement-icon">🎯</div>
-                        <h3>Goal Setter</h3>
-                        <p>Set your first yearly running goal</p>
-                        <div class="achievement-date">Jan 15, 2024</div>
-                    </div>
-                    <div class="achievement-card">
-                        <div class="achievement-icon">🌟</div>
-                        <h3>Early Bird</h3>
-                        <p>Completed 5 morning runs</p>
-                        <div class="achievement-date">Jan 10, 2024</div>
+                <!-- Достижения -->
+                <div class="card achievements-card">
+                    <h2>Recent Achievements</h2>
+                    <div class="achievements-list" id="achievementsList">
+                        <div class="achievement">
+                            <div class="achievement-icon">🎯</div>
+                            <div class="achievement-details">
+                                <h3>Loading achievements...</h3>
+                                <p>Please wait...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <style>
-    .dashboard {
-        padding-top: 80px;
-        background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
-        min-height: 100vh;
-    }
-
-    .dashboard-header {
-        text-align: center;
-        margin-bottom: 3rem;
-    }
-
-    .dashboard-header h1 {
-        font-size: 2.5rem;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .stats-summary {
-        font-size: 1.25rem;
-        color: var(--text-secondary);
-    }
-
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 4rem;
-    }
-
-    .dashboard-card {
-        background: white;
-        padding: 2rem;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-md);
-    }
-
-    .dashboard-card h2 {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-        text-align: left;
-    }
-
-    .chart-container {
-        position: relative;
-        height: 300px;
-    }
-
-    .progress-card .chart-container {
-        height: 240px;
-    }
-
-    .progress-center {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-    }
-
-    .progress-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary-color);
-    }
-
-    .progress-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-    }
-
-    .progress-details {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #eee;
-    }
-
-    .detail-item {
-        text-align: center;
-    }
-
-    .detail-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .detail-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-    }
-
-    .achievements-section {
-        margin-bottom: 4rem;
-    }
-
-    .achievements-section h2 {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-
-    .achievements-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-    }
-
-    .achievement-card {
-        background: white;
-        padding: 2rem;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-md);
-        text-align: center;
-        transition: transform 0.3s ease;
-    }
-
-    .achievement-card:hover {
-        transform: translateY(-5px);
-    }
-
-    .achievement-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .achievement-card h3 {
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .achievement-card p {
-        color: var(--text-secondary);
-        margin-bottom: 1rem;
-    }
-
-    .achievement-date {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-    }
-
-    .user-info {
-        margin-right: 1rem;
-        font-weight: 500;
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .achievements-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .dashboard-header h1 {
-            font-size: 2rem;
-        }
-    }
-    </style>
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 RunConnect. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>
