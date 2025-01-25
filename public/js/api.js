@@ -212,7 +212,7 @@ async function checkAuth() {
 }
 
 // Получение списка пробежек
-export async function getRuns(startDate, endDate, limit = 50, offset = 0) {
+async function getRuns(startDate, endDate, limit = 50, offset = 0) {
     console.group('Запрос пробежек');
     console.log('Параметры запроса:', { startDate, endDate, limit, offset });
 
