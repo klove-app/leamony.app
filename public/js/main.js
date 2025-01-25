@@ -1,3 +1,5 @@
+import { login, register, checkAuth } from './api.js';
+
 // Функция для проверки загрузки DOM и всех элементов
 function checkElements() {
     console.log('Проверка элементов:');
