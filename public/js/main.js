@@ -66,13 +66,15 @@ async function handleLogin(e) {
     try {
         const result = await login(username, password);
         if (result.success) {
+            // Сначала закрываем модальное окно
             closeAuthModal();
-            updateUIForLoggedInUser(result.user);
+            // Затем делаем редирект на дашборд
+            window.location.href = '/dashboard.html';
         } else {
-            showError('loginError', result.error);
+            showError('loginError', result.error || 'Login failed');
         }
     } catch (error) {
-        showError('loginError', 'Произошла ошибка при входе');
+        showError('loginError', 'An error occurred during login');
         console.error('Login error:', error);
     }
 }
