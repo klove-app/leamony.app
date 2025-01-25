@@ -1,54 +1,39 @@
 import { login, register, checkAuth } from './api.js';
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM загружен, инициализация...');
-    
-    // Проверяем наличие элементов
+// Функции для работы с модальным окном
+function openAuthModal() {
     const modal = document.getElementById('authModal');
-    const loginButton = document.getElementById('loginButton');
-    const closeButton = document.querySelector('.close-button');
-    const loginForm = document.getElementById('loginForm');
-    
-    console.log('Элементы страницы:', {
-        modal: modal,
-        loginButton: loginButton,
-        closeButton: closeButton,
-        loginForm: loginForm
-    });
+    if (modal) {
+        console.log('Открываем модальное окно');
+        modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        
+        // Очищаем поля формы при открытии
+        const usernameInput = document.getElementById('loginUsername');
+        const passwordInput = document.getElementById('loginPassword');
+        if (usernameInput) usernameInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+        
+        // Скрываем сообщения об ошибках
+        const errorElement = document.getElementById('loginError');
+        if (errorElement) errorElement.style.display = 'none';
+    } else {
+        console.error('Модальное окно не найдено');
+    }
+}
 
-    // Настраиваем обработчики событий
-    if (loginButton) {
-        loginButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Клик по кнопке входа');
-            openAuthModal();
-        });
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        console.log('Закрываем модальное окно');
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
     }
-
-    if (closeButton) {
-        closeButton.addEventListener('click', () => {
-            console.log('Закрытие модального окна');
-            closeAuthModal();
-        });
-    }
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    // Проверяем авторизацию только если есть сохраненная сессия
-    if (document.cookie.includes('session')) {
-        checkAuth().then(user => {
-            if (user) {
-                console.log('Пользователь авторизован:', user);
-                updateUIForLoggedInUser(user);
-            }
-        }).catch(error => {
-            console.error('Ошибка проверки авторизации:', error);
-        });
-    }
-});
+}
 
 // Обработчики форм
 async function handleLogin(e) {
@@ -87,41 +72,44 @@ function updateUIForLoggedInUser(user) {
     }
 }
 
-// Функции для работы с модальным окном
-function openAuthModal() {
-    const modal = document.getElementById('authModal');
-    if (modal) {
-        console.log('Открываем модальное окно');
-        modal.style.display = 'flex';
-        modal.style.visibility = 'visible';
-        modal.style.opacity = '1';
-        
-        // Очищаем поля формы при открытии
-        const usernameInput = document.getElementById('loginUsername');
-        const passwordInput = document.getElementById('loginPassword');
-        if (usernameInput) usernameInput.value = '';
-        if (passwordInput) passwordInput.value = '';
-        
-        // Скрываем сообщения об ошибках
-        const errorElement = document.getElementById('loginError');
-        if (errorElement) errorElement.style.display = 'none';
-    } else {
-        console.error('Модальное окно не найдено');
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM загружен, инициализация...');
+    
+    // Добавляем обработчик для кнопки Sign In
+    const loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+        loginButton.onclick = (e) => {
+            e.preventDefault();
+            console.log('Клик по кнопке входа');
+            openAuthModal();
+        };
     }
-}
 
-function closeAuthModal() {
-    const modal = document.getElementById('authModal');
-    if (modal) {
-        console.log('Закрываем модальное окно');
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
+    // Добавляем обработчик для кнопки закрытия
+    const closeButton = document.querySelector('.close-button');
+    if (closeButton) {
+        closeButton.onclick = () => {
+            console.log('Закрытие модального окна');
+            closeAuthModal();
+        };
     }
-}
 
-// Экспортируем функции в глобальную область
-window.openAuthModal = openAuthModal;
-window.closeAuthModal = closeAuthModal; 
+    // Добавляем обработчик для формы входа
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.onsubmit = handleLogin;
+    }
+    
+    // Проверяем авторизацию только если есть сохраненная сессия
+    if (document.cookie.includes('session')) {
+        checkAuth().then(user => {
+            if (user) {
+                console.log('Пользователь авторизован:', user);
+                updateUIForLoggedInUser(user);
+            }
+        }).catch(error => {
+            console.error('Ошибка проверки авторизации:', error);
+        });
+    }
+}); 
