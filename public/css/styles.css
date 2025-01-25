@@ -817,3 +817,30 @@ p {
         height: 250px;
     }
 }
+
+/* Error Messages */
+.error-message {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 2000;
+    display: none;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, -100%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}

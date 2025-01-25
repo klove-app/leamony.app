@@ -4,8 +4,10 @@
         console.log('Начало загрузки dashboard.js');
         
         // Проверяем загрузку Chart.js
-        if (!window.Chart) {
-            throw new Error('Chart.js не загружен');
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js не загружен');
+            showError('Не удалось загрузить необходимые компоненты. Пожалуйста, обновите страницу.');
+            return;
         }
         console.log('Chart.js загружен успешно');
 
@@ -402,14 +404,22 @@
 
         // Функция отображения ошибки
         function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
+            // Проверяем, существует ли уже элемент с ошибкой
+            let errorDiv = document.querySelector('.error-message');
+            if (!errorDiv) {
+                // Если нет, создаем новый
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                document.body.prepend(errorDiv);
+            }
+
+            // Обновляем сообщение
             errorDiv.textContent = message;
-            document.body.prepend(errorDiv);
+            errorDiv.style.display = 'block';
             
-            // Автоматически скрываем ошибку через 5 секунд
+            // Автоматически скрываем через 5 секунд
             setTimeout(() => {
-                errorDiv.remove();
+                errorDiv.style.display = 'none';
             }, 5000);
         }
 
