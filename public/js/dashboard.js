@@ -10,8 +10,8 @@
         console.log('Chart.js загружен успешно');
 
         // Импортируем модули
-        const api = await import('./api.js');
-        const { config } = await import('./config.js');
+        const { checkAuth, getUserStats, logout } = await import('./api.js');
+        const config = await import('./config.js').then(module => module.default);
         
         console.log('Модули успешно импортированы');
         console.log('API URL:', config.API_URL);
@@ -64,7 +64,7 @@
                 logoutButton.addEventListener('click', async () => {
                     console.log('Выполняем выход...');
                     try {
-                        const success = await api.logout();
+                        const success = await logout();
                         if (success) {
                             console.log('Выход успешен, очищаем данные...');
                             localStorage.removeItem('lastLoginUser');
@@ -81,7 +81,7 @@
                 });
 
                 console.log('Проверяем авторизацию...');
-                const user = await api.checkAuth();
+                const user = await checkAuth();
                 console.log('Результат проверки авторизации:', user);
                 
                 if (!user) {
@@ -96,14 +96,14 @@
                 
                 console.log('Загружаем статистику пользователя...');
                 try {
-                    const stats = await api.getUserStats();
+                    const stats = await getUserStats();
                     console.log('Статистика получена:', stats);
                     updateDashboard(stats);
                     
                     // Запускаем автообновление каждые 5 минут
                     setInterval(async () => {
                         try {
-                            const newStats = await api.getUserStats();
+                            const newStats = await getUserStats();
                             updateDashboard(newStats);
                         } catch (error) {
                             console.error('Ошибка при обновлении данных:', error);
