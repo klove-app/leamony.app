@@ -66,13 +66,15 @@ async function handleLogin(e) {
     try {
         const result = await login(username, password);
         if (result.success) {
+            // Сначала закрываем модальное окно
             closeAuthModal();
-            updateUIForLoggedInUser(result.user);
+            // Затем делаем редирект на дашборд
+            window.location.href = '/dashboard.html';
         } else {
-            showError('loginError', result.error);
+            showError('loginError', result.error || 'Login failed');
         }
     } catch (error) {
-        showError('loginError', 'Произошла ошибка при входе');
+        showError('loginError', 'An error occurred during login');
         console.error('Login error:', error);
     }
 }
@@ -119,18 +121,30 @@ function updateUIForLoggedInUser(user) {
 function openAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';  // Используем flex для центрирования
         modal.style.visibility = 'visible';
         modal.style.opacity = '1';
+        
+        // Очищаем поля формы при открытии
+        const usernameInput = document.getElementById('loginUsername');
+        const passwordInput = document.getElementById('loginPassword');
+        if (usernameInput) usernameInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+        
+        // Скрываем сообщения об ошибках
+        const errorElement = document.getElementById('loginError');
+        if (errorElement) errorElement.style.display = 'none';
     }
 }
 
 function closeAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) {
-        modal.style.display = 'none';
-        modal.style.visibility = 'hidden';
         modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300); // Задержка для анимации
     }
 }
 
