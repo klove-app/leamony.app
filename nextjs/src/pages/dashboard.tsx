@@ -1,29 +1,14 @@
-import { GetServerSideProps } from 'next';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { getUser } from '@/lib/auth';
 import ClientDashboard from '@/components/ClientDashboard';
+import ClientWrapper from '@/components/ClientWrapper';
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await getUser();
+export default function Dashboard() {
+  const router = useRouter();
 
-  if (!user) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: { user },
-  };
-};
-
-interface DashboardProps {
-  user: any; // TODO: добавить правильный тип
-}
-
-export default function Dashboard({ user }: DashboardProps) {
-  return <ClientDashboard user={user} />;
+  return (
+    <ClientWrapper requireAuth>
+      <ClientDashboard />
+    </ClientWrapper>
+  );
 } 

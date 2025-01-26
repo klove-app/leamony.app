@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getRuns } from '@/lib/api';
+import { useAuth } from '@/lib/useAuth';
 
 interface Run {
   id: string;
@@ -10,17 +11,16 @@ interface Run {
   date: string;
 }
 
-interface ClientDashboardProps {
-  user: any;
-}
-
-export default function ClientDashboard({ user }: ClientDashboardProps) {
+export default function ClientDashboard() {
   const [runs, setRuns] = useState<Run[]>([]);
   const [isLoadingRuns, setIsLoadingRuns] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    loadRuns();
-  }, []);
+    if (user) {
+      loadRuns();
+    }
+  }, [user]);
 
   const loadRuns = async () => {
     try {
@@ -36,6 +36,10 @@ export default function ClientDashboard({ user }: ClientDashboardProps) {
       setIsLoadingRuns(false);
     }
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
