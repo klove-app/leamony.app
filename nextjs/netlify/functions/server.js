@@ -3,9 +3,13 @@ const next = require('next');
 
 const app = next({
   dev: false,
+  dir: path.join(__dirname, '../..'),
   conf: {
     distDir: '.next',
-  },
+    experimental: {
+      outputStandalone: true
+    }
+  }
 });
 
 const handle = app.getRequestHandler();
