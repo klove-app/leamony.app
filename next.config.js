@@ -1,9 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'runconnect.app',
+      },
+    ],
   },
+  output: 'standalone',
   env: {
     API_URL: process.env.API_URL || 'http://localhost:3000',
   },
