@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+
 const stats = [
   { id: 1, name: 'Active Runners', value: '10,000+' },
   { id: 2, name: 'Total Distance', value: '500,000 km' },

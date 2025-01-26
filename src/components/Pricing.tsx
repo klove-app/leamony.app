@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { CheckIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
