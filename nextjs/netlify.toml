@@ -1,6 +1,6 @@
 [build]
   base = "nextjs"
-  command = "npm install --save-dev typescript @types/react @types/node && npm run build"
+  command = "npm install && npm run build"
   publish = ".next"
 
 [build.environment]
@@ -9,6 +9,7 @@
   NODE_VERSION = "18"
   NPM_VERSION = "9"
   NODE_ENV = "production"
+  SKIP_INSTALL_DEPS = "false"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
