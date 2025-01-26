@@ -17,10 +17,6 @@ const nextConfig = {
     };
     return config;
   },
-  experimental: {
-    appDir: true,
-    serverActions: true,
-  },
 }
 
 module.exports = nextConfig 
