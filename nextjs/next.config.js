@@ -17,6 +17,10 @@ const nextConfig = {
     };
     return config;
   },
+  experimental: {
+    isrMemoryCacheSize: 0,
+  },
+  staticPageGenerationTimeout: 0,
 }
 
 module.exports = nextConfig 

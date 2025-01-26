@@ -2,11 +2,13 @@
   base = "nextjs"
   command = "npm run build"
   publish = ".next"
+  functions = "netlify/functions"
 
 [build.environment]
   NEXT_USE_NETLIFY_EDGE = "false"
   NODE_VERSION = "18"
   NPM_VERSION = "9"
+  NEXT_PRIVATE_STANDALONE = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -23,5 +25,6 @@
 # Разрешаем Next.js самому обрабатывать маршруты
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200 
+  to = "/.netlify/functions/server"
+  status = 200
+  force = true 
