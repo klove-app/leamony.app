@@ -1,14 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  reactStrictMode: true,
   images: {
     unoptimized: true,
   },
   env: {
     API_URL: process.env.API_URL || 'http://localhost:3000',
-  },
-  typescript: {
-    ignoreBuildErrors: false,
   },
   webpack: (config) => {
     config.resolve.alias = {
@@ -16,9 +13,7 @@ const nextConfig = {
       '@': './src',
     };
     return config;
-  },
-  // Отключаем статическую генерацию для всех страниц
-  output: 'export',
+  }
 }
 
 module.exports = nextConfig 
