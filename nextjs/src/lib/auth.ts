@@ -1,8 +1,7 @@
-import { cookies } from 'next/headers';
+import Cookies from 'js-cookie';
 
 export async function getUser() {
-  const cookieStore = cookies();
-  const token = cookieStore.get('token');
+  const token = Cookies.get('token');
 
   if (!token) {
     return null;
@@ -11,7 +10,7 @@ export async function getUser() {
   try {
     const response = await fetch(`${process.env.API_URL}/api/auth/check`, {
       headers: {
-        Cookie: `token=${token.value}`,
+        Cookie: `token=${token}`,
       },
     });
 
