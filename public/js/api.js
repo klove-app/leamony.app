@@ -12,11 +12,11 @@ async function register(username, email, password, yearly_goal = 0) {
         
         // Логируем запрос
         console.group('Registration Request');
-        console.log('URL:', `${config.API_URL}/auth/register`);
+        console.log('URL:', `${config.API_URL}/api/v1/auth/register`);
         console.log('Body:', requestBody);
         console.groupEnd();
 
-        const response = await fetch(`${config.API_URL}/auth/register`, {
+        const response = await fetch(`${config.API_URL}/api/v1/auth/register`, {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -79,11 +79,11 @@ async function login(username, password) {
 
         // Логируем запрос
         console.group('Login Request');
-        console.log('URL:', `${config.API_URL}/auth/login`);
+        console.log('URL:', `${config.API_URL}/api/v1/auth/login`);
         console.log('Body:', { username, password: '***' });
         console.groupEnd();
 
-        const response = await fetch(`${config.API_URL}/auth/login`, {
+        const response = await fetch(`${config.API_URL}/api/v1/auth/login`, {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -148,7 +148,7 @@ async function refreshToken() {
         console.log('Найден refresh_token:', refreshToken.substring(0, 10) + '...');
         
         const params = new URLSearchParams({ refresh_token: refreshToken });
-        const url = `${config.API_URL}/auth/refresh?${params}`;
+        const url = `${config.API_URL}/api/v1/auth/refresh?${params}`;
         console.log('URL запроса:', url);
         
         console.log('Отправляем запрос на обновление токена...');
@@ -184,7 +184,7 @@ async function refreshToken() {
 // Функция для выхода
 async function logout() {
     try {
-        const response = await fetch(`${config.API_URL}/auth/logout`, {
+        const response = await fetch(`${config.API_URL}/api/v1/auth/logout`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json'
