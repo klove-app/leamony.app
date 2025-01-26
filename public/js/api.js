@@ -223,11 +223,21 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
     console.log('URL запроса:', url);
 
     try {
+        // Получаем access_token из куки
+        const cookies = document.cookie.split(';');
+        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        if (!accessTokenCookie) {
+            console.log('Access token не найден в куки');
+            throw new Error('Access token не найден');
+        }
+        const accessToken = accessTokenCookie.split('=')[1].trim();
+
         const response = await fetch(url, {
             method: 'GET',
             credentials: 'include',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
             }
         });
 
