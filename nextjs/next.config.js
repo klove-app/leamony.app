@@ -17,14 +17,8 @@ const nextConfig = {
     };
     return config;
   },
-  // Отключаем статическую генерацию
-  staticPageGenerationTimeout: 0,
-  // Включаем динамический рендеринг для всех страниц
-  experimental: {
-    missingSuspenseWithCSRError: false,
-  },
-  // Отключаем кэширование данных
-  generateEtags: false,
+  // Отключаем статическую генерацию для всех страниц
+  output: 'export',
 }
 
 module.exports = nextConfig 
