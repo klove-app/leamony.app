@@ -2,8 +2,8 @@
 const path = require('path')
 
 module.exports = {
-  experimental: {
-    outputStandalone: true
-  },
-  output: 'standalone'
+  output: 'export',
+  images: {
+    unoptimized: true
+  }
 } 
