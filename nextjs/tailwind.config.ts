@@ -69,6 +69,10 @@ const config: Config = {
     'px-8',
     'py-3',
     'space-x-4',
+    'space-x-2',
+    // Размеры
+    'w-8',
+    'h-8',
     // Скругления
     'rounded-md',
     // Состояния
@@ -78,10 +82,17 @@ const config: Config = {
     'hover:text-blue-600',
     // Размеры шрифта
     'text-lg',
+    'text-xl',
     // Начертание
     'font-medium',
+    'font-bold',
     // Анимации
-    'animate-fade-in'
+    'animate-fade-in',
+    // Flexbox
+    'flex',
+    'items-center',
+    'justify-center',
+    'flex-shrink-0'
   ],
 };
 
