@@ -4,17 +4,20 @@ const features = [
   {
     icon: '/images/icons/achievement.svg',
     title: 'Smart Achievements',
-    description: 'Earn unique, AI-generated achievements that reflect your running milestones and progress'
+    description: 'Earn unique, AI-generated achievements that reflect your running milestones and progress',
+    bgColor: 'bg-pink-50'
   },
   {
     icon: '/images/icons/stats.svg',
     title: 'Detailed Analytics',
-    description: 'Get comprehensive insights into your running patterns, progress, and performance metrics'
+    description: 'Get comprehensive insights into your running patterns, progress, and performance metrics',
+    bgColor: 'bg-blue-50'
   },
   {
     icon: '/images/icons/community.svg',
     title: 'Active Community',
-    description: 'Connect with fellow runners, share achievements, and participate in group challenges'
+    description: 'Connect with fellow runners, share achievements, and participate in group challenges',
+    bgColor: 'bg-yellow-50'
   }
 ];
 
@@ -22,7 +25,7 @@ export default function Features() {
   return (
     <section id="features" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-16">
           Powerful Features for Runners
         </h2>
         
@@ -30,17 +33,18 @@ export default function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 animate-fade-in"
+              className="p-8 rounded-2xl transition-all hover:scale-105"
             >
-              <div className="w-12 h-12 mb-4">
+              <div className={`w-16 h-16 rounded-2xl ${feature.bgColor} p-4 mb-6`}>
                 <Image
                   src={feature.icon}
                   alt={feature.title}
-                  width={48}
-                  height={48}
+                  width={32}
+                  height={32}
+                  className="w-full h-full"
                 />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {feature.title}
               </h3>
               <p className="text-gray-600">
