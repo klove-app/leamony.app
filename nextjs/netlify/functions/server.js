@@ -3,13 +3,8 @@ const next = require('next');
 
 const app = next({
   dev: false,
-  dir: path.join(__dirname, '../..'),
-  conf: {
-    distDir: '.next',
-    experimental: {
-      outputStandalone: true
-    }
-  }
+  dir: path.join(__dirname, '../../.next/standalone'),
+  conf: { distDir: '.next' }
 });
 
 const handle = app.getRequestHandler();
@@ -18,22 +13,10 @@ const handler = async (event, context) => {
   try {
     await app.prepare();
     
-    const response = await handle(event, {
-      req: {
-        url: event.path,
-        headers: event.headers,
-        method: event.httpMethod,
-        body: event.body,
-      },
-      res: {
-        setHeader: () => {},
-        write: () => {},
-        end: () => {},
-      },
-    });
+    const response = await handle(event.path, event);
     
     return {
-      statusCode: 200,
+      statusCode: response.statusCode || 200,
       headers: response.headers || {},
       body: response.body || ''
     };
