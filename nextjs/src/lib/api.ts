@@ -201,23 +201,13 @@ export async function logout() {
 
 // Функция для проверки авторизации
 export async function checkAuth() {
-  try {
-    console.log('Отправляем запрос на проверку авторизации...');
-    // Пробуем обновить токен для проверки авторизации
-    const refreshResult = await refreshToken();
-    console.log('Результат проверки авторизации:', refreshResult);
-
-    if (!refreshResult.success) {
-      console.log('Не удалось подтвердить авторизацию');
-      return null;
-    }
-
-    console.log('Авторизация подтверждена');
-    return refreshResult.user;
-  } catch (error) {
-    console.error('Auth check error:', error);
+  const response = await fetch(`${API_URL}/api/auth/check`, {
+    credentials: 'include',
+  });
+  if (!response.ok) {
     return null;
   }
+  return response.json();
 }
 
 // Получение списка пробежек
