@@ -3,8 +3,6 @@ publish = "public"
 command = ""
 
 [build.environment]
-NODE_VERSION = "16"
-NPM_VERSION = "8"
 NEXT_TELEMETRY_DISABLED = "1"
 
 [[headers]]
