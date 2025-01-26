@@ -1,7 +1,7 @@
 import { login, register, checkAuth } from './api.js';
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', async () => {
+(async () => {
     console.log('Инициализация главной страницы...');
     
     try {
@@ -17,14 +17,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateAuthUI(false);
         }
 
-        // Настраиваем обработчики событий
-        setupEventListeners();
+        // Настраиваем обработчики событий после загрузки DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+        });
         
     } catch (error) {
         console.error('Ошибка при инициализации:', error);
         showError('Произошла ошибка при загрузке страницы');
     }
-});
+})();
 
 // Обновление UI в зависимости от состояния авторизации
 function updateAuthUI(isAuthenticated, username = '') {
