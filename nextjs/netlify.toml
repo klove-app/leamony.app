@@ -2,13 +2,11 @@
   base = "nextjs"
   command = "npm run build"
   publish = ".next"
-  functions = "netlify/functions"
 
 [build.environment]
-  NEXT_USE_NETLIFY_EDGE = "false"
   NODE_VERSION = "18"
   NPM_VERSION = "9"
-  NEXT_PRIVATE_STANDALONE = "true"
+  NEXT_TELEMETRY_DISABLED = "1"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

@@ -18,9 +18,9 @@ const nextConfig = {
     return config;
   },
   experimental: {
-    isrMemoryCacheSize: 0,
+    appDir: true,
+    serverActions: true,
   },
-  staticPageGenerationTimeout: 0,
 }
 
 module.exports = nextConfig 
