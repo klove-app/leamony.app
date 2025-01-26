@@ -27,10 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={inter.variable}>
-      <Providers>
-        {children}
-      </Providers>
-    </div>
+    <html lang="en" className={inter.variable}>
+      <body>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
   );
 }
