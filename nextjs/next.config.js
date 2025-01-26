@@ -5,14 +5,16 @@ module.exports = {
   output: 'export',
   images: {
     unoptimized: true,
-    loader: 'akamai',
-    path: '',
   },
   assetPrefix: '',
   basePath: '',
   trailingSlash: true,
   reactStrictMode: true,
   swcMinify: false,
+  productionBrowserSourceMaps: false,
+  experimental: {
+    optimizeFonts: false,
+  },
   webpack: (config, { dev, isServer }) => {
     config.module.rules.push({
       test: /\.(png|jpe?g|gif|svg|woff|woff2|eot|ttf|otf)$/i,
@@ -21,7 +23,11 @@ module.exports = {
 
     // Отключаем минификацию для production
     if (!dev && !isServer) {
-      config.optimization.minimize = false;
+      config.optimization = {
+        ...config.optimization,
+        minimize: false,
+        minimizer: [],
+      }
     }
 
     return config;

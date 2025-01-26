@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.runconnect.app';
 
 export interface LoginResponse {
   success: boolean;
@@ -30,11 +30,11 @@ export async function register(
     };
 
     console.group('Registration Request');
-    console.log('URL:', `${API_URL}/auth/register`);
+    console.log('URL:', `${API_URL}/api/v1/auth/register`);
     console.log('Body:', { ...requestBody, password: '***' });
     console.groupEnd();
 
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const response = await fetch(`${API_URL}/api/v1/auth/register`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -57,11 +57,11 @@ export async function register(
     console.groupEnd();
 
     if (!response.ok) {
-      if (responseData?.error?.[0]?.msg) {
+      if (responseData?.detail) {
         throw {
           status: response.status,
           data: {
-            detail: responseData.error[0].msg
+            detail: responseData.detail
           }
         };
       }
@@ -94,11 +94,11 @@ export async function login(username: string, password: string): Promise<LoginRe
     formData.append('password', password);
 
     console.group('Login Request');
-    console.log('URL:', `${API_URL}/auth/login`);
+    console.log('URL:', `${API_URL}/api/v1/auth/login`);
     console.log('Body:', { username, password: '***' });
     console.groupEnd();
 
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -157,7 +157,7 @@ export async function refreshToken() {
     console.log('Отправляем запрос на обновление токена...');
 
     const params = new URLSearchParams({ refresh_token: refreshToken });
-    const response = await fetch(`${API_URL}/auth/refresh?${params}`, {
+    const response = await fetch(`${API_URL}/api/v1/auth/refresh?${params}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json'
@@ -184,7 +184,7 @@ export async function refreshToken() {
 // Функция для выхода
 export async function logout() {
   try {
-    const response = await fetch(`${API_URL}/auth/logout`, {
+    const response = await fetch(`${API_URL}/api/v1/auth/logout`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json'
@@ -201,13 +201,19 @@ export async function logout() {
 
 // Функция для проверки авторизации
 export async function checkAuth() {
-  const response = await fetch(`${API_URL}/api/auth/check`, {
-    credentials: 'include',
-  });
-  if (!response.ok) {
+  try {
+    // Пробуем обновить токен для проверки авторизации
+    const refreshResult = await refreshToken();
+    
+    if (!refreshResult.success) {
+      return null;
+    }
+
+    return refreshResult.user;
+  } catch (error) {
+    console.error('Auth check error:', error);
     return null;
   }
-  return response.json();
 }
 
 // Получение списка пробежек
@@ -222,7 +228,7 @@ export async function getRuns(startDate: string, endDate: string, limit = 50, of
     offset: offset.toString()
   });
 
-  const url = `${API_URL}/runs/?${params}`;
+  const url = `${API_URL}/api/v1/runs/?${params}`;
   console.log('URL запроса:', url);
 
   try {
