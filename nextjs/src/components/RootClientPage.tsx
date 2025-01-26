@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -10,7 +10,17 @@ interface RootClientPageProps {
 }
 
 export default function RootClientPage({ children }: RootClientPageProps) {
+  const [mounted, setMounted] = useState(false);
   const { isLoading } = useAuth();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Не рендерим ничего на сервере
+  if (!mounted) {
+    return null;
+  }
 
   if (isLoading) {
     return (

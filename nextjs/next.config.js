@@ -16,6 +16,10 @@ const nextConfig = {
       '@': './src',
     };
     return config;
+  },
+  // Отключаем статическую генерацию
+  experimental: {
+    missingSuspenseWithCSRError: false,
   }
 }
 
