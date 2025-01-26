@@ -1,12 +1,35 @@
 const path = require('path');
+const next = require('next');
+
+const app = next({
+  dev: false,
+  conf: {
+    distDir: '.next',
+  },
+});
+
+const handle = app.getRequestHandler();
 
 const handler = async (event, context) => {
   try {
-    const { default: server } = await import('../../.next/standalone/server.js');
-    const response = await server(event.path, event);
+    await app.prepare();
+    
+    const response = await handle(event, {
+      req: {
+        url: event.path,
+        headers: event.headers,
+        method: event.httpMethod,
+        body: event.body,
+      },
+      res: {
+        setHeader: () => {},
+        write: () => {},
+        end: () => {},
+      },
+    });
     
     return {
-      statusCode: response.statusCode || 200,
+      statusCode: 200,
       headers: response.headers || {},
       body: response.body || ''
     };
