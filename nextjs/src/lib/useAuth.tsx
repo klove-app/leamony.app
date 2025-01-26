@@ -24,28 +24,23 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const initAuth = async () => {
-      try {
-        const userData = await checkAuth();
-        setUser(userData);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        setIsLoading(false);
+      if (typeof window !== 'undefined') {
+        try {
+          const userData = await checkAuth();
+          setUser(userData);
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
 
     initAuth();
   }, []);
-
-  // Не рендерим ничего до монтирования
-  if (!mounted) {
-    return null;
-  }
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
@@ -78,5 +73,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 } 

@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.runconnect.app';
 
 export interface LoginResponse {
   success: boolean;
@@ -201,7 +201,7 @@ export async function logout() {
 
 // Функция для проверки авторизации
 export async function checkAuth() {
-  const response = await fetch(`${API_URL}/api/auth/check`, {
+  const response = await fetch(`${API_URL}/auth/check`, {
     credentials: 'include',
   });
   if (!response.ok) {
