@@ -10,7 +10,14 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const defaultContext: AuthContextType = {
+  user: null,
+  isLoading: true,
+  login: async () => false,
+  logout: async () => {},
+};
+
+const AuthContext = createContext<AuthContextType>(defaultContext);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -34,6 +41,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (typeof window !== 'undefined') {
       initAuth();
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
@@ -60,15 +69,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const value = {
-    user,
-    isLoading,
-    login,
-    logout,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider 
+      value={{
+        user,
+        isLoading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -76,8 +85,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
   return context;
 } 

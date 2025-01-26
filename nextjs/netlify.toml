@@ -7,6 +7,7 @@
   NEXT_FORCE_EDGE_IMAGES = "true"
   NODE_VERSION = "18"
   NPM_VERSION = "9"
+  NODE_ENV = "production"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
