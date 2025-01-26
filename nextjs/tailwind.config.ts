@@ -50,16 +50,38 @@ const config: Config = {
   },
   plugins: [],
   safelist: [
+    // Фоны
     'bg-blue-50',
-    'bg-green-50',
-    'bg-purple-50',
+    'bg-blue-600',
+    'bg-blue-700',
+    'bg-white',
+    'bg-gray-50',
+    'bg-gray-100',
+    // Текст
+    'text-white',
+    'text-gray-900',
     'text-blue-600',
-    'text-green-600',
-    'text-purple-600',
+    // Границы
+    'border',
+    'border-gray-300',
     'border-blue-500',
+    // Отступы
+    'px-8',
+    'py-3',
+    'space-x-4',
+    // Скругления
+    'rounded-md',
+    // Состояния
     'hover:bg-blue-600',
     'hover:bg-blue-700',
+    'hover:bg-gray-50',
     'hover:text-blue-600',
+    // Размеры шрифта
+    'text-lg',
+    // Начертание
+    'font-medium',
+    // Анимации
+    'animate-fade-in'
   ],
 };
 
