@@ -16,17 +16,7 @@ const nextConfig = {
       '@': './src',
     };
     return config;
-  },
-  experimental: {
-    isrMemoryCacheSize: 0,
-    serverActions: true,
-  },
-  // Отключаем статическую генерацию
-  staticPageGenerationTimeout: 0,
-  // Включаем динамический рендеринг по умолчанию
-  dynamicPageRenderingMode: 'force-dynamic',
-  // Отключаем кэширование данных
-  generateEtags: false,
+  }
 }
 
 module.exports = nextConfig 
