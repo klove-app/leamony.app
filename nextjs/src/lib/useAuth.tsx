@@ -10,7 +10,12 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  login: async () => false,
+  logout: async () => {},
+});
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -19,8 +24,10 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const initAuth = async () => {
       try {
         const userData = await checkAuth();
@@ -32,12 +39,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
 
-    if (typeof window !== 'undefined') {
-      initAuth();
-    } else {
-      setIsLoading(false);
-    }
+    initAuth();
   }, []);
+
+  // Не рендерим ничего до монтирования
+  if (!mounted) {
+    return null;
+  }
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
@@ -62,24 +70,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const value = {
-    user,
-    isLoading,
-    login,
-    logout,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 } 
