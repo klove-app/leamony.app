@@ -4,6 +4,8 @@ import { ReactNode, Suspense } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface ClientPageProps {
   children: ReactNode;
@@ -18,20 +20,37 @@ function LoadingSpinner() {
   );
 }
 
-export default function ClientPage({ children, requireAuth = false }: ClientPageProps) {
-  return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ClientPageContent requireAuth={requireAuth}>
-        {children}
-      </ClientPageContent>
-    </Suspense>
-  );
-}
-
 function ClientPageContent({ children, requireAuth }: ClientPageProps) {
-  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  let auth;
+  
+  try {
+    auth = useAuth();
+  } catch (error) {
+    if (requireAuth) {
+      useEffect(() => {
+        router.push('/');
+      }, []);
+      return <LoadingSpinner />;
+    }
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        {children}
+        <Footer />
+      </div>
+    );
+  }
 
-  if (requireAuth && isLoading) {
+  const { user, isLoading } = auth;
+
+  useEffect(() => {
+    if (requireAuth && !isLoading && !user) {
+      router.push('/');
+    }
+  }, [user, isLoading, requireAuth]);
+
+  if (requireAuth && (isLoading || !user)) {
     return <LoadingSpinner />;
   }
 
@@ -41,5 +60,15 @@ function ClientPageContent({ children, requireAuth }: ClientPageProps) {
       {children}
       <Footer />
     </div>
+  );
+}
+
+export default function ClientPage({ children, requireAuth = false }: ClientPageProps) {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ClientPageContent requireAuth={requireAuth}>
+        {children}
+      </ClientPageContent>
+    </Suspense>
   );
 } 
