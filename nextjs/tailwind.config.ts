@@ -49,6 +49,18 @@ const config: Config = {
     },
   },
   plugins: [],
+  safelist: [
+    'bg-blue-50',
+    'bg-green-50',
+    'bg-purple-50',
+    'text-blue-600',
+    'text-green-600',
+    'text-purple-600',
+    'border-blue-500',
+    'hover:bg-blue-600',
+    'hover:bg-blue-700',
+    'hover:text-blue-600',
+  ],
 };
 
 export default config;
