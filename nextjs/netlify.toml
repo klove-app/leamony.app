@@ -4,8 +4,7 @@
   publish = ".next"
 
 [build.environment]
-  NEXT_USE_NETLIFY_EDGE = "true"
-  NEXT_FORCE_EDGE_IMAGES = "true"
+  NEXT_USE_NETLIFY_EDGE = "false"
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
@@ -21,9 +20,8 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "frame-ancestors 'none'"
 
-# Обработка всех маршрутов через Next.js
+# Разрешаем Next.js самому обрабатывать маршруты
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/next"
-  status = 200
-  force = true 
+  to = "/index.html"
+  status = 200 
