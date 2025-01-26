@@ -35,13 +35,11 @@ export default function Features() {
               key={index}
               className="p-8 rounded-2xl transition-all hover:scale-105"
             >
-              <div className={`w-16 h-16 rounded-2xl ${feature.bgColor} p-4 mb-6`}>
-                <Image
+              <div className={`w-16 h-16 rounded-2xl ${feature.bgColor} p-4 mb-6 flex items-center justify-center`}>
+                <img
                   src={feature.icon}
                   alt={feature.title}
-                  width={32}
-                  height={32}
-                  className="w-full h-full"
+                  className="w-8 h-8"
                 />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
