@@ -5,5 +5,8 @@ module.exports = {
   output: 'export',
   images: {
     unoptimized: true
-  }
+  },
+  assetPrefix: '/',
+  basePath: '',
+  trailingSlash: true
 } 
