@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
+  output: 'export',
   images: {
-    domains: ['localhost'],
+    unoptimized: true,
+  },
+  trailingSlash: true,
+  distDir: '.next',
+  env: {
+    API_URL: process.env.API_URL || 'http://localhost:3000',
   },
 }
 
