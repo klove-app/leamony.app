@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { AuthProvider } from "@/lib/useAuth";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,11 +34,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={inter.className}>
-        <div suppressHydrationWarning>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </div>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

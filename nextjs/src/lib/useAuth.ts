@@ -21,7 +21,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,43 +41,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    try {
-      const result = await apiLogin(username, password);
-      if (result.success && result.user) {
-        setUser(result.user);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
+    const result = await apiLogin(username, password);
+    if (result.success && result.user) {
+      setUser(result.user);
+      return true;
     }
+    return false;
   };
 
   const logout = async (): Promise<void> => {
-    try {
-      await apiLogout();
-      setUser(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    await apiLogout();
+    setUser(null);
   };
 
-  return (
-    <AuthContext.Provider 
-      value={{
-        user,
-        isLoading,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const contextValue: AuthContextType = {
+    user,
+    isLoading,
+    login,
+    logout,
+  };
+
+  return React.createElement(AuthContext.Provider, { value: contextValue }, children);
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta property="og:title" content="RunConnect - AI-Powered Running Assistant">
+    <meta property="og:description" content="Track your runs, earn unique achievements, and join a community of runners">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://runconnect.app">
+    <title>RunConnect - AI-Powered Running Assistant</title>
+    <script src="/js/env.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/instructions.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="/js/config.js"></script>
+    <script type="module" src="/js/api.js"></script>
+    <script type="module" src="/js/main.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/images/logo.svg" alt="RunConnect" width="32" height="32">
+                RunConnect
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="https://docs.runconnect.app" target="_blank" class="nav-link">Docs</a>
+                <a href="#" class="nav-link" id="loginButton">Sign In</a>
+                <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <div class="hero-content animate-fade-in">
+                    <h1 class="hero-title">Transform Your Running Journey with AI</h1>
+                    <p class="hero-description">
+                        Join an active running community where every run becomes more engaging with our AI assistant. Track progress, earn unique achievements, and share your success with fellow runners.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                            Start Running Now
+                        </a>
+                        <a href="#features" class="button button-secondary">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features-section">
+            <div class="container">
+                <h2>Powerful Features for Runners</h2>
+                <div class="features-grid">
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <img src="/images/icons/achievement.svg" alt="Achievements">
+                        </div>
+                        <h3 class="feature-title">Smart Achievements</h3>
+                        <p>Earn unique, AI-generated achievements that reflect your running milestones and progress</p>
+                    </div>
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <img src="/images/icons/stats.svg" alt="Statistics">
+                        </div>
+                        <h3 class="feature-title">Detailed Analytics</h3>
+                        <p>Get comprehensive insights into your running patterns, progress, and performance metrics</p>
+                    </div>
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <img src="/images/icons/community.svg" alt="Community">
+                        </div>
+                        <h3 class="feature-title">Active Community</h3>
+                        <p>Connect with fellow runners, share achievements, and participate in group challenges</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">1,000+</div>
+                        <div class="stat-label">Active Runners</div>
+                    </div>
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">50,000+</div>
+                        <div class="stat-label">Kilometers Run</div>
+                    </div>
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">10,000+</div>
+                        <div class="stat-label">Training Sessions</div>
+                    </div>
+                    <div class="stat-card animate-fade-in">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Goals Achieved</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="pricing-section">
+            <div class="container">
+                <h2>Simple, Transparent Pricing</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-card animate-fade-in">
+                        <div class="pricing-header">
+                            <h3>Free</h3>
+                            <div class="price">$0<span>/month</span></div>
+                            <p>Perfect for getting started</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li>Basic run tracking</li>
+                            <li>Community access</li>
+                            <li>Standard achievements</li>
+                            <li>Basic statistics</li>
+                            <li>Global challenges participation</li>
+                            <li>Community support</li>
+                        </ul>
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-secondary">
+                            Start Free
+                        </a>
+                    </div>
+                    <div class="pricing-card featured animate-fade-in">
+                        <div class="pricing-header">
+                            <h3>Pro</h3>
+                            <div class="price">$10<span>/month</span></div>
+                            <p>For dedicated runners</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li>Advanced run tracking</li>
+                            <li>Priority support</li>
+                            <li>Custom achievements</li>
+                            <li>Detailed analytics</li>
+                            <li>AI training plans</li>
+                            <li>Strava integration</li>
+                            <li>Calendar integration</li>
+                            <li>Global challenges participation</li>
+                            <li>Training schedule planning</li>
+                        </ul>
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                            Go Pro
+                        </a>
+                    </div>
+                    <div class="pricing-card premium animate-fade-in">
+                        <div class="pricing-header">
+                            <h3>Premium</h3>
+                            <div class="price">$50<span>/month</span></div>
+                            <p>For professional results</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li class="featured">All Pro features included</li>
+                            <li class="featured">Certified coach feedback</li>
+                            <li class="featured">Personalized training adjustments</li>
+                            <li class="featured">Monthly progress review</li>
+                            <li class="featured">Priority support 24/7</li>
+                            <li class="featured">Custom training programs</li>
+                            <li>Global challenges participation</li>
+                            <li class="featured">Video analysis</li>
+                            <li class="featured">Nutrition guidance</li>
+                        </ul>
+                        <a href="https://t.me/sl_run_bot" target="_blank" class="button button-primary">
+                            Get Premium
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h3>Product</h3>
+                    <ul class="footer-links">
+                        <li><a href="#features" class="footer-link">Features</a></li>
+                        <li><a href="#pricing" class="footer-link">Pricing</a></li>
+                        <li><a href="https://docs.runconnect.app" class="footer-link">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul class="footer-links">
+                        <li><a href="/about" class="footer-link">About Us</a></li>
+                        <li><a href="/blog" class="footer-link">Blog</a></li>
+                        <li><a href="/careers" class="footer-link">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="https://t.me/sl_run_support" class="footer-link">Help Center</a></li>
+                        <li><a href="/privacy" class="footer-link">Privacy Policy</a></li>
+                        <li><a href="/terms" class="footer-link">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 RunConnect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <button class="close-button" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label" for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" required>
+                </div>
+                <div id="loginError" class="form-error"></div>
+                <div class="form-button-container">
+                    <button type="submit" class="button button-primary">Sign In</button>
+                </div>
+            </form>
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="https://t.me/sl_run_bot" target="_blank">Get Started</a></p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+        margin: 20px;
+        text-align: center;
+    }
+
+    .form-group {
+        text-align: left;
+        margin-bottom: 1rem;
+    }
+
+    .form-button-container {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+
+    .form-button-container .button {
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
+        min-width: 160px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .form-input {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .auth-header {
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .auth-header h2 {
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+    .close-button {
+        position: absolute;
+        right: 1.5rem;
+        top: 1.5rem;
+        font-size: 1.5rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .close-button:hover {
+        color: #333;
+    }
+
+    .auth-footer {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .form-error {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+    </style>
+</body>
+</html> 
