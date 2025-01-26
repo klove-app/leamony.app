@@ -22,28 +22,38 @@
         let lastStatsUpdate = new Date();
 
         // Проверяем авторизацию
-        console.log('Проверяем авторизацию...');
-        const user = await checkAuth();
-        console.log('Результат проверки авторизации:', user);
-        
-        if (!user) {
-            throw new Error('Пользователь не авторизован');
+        console.log('Начинаем проверку авторизации...');
+        let user;
+        try {
+            user = await checkAuth();
+            console.log('Результат проверки авторизации:', user);
+            
+            if (!user) {
+                console.log('Пользователь не авторизован, перенаправляем на главную');
+                throw new Error('Пользователь не авторизован');
+            }
+
+            console.log('Авторизация успешна, обновляем информацию о пользователе');
+            // Обновляем информацию о пользователе
+            updateUserInfo(user);
+
+            // Инициализируем графики
+            await initCharts();
+            
+            // Настраиваем обработчик выхода
+            setupLogoutHandler();
+            
+            // Загружаем статистику
+            await updateStats();
+            
+            // Запускаем автообновление каждые 5 минут
+            setInterval(updateStats, 5 * 60 * 1000);
+
+        } catch (error) {
+            console.error('Ошибка инициализации дашборда:', error);
+            showError(error.message || 'An error occurred while loading the dashboard');
+            window.location.href = '/?error=' + encodeURIComponent(error.message);
         }
-
-        // Обновляем информацию о пользователе
-        updateUserInfo(user);
-
-        // Инициализируем графики
-        await initCharts();
-        
-        // Настраиваем обработчик выхода
-        setupLogoutHandler();
-        
-        // Загружаем статистику
-        await updateStats();
-        
-        // Запускаем автообновление каждые 5 минут
-        setInterval(updateStats, 5 * 60 * 1000);
 
     } catch (error) {
         console.error('Ошибка инициализации дашборда:', error);

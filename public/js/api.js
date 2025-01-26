@@ -132,19 +132,27 @@ async function login(username, password) {
 // Функция обновления токена
 async function refreshToken() {
     try {
+        console.group('Token Refresh');
         // Получаем refresh_token из куки
         const cookies = document.cookie.split(';');
+        console.log('Все куки:', cookies);
+        
         const refreshTokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
         if (!refreshTokenCookie) {
             console.log('Refresh token не найден в куки');
+            console.groupEnd();
             return { success: false };
         }
         
         const refreshToken = refreshTokenCookie.split('=')[1].trim();
-        console.log('Отправляем запрос на обновление токена...');
+        console.log('Найден refresh_token:', refreshToken.substring(0, 10) + '...');
         
         const params = new URLSearchParams({ refresh_token: refreshToken });
-        const response = await fetch(`${config.API_URL}/auth/refresh?${params}`, {
+        const url = `${config.API_URL}/auth/refresh?${params}`;
+        console.log('URL запроса:', url);
+        
+        console.log('Отправляем запрос на обновление токена...');
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json'
@@ -152,18 +160,23 @@ async function refreshToken() {
             credentials: 'include'
         });
         
-        console.log('Ответ на обновление токена:', response.status, response.statusText);
+        console.log('Статус ответа:', response.status, response.statusText);
+        console.log('Заголовки ответа:', [...response.headers.entries()]);
 
         if (!response.ok) {
             console.log('Не удалось обновить токен');
+            console.groupEnd();
             return { success: false };
         }
 
         const data = await response.json();
+        console.log('Ответ сервера:', data);
         console.log('Токен успешно обновлен');
+        console.groupEnd();
         return { success: true, ...data };
     } catch (error) {
         console.error('Token refresh error:', error);
+        console.groupEnd();
         return { success: false };
     }
 }
