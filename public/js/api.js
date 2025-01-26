@@ -232,7 +232,7 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
         offset: offset.toString()
     });
 
-    const url = `${config.API_URL}/runs/?${params}`;
+    const url = `${config.API_URL}/api/v1/runs/?${params}`;
     console.log('URL запроса:', url);
 
     try {
