@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/useAuth';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -13,9 +14,11 @@ export default function Navbar() {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center space-x-2">
-                <img 
+                <Image 
                   src="/images/logo.svg" 
                   alt="RunConnect Logo" 
+                  width={32}
+                  height={32}
                   className="w-8 h-8"
                 />
                 <span className="text-xl font-bold text-blue-600">RunConnect</span>
