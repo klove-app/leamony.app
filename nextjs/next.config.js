@@ -3,9 +3,7 @@ const path = require('path')
 
 module.exports = {
   experimental: {
-    outputStandalone: true,
-    outputFileTracingRoot: path.join(__dirname, '../../')
+    outputStandalone: true
   },
-  distDir: '.next',
   output: 'standalone'
 } 

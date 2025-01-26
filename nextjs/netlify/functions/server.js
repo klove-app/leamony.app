@@ -3,8 +3,11 @@ const next = require('next');
 
 const app = next({
   dev: false,
-  dir: path.join(__dirname, '../../.next/standalone'),
-  conf: { distDir: '.next' }
+  dir: path.join(__dirname, '../..'),
+  conf: { 
+    distDir: '.next',
+    output: 'standalone'
+  }
 });
 
 const handle = app.getRequestHandler();
