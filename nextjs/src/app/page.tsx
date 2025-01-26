@@ -6,6 +6,8 @@ import Features from '@/components/Features';
 import Pricing from '@/components/Pricing';
 import Stats from '@/components/Stats';
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <ClientPage>

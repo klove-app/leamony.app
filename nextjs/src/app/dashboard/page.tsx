@@ -14,6 +14,8 @@ interface Run {
   // Добавьте другие поля по необходимости
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();

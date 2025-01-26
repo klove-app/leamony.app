@@ -17,8 +17,14 @@ const nextConfig = {
     };
     return config;
   },
-  // Отключаем статический рендеринг для всех страниц
+  experimental: {
+    isrMemoryCacheSize: 0,
+    serverActions: true,
+  },
+  // Отключаем статическую генерацию
   staticPageGenerationTimeout: 0,
+  // Включаем динамический рендеринг по умолчанию
+  dynamicPageRenderingMode: 'force-dynamic',
   // Отключаем кэширование данных
   generateEtags: false,
 }
