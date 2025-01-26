@@ -37,16 +37,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body>
-        <Providers>
-          <Suspense fallback={<LoadingSpinner />}>
-            <RootClientPage>
-              {children}
-            </RootClientPage>
-          </Suspense>
-        </Providers>
-      </body>
-    </html>
+    <div className={inter.variable}>
+      <Providers>
+        <Suspense fallback={<LoadingSpinner />}>
+          <RootClientPage>
+            {children}
+          </RootClientPage>
+        </Suspense>
+      </Providers>
+    </div>
   );
 }
