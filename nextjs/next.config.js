@@ -6,8 +6,9 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  output: 'export',
+  trailingSlash: true,
   productionBrowserSourceMaps: false,
-  output: 'standalone',
   webpack: (config, { dev, isServer }) => {
     // Отключаем минификацию в продакшене
     if (!dev) {

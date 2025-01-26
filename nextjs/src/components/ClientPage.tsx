@@ -22,36 +22,30 @@ function LoadingSpinner() {
 
 function ClientPageContent({ children, requireAuth }: ClientPageProps) {
   const router = useRouter();
-  let auth;
-  
-  try {
-    auth = useAuth();
-  } catch (error) {
-    if (requireAuth) {
-      useEffect(() => {
-        router.replace('/');
-      }, []);
-      return <LoadingSpinner />;
+  const auth = useAuth();
+
+  if (!auth) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
+  const { user, loading } = auth;
+
+  useEffect(() => {
+    if (requireAuth && !loading && !user) {
+      router.push('/login');
     }
+  }, [user, loading, requireAuth, router]);
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        {children}
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
-  const { user, isLoading } = auth;
-
-  useEffect(() => {
-    if (requireAuth && !isLoading && !user) {
-      router.replace('/');
-    }
-  }, [user, isLoading, requireAuth]);
-
-  if (requireAuth && (isLoading || !user)) {
-    return <LoadingSpinner />;
+  if (requireAuth && !user) {
+    return null;
   }
 
   return (
@@ -63,7 +57,7 @@ function ClientPageContent({ children, requireAuth }: ClientPageProps) {
   );
 }
 
-export default function ClientPage({ children, requireAuth = false }: ClientPageProps) {
+export default function ClientPage({ children, requireAuth = true }: ClientPageProps) {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <ClientPageContent requireAuth={requireAuth}>
