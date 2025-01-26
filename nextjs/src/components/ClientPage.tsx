@@ -4,7 +4,7 @@ import { ReactNode, Suspense } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 interface ClientPageProps {
@@ -29,7 +29,7 @@ function ClientPageContent({ children, requireAuth }: ClientPageProps) {
   } catch (error) {
     if (requireAuth) {
       useEffect(() => {
-        router.push('/');
+        router.replace('/');
       }, []);
       return <LoadingSpinner />;
     }
@@ -46,7 +46,7 @@ function ClientPageContent({ children, requireAuth }: ClientPageProps) {
 
   useEffect(() => {
     if (requireAuth && !isLoading && !user) {
-      router.push('/');
+      router.replace('/');
     }
   }, [user, isLoading, requireAuth]);
 
