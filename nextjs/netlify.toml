@@ -1,6 +1,7 @@
 [build]
+  base = "nextjs"
   command = "npm run build"
-  publish = ".next"
+  publish = "nextjs/.next"
 
 [build.environment]
   NEXT_USE_NETLIFY_EDGE = "true"
@@ -19,6 +20,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "frame-ancestors 'none'"
 
 # Обработка всех маршрутов через Next.js
 [[redirects]]
