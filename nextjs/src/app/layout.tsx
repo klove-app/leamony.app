@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import Providers from "@/components/Providers";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,11 +39,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Providers>
-            {children}
-          </Providers>
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Providers>
+              {children}
+            </Providers>
+          </Suspense>
+        </ErrorBoundary>
       </body>
     </html>
   );
