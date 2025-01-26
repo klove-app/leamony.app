@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
 import { getRuns } from '@/lib/api';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import ClientPage from '@/components/ClientPage';
 
 interface Run {
   id: string;
@@ -48,25 +47,15 @@ export default function Dashboard() {
     }
   };
 
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
+    <ClientPage requireAuth>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h1 className="text-2xl font-bold mb-4">Welcome, {user.username}!</h1>
+          <h1 className="text-2xl font-bold mb-4">Welcome, {user?.username}!</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-blue-50 p-6 rounded-lg">
               <h3 className="text-lg font-semibold mb-2">Yearly Goal</h3>
-              <p className="text-3xl font-bold text-blue-600">{user.goal_km} km</p>
+              <p className="text-3xl font-bold text-blue-600">{user?.goal_km} km</p>
             </div>
             <div className="bg-green-50 p-6 rounded-lg">
               <h3 className="text-lg font-semibold mb-2">Total Distance</h3>
@@ -130,8 +119,6 @@ export default function Dashboard() {
           )}
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </ClientPage>
   );
 } 
