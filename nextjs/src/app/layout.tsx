@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import Providers from "@/components/Providers";
-import RootClientPage from "@/components/RootClientPage";
+import ClientWrapper from "@/components/ClientWrapper";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,14 +37,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={inter.variable}>
-      <Providers>
-        <Suspense fallback={<LoadingSpinner />}>
-          <RootClientPage>
-            {children}
-          </RootClientPage>
-        </Suspense>
-      </Providers>
-    </div>
+    <html lang="en" className={inter.variable}>
+      <body>
+        <Providers>
+          <Suspense fallback={<LoadingSpinner />}>
+            <ClientWrapper>
+              {children}
+            </ClientWrapper>
+          </Suspense>
+        </Providers>
+      </body>
+    </html>
   );
 }
