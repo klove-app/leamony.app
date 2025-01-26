@@ -1,7 +1,7 @@
 [build]
   base = "nextjs"
-  command = "npm run build"
-  publish = "nextjs/.next"
+  command = "npm install --save-dev typescript @types/react @types/node && npm run build"
+  publish = ".next"
 
 [build.environment]
   NEXT_USE_NETLIFY_EDGE = "true"
