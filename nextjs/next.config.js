@@ -17,6 +17,10 @@ const nextConfig = {
     };
     return config;
   },
+  // Отключаем статический рендеринг для всех страниц
+  staticPageGenerationTimeout: 0,
+  // Отключаем кэширование данных
+  generateEtags: false,
 }
 
 module.exports = nextConfig 
