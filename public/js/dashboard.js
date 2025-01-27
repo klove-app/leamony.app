@@ -355,10 +355,15 @@ function switchTab(tabName) {
 // Функция для загрузки детальной аналитики
 async function loadDetailedAnalytics() {
     try {
-        // Получаем все пробежки
-        const allRuns = await getRuns();
+        console.group('Загрузка детальной аналитики');
+        console.log('Запрашиваем все пробежки без ограничений по датам...');
+        
+        // Получаем все пробежки без параметров дат
+        const allRuns = await getRuns(null, null);
+        console.log('Получены пробежки:', allRuns);
 
         if (!allRuns || allRuns.length === 0) {
+            console.log('Пробежки не найдены, показываем пустое состояние');
             document.getElementById('analyticsTab').innerHTML = `
                 <div class="empty-state">
                     <h2>Нет данных о пробежках</h2>
@@ -374,9 +379,11 @@ async function loadDetailedAnalytics() {
             if (syncButton) {
                 syncButton.addEventListener('click', handleTelegramSync);
             }
+            console.groupEnd();
             return;
         }
 
+        console.log('Группируем пробежки по годам...');
         // Группируем пробежки по годам
         const runsByYear = {};
         allRuns.forEach(run => {

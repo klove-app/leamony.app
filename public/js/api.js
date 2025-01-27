@@ -575,16 +575,15 @@ async function checkAuth(forceCheck = false) {
 }
 
 // Получение списка пробежек
-async function getRuns(startDate, endDate, limit = 50, offset = 0) {
+async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0) {
     console.group('Запрос пробежек');
     console.log('Параметры запроса:', { startDate, endDate, limit, offset });
 
-    const params = new URLSearchParams({
-        start_date: startDate,
-        end_date: endDate,
-        limit: limit.toString(),
-        offset: offset.toString()
-    });
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
 
     const url = `${config.API_URL}/runs/?${params}`;
     console.log('URL запроса:', url);
