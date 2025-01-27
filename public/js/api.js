@@ -407,7 +407,7 @@ async function logout() {
         console.log('Cookie state before logout:');
         checkCookies('Before Logout');
         
-        await delay(3000); // Задержка 3 секунды перед запросом
+        await delay(5000); // Задержка 5 секунд перед запросом
 
         const response = await fetch(`${config.API_URL}/auth/logout`, {
             method: 'POST',
@@ -422,7 +422,7 @@ async function logout() {
             ok: response.ok
         });
 
-        await delay(3000); // Задержка 3 секунды перед очисткой куки
+        await delay(5000); // Задержка 5 секунд перед очисткой куки
 
         // Очищаем куки
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
@@ -431,7 +431,7 @@ async function logout() {
         console.log('Cookie state after clearing:');
         checkCookies('After Logout');
 
-        await delay(3000); // Задержка 3 секунды перед завершением
+        await delay(5000); // Задержка 5 секунд перед завершением
 
         console.groupEnd();
         return true;
@@ -451,7 +451,7 @@ async function checkAuth() {
         console.group('Check Auth Process');
         console.log('1. Начало проверки авторизации');
         
-        await delay(3000); // Задержка 3 секунды в начале проверки
+        await delay(5000); // Задержка 5 секунд в начале проверки
         
         // Проверяем наличие access_token
         const cookies = document.cookie.split(';');
@@ -468,7 +468,7 @@ async function checkAuth() {
             hasRefreshToken: !!refreshTokenCookie
         });
 
-        await delay(3000); // Задержка 3 секунды перед проверкой токенов
+        await delay(5000); // Задержка 5 секунд перед проверкой токенов
 
         if (!accessTokenCookie) {
             console.log('4. Access token не найден, пробуем обновить');
@@ -479,7 +479,7 @@ async function checkAuth() {
                 hasUser: !!refreshResult.user
             });
             
-            await delay(3000); // Задержка 3 секунды после обновления токена
+            await delay(5000); // Задержка 5 секунд после обновления токена
             
             if (!refreshResult.success) {
                 console.log('6. Не удалось подтвердить авторизацию:', refreshResult.error);

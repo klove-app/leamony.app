@@ -65,16 +65,33 @@ Email: ${user.email}
 // Обработчик выхода
 async function handleLogout() {
     try {
-        // Сначала выполняем выход
-        const result = await logout();
+        console.group('Handle Logout Process');
+        console.log('1. Начало процесса выхода');
         
-        // Добавляем задержку перед редиректом
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1000); // Даем время на сохранение логов и показ модального окна
+        // Проверяем состояние перед выходом
+        const cookies = document.cookie.split(';');
+        console.log('2. Текущие куки перед выходом:', cookies);
+        
+        await delay(5000); // Задержка 5 секунд перед выходом
+        
+        console.log('3. Вызываем функцию logout');
+        const result = await logout();
+        console.log('4. Результат logout:', result);
+        
+        await delay(5000); // Задержка 5 секунд после выхода
+        
+        console.log('5. Проверяем куки после выхода:', document.cookie);
+        
+        await delay(5000); // Задержка 5 секунд перед редиректом
+        
+        console.log('6. Выполняем редирект на главную страницу');
+        console.groupEnd();
+        
+        window.location.href = '/';
     } catch (error) {
         console.error('Ошибка при выходе:', error);
         showError('Произошла ошибка при выходе');
+        console.groupEnd();
     }
 }
 
