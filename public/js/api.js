@@ -657,6 +657,29 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
     }
 }
 
+// Функция для получения ссылки на Telegram бота
+async function getTelegramBotLink() {
+    try {
+        const response = await fetch(`${config.API_URL}/telegram/bot-link`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to get Telegram bot link');
+        }
+
+        const data = await response.json();
+        return { success: true, link: data.link };
+    } catch (error) {
+        console.error('Error getting Telegram bot link:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 export {
     register,
     login,
@@ -666,5 +689,6 @@ export {
     getRuns,
     clearLogs,
     viewLogs,
-    delay
+    delay,
+    getTelegramBotLink
 };

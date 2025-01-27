@@ -1,4 +1,4 @@
-import { checkAuth, logout, getRuns, viewLogs } from './api.js';
+import { checkAuth, logout, getRuns, viewLogs, getTelegramBotLink } from './api.js';
 
 // Функция для показа ошибки
 function showError(message) {
@@ -126,6 +126,17 @@ async function updatePeriod(period) {
     await loadUserData(false);
 }
 
+// Функция для синхронизации с Telegram
+async function handleTelegramSync() {
+    const result = await getTelegramBotLink();
+    if (result.success) {
+        // Открываем ссылку на бота в новой вкладке
+        window.open(result.link, '_blank');
+    } else {
+        showError('Не удалось получить ссылку на бота. Попробуйте позже.');
+    }
+}
+
 // Обновляем функцию loadUserData
 async function loadUserData(forceCheck = false) {
     try {
@@ -210,6 +221,12 @@ async function loadUserData(forceCheck = false) {
                 </button>
             `;
             elements.dashboardContent.appendChild(emptyState);
+
+            // Добавляем обработчик для кнопки синхронизации
+            const syncButton = document.getElementById('syncButton');
+            if (syncButton) {
+                syncButton.addEventListener('click', handleTelegramSync);
+            }
 
             // Скрываем секции с данными
             if (elements.progressSection) elements.progressSection.style.display = 'none';
