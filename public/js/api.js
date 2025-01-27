@@ -603,7 +603,7 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
+                'Origin': window.location.origin
             },
             credentials: 'include'
         });
