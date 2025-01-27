@@ -131,15 +131,16 @@ async function loadUserData(forceCheck = false) {
             existingEmptyState.remove();
         }
 
-        // Скрываем все секции перед обновлением
-        const sections = ['#progressSection', '.metrics-grid', '.recent-runs', '.action-buttons'];
-        sections.forEach(selector => {
-            const element = document.querySelector(selector);
-            if (element) element.style.display = 'none';
-        });
-
+        // Подготавливаем данные
         if (!runs || runs.length === 0) {
             console.log('Нет пробежек, показываем пустое состояние');
+            
+            // Скрываем все секции
+            const sections = ['#progressSection', '.metrics-grid', '.recent-runs', '.action-buttons'];
+            sections.forEach(selector => {
+                const element = document.querySelector(selector);
+                if (element) element.style.display = 'none';
+            });
             
             // Создаем пустое состояние
             const emptyState = document.createElement('div');
@@ -178,16 +179,62 @@ async function loadUserData(forceCheck = false) {
                     : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
             }
 
-            // Обновляем все секции с данными
-            updateProgressSection(totalDistance, yearlyGoal);
-            updateMetrics(totalDistance, avgDistance, runs.length);
-            updateRunsTable(runs);
+            // Подготавливаем все обновления
+            const updates = [
+                { element: document.getElementById('progressSection'), update: () => {
+                    if (yearlyGoal > 0) {
+                        const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
+                        return {
+                            html: `
+                                <div class="progress-info">
+                                    <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
+                                    <span class="progress-value">${percentage.toFixed(1)}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                                </div>
+                            `,
+                            display: 'block'
+                        };
+                    }
+                    return { display: 'none' };
+                }},
+                { element: document.querySelector('.metrics-grid'), update: () => {
+                    const elements = {
+                        totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
+                        avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
+                        totalRuns: document.querySelector('#totalRunsCard .metric-value')
+                    };
+                    if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
+                    if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
+                    if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
+                    return { display: 'grid' };
+                }},
+                { element: document.querySelector('.recent-runs'), update: () => {
+                    const tbody = document.getElementById('runsTableBody');
+                    if (tbody) {
+                        tbody.innerHTML = runs.slice(0, 5).map(run => `
+                            <tr class="animate-fade-in">
+                                <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                                <td class="distance">${run.km.toFixed(1)}</td>
+                                <td class="time">${run.duration || '-'}</td>
+                                <td class="notes">${run.notes || ''}</td>
+                            </tr>
+                        `).join('');
+                    }
+                    return { display: 'block' };
+                }},
+                { element: document.querySelector('.action-buttons'), update: () => ({ display: 'flex' })}
+            ];
 
-            // Показываем кнопки действий
-            const actionButtons = document.querySelector('.action-buttons');
-            if (actionButtons) {
-                actionButtons.style.display = 'flex';
-            }
+            // Применяем все обновления одновременно
+            updates.forEach(({ element, update }) => {
+                if (element) {
+                    const result = update();
+                    if (result.html) element.innerHTML = result.html;
+                    element.style.display = result.display;
+                }
+            });
         }
         
         console.groupEnd();
