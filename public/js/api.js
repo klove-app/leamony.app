@@ -289,45 +289,55 @@ async function logout() {
         
         saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
         
-        // Создаем и показываем уведомление
-        const notification = document.createElement('div');
-        notification.style.position = 'fixed';
-        notification.style.top = '20px';
-        notification.style.left = '50%';
-        notification.style.transform = 'translateX(-50%)';
-        notification.style.backgroundColor = '#4CAF50';
-        notification.style.color = 'white';
-        notification.style.padding = '15px 25px';
-        notification.style.borderRadius = '5px';
-        notification.style.zIndex = '9999';
-        notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-        
-        const fileName = `auth_logs_${new Date().toISOString().replace(/:/g, '-')}.txt`;
-        notification.textContent = `Логи сохранены в Downloads/${fileName}`;
-        
-        // Сохраняем логи в файл
-        const logsBlob = new Blob([formattedLogs], { type: 'text/plain;charset=utf-8' });
-        const logsUrl = URL.createObjectURL(logsBlob);
-        const link = document.createElement('a');
-        link.href = logsUrl;
-        link.download = fileName;
-        
-        // Добавляем уведомление на страницу
-        document.body.appendChild(notification);
-        
-        // Скачиваем файл
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Удаляем уведомление через 5 секунд
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 5000);
-        
-        URL.revokeObjectURL(logsUrl);
+        try {
+            // Сохраняем логи в файл
+            const logsBlob = new Blob([formattedLogs], { type: 'text/plain;charset=utf-8' });
+            const logsUrl = URL.createObjectURL(logsBlob);
+            const link = document.createElement('a');
+            link.href = logsUrl;
+            link.download = 'auth_logs.txt';
+            
+            // Добавляем ссылку в документ
+            document.body.appendChild(link);
+            
+            // Принудительно вызываем клик
+            const clickEvent = new MouseEvent('click', {
+                view: window,
+                bubbles: true,
+                cancelable: false
+            });
+            link.dispatchEvent(clickEvent);
+            
+            // Удаляем ссылку
+            document.body.removeChild(link);
+            URL.revokeObjectURL(logsUrl);
+            
+            // Показываем уведомление
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.backgroundColor = '#4CAF50';
+            notification.style.color = 'white';
+            notification.style.padding = '15px 25px';
+            notification.style.borderRadius = '5px';
+            notification.style.zIndex = '9999';
+            notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            notification.textContent = 'Логи сохранены в файл auth_logs.txt';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+            
+        } catch (saveError) {
+            console.error('Ошибка при сохранении логов:', saveError);
+            alert('Не удалось сохранить логи. Пожалуйста, проверьте консоль для деталей.');
+        }
         
         return true;
     } catch (error) {
