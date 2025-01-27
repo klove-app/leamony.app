@@ -208,6 +208,10 @@ async function refreshToken() {
 // Функция для выхода
 async function logout() {
     try {
+        // Очищаем токены
+        document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        
         const response = await fetch(`${config.API_URL}/auth/logout`, {
             method: 'POST',
             headers: {
@@ -216,7 +220,7 @@ async function logout() {
             credentials: 'include'
         });
         
-        return response.ok;
+        return true;
     } catch (error) {
         console.error('Logout error:', error);
         return false;
@@ -246,32 +250,34 @@ async function checkAuth() {
             return refreshResult.user;
         }
 
-        // Если есть access_token, пробуем использовать его
-        const response = await fetch(`${config.API_URL}/auth/me`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${accessTokenCookie.split('=')[1].trim()}`
-            },
-            credentials: 'include'
-        });
-
-        if (response.ok) {
-            const data = await response.json();
+        // Проверяем валидность access_token через запрос пробежек
+        try {
+            await getRuns(
+                new Date().toISOString().split('T')[0],
+                new Date().toISOString().split('T')[0],
+                1
+            );
+            
+            // Если запрос успешен, пробуем обновить токен для получения данных пользователя
+            const refreshResult = await refreshToken();
+            if (!refreshResult.success) {
+                console.log('Не удалось получить данные пользователя');
+                return null;
+            }
+            
             console.log('Авторизация подтверждена');
-            return data.user;
-        }
+            return refreshResult.user;
+        } catch (error) {
+            console.log('Access token недействителен, пробуем обновить...');
+            const refreshResult = await refreshToken();
+            if (!refreshResult.success) {
+                console.log('Не удалось подтвердить авторизацию после обновления');
+                return null;
+            }
 
-        // Если access_token недействителен, пробуем обновить
-        console.log('Access token недействителен, пробуем обновить...');
-        const refreshResult = await refreshToken();
-        if (!refreshResult.success) {
-            console.log('Не удалось подтвердить авторизацию после обновления');
-            return null;
+            console.log('Авторизация подтверждена после обновления токена');
+            return refreshResult.user;
         }
-
-        console.log('Авторизация подтверждена после обновления токена');
-        return refreshResult.user;
     } catch (error) {
         console.error('Auth check error:', error);
         return null;
