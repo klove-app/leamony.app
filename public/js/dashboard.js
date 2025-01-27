@@ -1,4 +1,4 @@
-import { checkAuth, logout, getRuns } from './api.js';
+import { checkAuth, logout, getRuns, viewLogs } from './api.js';
 
 // Функция для добавления лога
 function addLog(message, type = '', container = 'dataInfo') {
@@ -74,9 +74,9 @@ async function handleLogout() {
 }
 
 // Инициализация страницы
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async function() {
     // Загружаем данные
-    loadUserData();
+    await loadUserData();
 
     // Настраиваем обработчики событий
     const logoutButton = document.getElementById('logoutButton');
@@ -101,5 +101,23 @@ document.addEventListener('DOMContentLoaded', () => {
         exportButton.addEventListener('click', () => {
             showError('Функция экспорта данных находится в разработке');
         });
+    }
+
+    // Добавляем кнопку просмотра логов
+    const viewLogsButton = document.createElement('button');
+    viewLogsButton.textContent = 'Просмотр логов';
+    viewLogsButton.style.marginLeft = '10px';
+    viewLogsButton.style.padding = '5px 10px';
+    viewLogsButton.style.backgroundColor = '#4CAF50';
+    viewLogsButton.style.color = 'white';
+    viewLogsButton.style.border = 'none';
+    viewLogsButton.style.borderRadius = '3px';
+    viewLogsButton.style.cursor = 'pointer';
+    
+    viewLogsButton.onclick = viewLogs;
+    
+    // Добавляем кнопку рядом с кнопкой выхода
+    if (logoutButton && logoutButton.parentNode) {
+        logoutButton.parentNode.insertBefore(viewLogsButton, logoutButton.nextSibling);
     }
 }); 

@@ -353,6 +353,34 @@ function checkPendingLogs() {
     }
 }
 
+// Функция для просмотра логов
+function viewLogs() {
+    const authLogs = localStorage.getItem('auth_logs');
+    const pendingLogs = localStorage.getItem('pending_logs');
+    
+    console.group('Saved Logs');
+    console.log('Auth Logs:', authLogs ? JSON.parse(authLogs) : 'No auth logs');
+    console.log('Pending Logs:', pendingLogs || 'No pending logs');
+    console.groupEnd();
+    
+    if (pendingLogs) {
+        showLogsModal(pendingLogs);
+    } else if (authLogs) {
+        const logs = JSON.parse(authLogs);
+        const formattedLogs = logs.map(log => {
+            const timestamp = new Date(log.timestamp).toLocaleString();
+            let logText = `[${timestamp}] ${log.category}: ${log.message}`;
+            if (log.data) {
+                logText += '\n    Данные: ' + JSON.stringify(log.data, null, 2).replace(/\n/g, '\n    ');
+            }
+            return logText;
+        }).join('\n\n');
+        showLogsModal(formattedLogs);
+    } else {
+        alert('Логи не найдены');
+    }
+}
+
 // Функция для выхода
 async function logout() {
     try {
@@ -371,8 +399,9 @@ async function logout() {
             return logText;
         }).join('\n\n');
 
-        // Сохраняем форматированные логи для показа после перезагрузки
+        // Сохраняем форматированные логи
         localStorage.setItem('pending_logs', formattedLogs);
+        console.log('Логи сохранены перед выходом:', formattedLogs);
         
         // Очищаем токены
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
@@ -387,6 +416,9 @@ async function logout() {
         });
         
         saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
+        
+        // Показываем логи перед выходом
+        showLogsModal(formattedLogs);
         
         return true;
     } catch (error) {
@@ -590,5 +622,6 @@ export {
     refreshToken,
     checkAuth,
     getRuns,
-    clearLogs
+    clearLogs,
+    viewLogs
 };
