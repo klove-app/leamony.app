@@ -57,26 +57,31 @@ Email: ${user.email}
             
             // Компактное отображение всей информации
             addLog(`
-                <div class="user-stats">
-                    <div>Пользователь: ${user.username}</div>
-                    <div>Цель на год: ${user.yearly_goal || 'не установлена'} км</div>
-                    <div>Текущий прогресс: ${totalDistance.toFixed(1)} / ${user.yearly_goal || 0} км</div>
-                </div>
-                <div class="runs-list">
-                    <div class="run-header">
-                        <div class="run-date">Дата</div>
-                        <div class="run-distance">Км</div>
-                        <div class="run-time">Мин</div>
-                        <div class="run-notes">Заметки</div>
+                <div class="dashboard-content">
+                    <div class="user-stats">
+                        <div>Цель на год: ${user.yearly_goal || 'не установлена'} км</div>
+                        <div>Текущий прогресс: ${totalDistance.toFixed(1)} / ${user.yearly_goal || 0} км</div>
                     </div>
-                    ${runs.map(run => `
-                        <div class="run-item">
-                            <div class="run-date">${run.date_added.split('T')[0]}</div>
-                            <div class="run-distance">${run.km.toFixed(1)}</div>
-                            <div class="run-time">${run.duration || '-'}</div>
-                            <div class="run-notes">${run.notes || ''}</div>
-                        </div>
-                    `).join('')}
+                    <table class="runs-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Км</th>
+                                <th>Мин</th>
+                                <th>Заметки</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${runs.map(run => `
+                                <tr>
+                                    <td>${run.date_added.split('T')[0]}</td>
+                                    <td class="distance">${run.km.toFixed(1)}</td>
+                                    <td class="time">${run.duration || '-'}</td>
+                                    <td class="notes">${run.notes || ''}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
             `, 'success');
         } else {
