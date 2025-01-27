@@ -113,6 +113,151 @@ function toggleContentVisibility(hasRuns) {
     console.groupEnd();
 }
 
+// Загрузка данных пользователя
+async function loadUserData(forceCheck = false) {
+    try {
+        console.group('Загрузка данных пользователя');
+        console.log('Начало загрузки данных');
+        
+        const user = await checkAuth(forceCheck);
+        if (!user) {
+            console.log('Пользователь не авторизован, редирект на главную');
+            window.location.href = '/';
+            return;
+        }
+
+        console.log('Пользователь авторизован:', user);
+
+        // Обновляем приветствие
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        if (welcomeMessage) {
+            welcomeMessage.textContent = `Привет, ${user.username}! 👋`;
+        }
+
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+        const endDate = now.toISOString().split('T')[0];
+        console.log('Запрашиваем пробежки:', { startDate, endDate });
+        
+        const runs = await getRuns(startDate, endDate);
+        console.log('Получены пробежки:', runs?.length || 0);
+
+        // Получаем все необходимые элементы
+        const elements = {
+            progress: document.getElementById('progressSection'),
+            metrics: document.querySelector('.metrics-grid'),
+            runs: document.querySelector('.recent-runs'),
+            actions: document.querySelector('.action-buttons'),
+            lastRun: document.getElementById('lastRunInfo'),
+            totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
+            avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
+            totalRuns: document.querySelector('#totalRunsCard .metric-value'),
+            runsTable: document.getElementById('runsTableBody'),
+            content: document.querySelector('.dashboard-content')
+        };
+
+        console.log('Проверка наличия элементов:', Object.entries(elements).reduce((acc, [key, el]) => {
+            acc[key] = !!el;
+            return acc;
+        }, {}));
+
+        // Удаляем пустое состояние, если оно есть
+        const existingEmptyState = document.querySelector('.empty-state');
+        if (existingEmptyState) {
+            existingEmptyState.remove();
+        }
+
+        // Скрываем все секции перед обновлением
+        [elements.progress, elements.metrics, elements.runs, elements.actions].forEach(el => {
+            if (el) el.style.display = 'none';
+        });
+        
+        if (runs && runs.length > 0) {
+            console.log('Подготавливаем данные для отображения');
+            
+            const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
+            const yearlyGoal = user.yearly_goal || 0;
+            const avgDistance = totalDistance / runs.length;
+            const lastRun = new Date(runs[0].date_added);
+            const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
+
+            // Обновляем информацию о последней пробежке
+            if (elements.lastRun) {
+                elements.lastRun.textContent = daysSinceLastRun === 0 
+                    ? 'Отличная пробежка сегодня!'
+                    : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
+            }
+
+            // Обновляем прогресс
+            if (yearlyGoal > 0 && elements.progress) {
+                const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
+                elements.progress.innerHTML = `
+                    <div class="progress-info">
+                        <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
+                        <span class="progress-value">${percentage.toFixed(1)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                elements.progress.style.display = 'block';
+            }
+
+            // Обновляем метрики
+            if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
+            if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
+            if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
+
+            // Обновляем таблицу пробежек
+            if (elements.runsTable) {
+                elements.runsTable.innerHTML = runs.slice(0, 5).map(run => `
+                    <tr class="animate-fade-in">
+                        <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                        <td class="distance">${run.km.toFixed(1)}</td>
+                        <td class="time">${run.duration || '-'}</td>
+                        <td class="notes">${run.notes || ''}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // Показываем секции с данными
+            console.log('Отображаем секции с данными');
+            if (elements.metrics) elements.metrics.style.display = 'grid';
+            if (elements.runs) elements.runs.style.display = 'block';
+            if (elements.actions) elements.actions.style.display = 'flex';
+        } else {
+            console.log('Нет пробежек, показываем пустое состояние');
+            if (elements.content) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state animate-fade-in';
+                emptyState.innerHTML = `
+                    <h2>Пока нет пробежек</h2>
+                    <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+                    <button id="syncButton" class="sync-button">
+                        <span class="button-icon">🔄</span>
+                        Синхронизировать с Telegram
+                    </button>
+                `;
+                elements.content.appendChild(emptyState);
+
+                // Добавляем обработчик для кнопки синхронизации
+                const syncButton = document.getElementById('syncButton');
+                if (syncButton) {
+                    syncButton.addEventListener('click', () => {
+                        window.open('https://t.me/sl_run_bot', '_blank');
+                    });
+                }
+            }
+        }
+        
+        console.groupEnd();
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        showError('Произошла ошибка при загрузке данных');
+        console.groupEnd();
+    }
+}
+
 // Обработчик выхода
 async function handleLogout() {
     try {
@@ -149,165 +294,48 @@ async function handleLogout() {
     }
 }
 
-// Загрузка данных пользователя
-async function loadUserData(forceCheck = false) {
-    try {
-        console.group('Загрузка данных пользователя');
-        console.log('Начало загрузки данных');
-        
-        const user = await checkAuth(forceCheck);
-        if (!user) {
-            console.log('Пользователь не авторизован, редирект на главную');
-            window.location.href = '/';
-            return;
-        }
-
-        console.log('Пользователь авторизован:', user);
-
-        // Обновляем приветствие
-        document.getElementById('welcomeMessage').textContent = `Привет, ${user.username}! 👋`;
-
-        const now = new Date();
-        const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-        const endDate = now.toISOString().split('T')[0];
-        console.log('Запрашиваем пробежки:', { startDate, endDate });
-        
-        const runs = await getRuns(startDate, endDate);
-        console.log('Получены пробежки:', runs?.length || 0);
-
-        // Скрываем все секции перед обновлением
-        const sections = {
-            progress: document.getElementById('progressSection'),
-            metrics: document.querySelector('.metrics-grid'),
-            runs: document.querySelector('.recent-runs'),
-            actions: document.querySelector('.action-buttons')
-        };
-
-        Object.values(sections).forEach(section => {
-            if (section) section.style.display = 'none';
-        });
-
-        // Удаляем пустое состояние, если оно есть
-        const existingEmptyState = document.querySelector('.empty-state');
-        if (existingEmptyState) {
-            existingEmptyState.remove();
-        }
-        
-        if (runs && runs.length > 0) {
-            console.log('Подготавливаем данные для отображения');
-            
-            const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const yearlyGoal = user.yearly_goal || 0;
-            const avgDistance = totalDistance / runs.length;
-            const lastRun = new Date(runs[0].date_added);
-            const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
-
-            // Обновляем информацию о последней пробежке
-            document.getElementById('lastRunInfo').textContent = daysSinceLastRun === 0 
-                ? 'Отличная пробежка сегодня!'
-                : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
-
-            // Обновляем прогресс
-            if (yearlyGoal > 0) {
-                const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
-                sections.progress.innerHTML = `
-                    <div class="progress-info">
-                        <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
-                        <span class="progress-value">${percentage.toFixed(1)}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percentage}%"></div>
-                    </div>
-                `;
-                sections.progress.style.display = 'block';
-            }
-
-            // Обновляем метрики
-            document.querySelector('#totalDistanceCard .metric-value').textContent = `${totalDistance.toFixed(1)} км`;
-            document.querySelector('#avgDistanceCard .metric-value').textContent = `${avgDistance.toFixed(1)} км`;
-            document.querySelector('#totalRunsCard .metric-value').textContent = runs.length;
-
-            // Обновляем таблицу пробежек
-            document.getElementById('runsTableBody').innerHTML = runs.slice(0, 5).map(run => `
-                <tr class="animate-fade-in">
-                    <td>${new Date(run.date_added).toLocaleDateString()}</td>
-                    <td class="distance">${run.km.toFixed(1)}</td>
-                    <td class="time">${run.duration || '-'}</td>
-                    <td class="notes">${run.notes || ''}</td>
-                </tr>
-            `).join('');
-
-            // Показываем секции с данными
-            sections.metrics.style.display = 'grid';
-            sections.runs.style.display = 'block';
-            sections.actions.style.display = 'flex';
-        } else {
-            console.log('Нет пробежек, показываем пустое состояние');
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state animate-fade-in';
-            emptyState.innerHTML = `
-                <h2>Пока нет пробежек</h2>
-                <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
-                <button id="syncButton" class="sync-button">
-                    <span class="button-icon">🔄</span>
-                    Синхронизировать с Telegram
-                </button>
-            `;
-
-            const content = document.querySelector('.dashboard-content');
-            content.appendChild(emptyState);
-
-            // Добавляем обработчик для кнопки синхронизации
-            const syncButton = document.getElementById('syncButton');
-            if (syncButton) {
-                syncButton.addEventListener('click', () => {
-                    window.open('https://t.me/sl_run_bot', '_blank');
-                });
-            }
-        }
-        
-        console.groupEnd();
-    } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
-        showError('Произошла ошибка при загрузке данных');
-        console.groupEnd();
-    }
-}
-
 // Инициализация страницы
-let initialized = false;
+let isLoading = false;
 
 document.addEventListener('DOMContentLoaded', async function() {
-    if (initialized) return;
-    initialized = true;
-
     console.log('DOM загружен, начинаем инициализацию');
     
-    // Настраиваем обработчики событий
-    const logoutButton = document.getElementById('logoutButton');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', handleLogout);
+    if (isLoading) {
+        console.log('Загрузка уже выполняется, пропускаем');
+        return;
     }
-
-    const refreshButton = document.getElementById('refreshButton');
-    if (refreshButton) {
-        refreshButton.addEventListener('click', () => loadUserData(true));
-    }
-
-    const viewLogsButton = document.getElementById('viewLogsButton');
-    if (viewLogsButton) {
-        viewLogsButton.addEventListener('click', viewLogs);
-    }
-
-    const exportButton = document.getElementById('exportButton');
-    if (exportButton) {
-        exportButton.addEventListener('click', () => {
-            showError('Функция экспорта данных находится в разработке');
-        });
-    }
-
-    // Загружаем данные без принудительной проверки
-    await loadUserData(false);
     
-    console.log('Инициализация завершена');
+    isLoading = true;
+
+    try {
+        // Настраиваем обработчики событий
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', handleLogout);
+        }
+
+        const refreshButton = document.getElementById('refreshButton');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', () => loadUserData(true));
+        }
+
+        const viewLogsButton = document.getElementById('viewLogsButton');
+        if (viewLogsButton) {
+            viewLogsButton.addEventListener('click', viewLogs);
+        }
+
+        const exportButton = document.getElementById('exportButton');
+        if (exportButton) {
+            exportButton.addEventListener('click', () => {
+                showError('Функция экспорта данных находится в разработке');
+            });
+        }
+
+        // Загружаем данные без принудительной проверки
+        await loadUserData(false);
+        
+        console.log('Инициализация завершена');
+    } finally {
+        isLoading = false;
+    }
 }); 
