@@ -25,14 +25,14 @@ function showError(message) {
 }
 
 // Загрузка данных пользователя
-async function loadUserData() {
+async function loadUserData(forceCheck = false) {
     try {
         console.group('Load User Data');
         console.log('1. Начало загрузки данных пользователя');
         
         await delay(5000); // Задержка перед проверкой авторизации
         
-        const user = await checkAuth();
+        const user = await checkAuth(forceCheck);
         console.log('2. Результат проверки авторизации:', user ? 'успешно' : 'не авторизован');
         
         if (!user) {
@@ -89,6 +89,14 @@ async function handleLogout() {
         console.group('Handle Logout Process');
         console.log('1. Начало процесса выхода');
         
+        // Проверяем состояние перед выходом с принудительной проверкой авторизации
+        const user = await checkAuth(true);
+        if (!user) {
+            console.log('Пользователь уже не авторизован');
+            window.location.href = '/';
+            return;
+        }
+        
         // Проверяем состояние перед выходом
         const cookies = document.cookie.split(';');
         console.log('2. Текущие куки перед выходом:', cookies);
@@ -124,8 +132,8 @@ async function handleLogout() {
 
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', async function() {
-    // Загружаем данные
-    await loadUserData();
+    // Загружаем данные без принудительной проверки
+    await loadUserData(false);
 
     // Настраиваем обработчики событий
     const logoutButton = document.getElementById('logoutButton');
@@ -135,7 +143,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     const refreshButton = document.getElementById('refreshButton');
     if (refreshButton) {
-        refreshButton.addEventListener('click', loadUserData);
+        // При обновлении данных делаем принудительную проверку
+        refreshButton.addEventListener('click', () => loadUserData(true));
     }
 
     const syncButton = document.getElementById('syncButton');

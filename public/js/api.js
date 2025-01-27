@@ -445,9 +445,25 @@ async function logout() {
 // Добавляем проверку отложенных логов при загрузке страницы
 document.addEventListener('DOMContentLoaded', checkPendingLogs);
 
+// Кэш для результата checkAuth
+let authCheckCache = {
+    user: null,
+    timestamp: null,
+    CACHE_DURATION: 5 * 60 * 1000 // 5 минут в миллисекундах
+};
+
 // Функция для проверки авторизации
-async function checkAuth() {
+async function checkAuth(force = false) {
     try {
+        // Проверяем кэш, если не требуется принудительная проверка
+        if (!force && authCheckCache.user && authCheckCache.timestamp) {
+            const now = Date.now();
+            if (now - authCheckCache.timestamp < authCheckCache.CACHE_DURATION) {
+                console.log('Используем кэшированный результат проверки авторизации');
+                return authCheckCache.user;
+            }
+        }
+
         console.group('Check Auth Process');
         console.log('1. Начало проверки авторизации');
         console.log('URL:', config.API_URL);
@@ -542,6 +558,11 @@ async function checkAuth() {
             console.log('6. Access token валиден');
             const userData = await response.json();
             console.log('7. Данные пользователя получены:', userData);
+            
+            // Сохраняем результат в кэш
+            authCheckCache.user = userData;
+            authCheckCache.timestamp = Date.now();
+            
             console.groupEnd();
             return userData;
             
@@ -570,6 +591,10 @@ async function checkAuth() {
             return refreshResult.user;
         }
     } catch (error) {
+        // При ошибке очищаем кэш
+        authCheckCache.user = null;
+        authCheckCache.timestamp = null;
+        
         console.error('Общая ошибка проверки авторизации:', {
             error: error.message,
             stack: error.stack
