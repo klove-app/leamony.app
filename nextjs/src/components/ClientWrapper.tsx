@@ -11,18 +11,15 @@ interface ClientWrapperProps {
 }
 
 export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const auth = useAuth();
 
   useEffect(() => {
-    setIsMounted(true);
+    setMounted(true);
   }, []);
 
-  if (!isMounted) {
-    return null;
-  }
-
-  if (!auth) {
+  // Показываем загрузку до монтирования
+  if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

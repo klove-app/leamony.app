@@ -8,10 +8,16 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
+    return () => setMounted(false);
   }, []);
 
+  // На сервере или до гидратации возвращаем базовую разметку
   if (!mounted) {
-    return <div style={{ visibility: 'hidden' }} />;
+    return (
+      <div style={{ display: 'contents' }}>
+        {children}
+      </div>
+    );
   }
 
   return (
