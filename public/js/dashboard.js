@@ -58,14 +58,41 @@ Email: ${user.email}
         const runs = await getRuns(startDate, endDate);
         
         if (runs && runs.length > 0) {
-            const totalDistance = runs.reduce((sum, run) => sum + run.distance, 0);
-            const lastRun = runs[runs.length - 1];
+            // Считаем общую статистику
+            const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
             
-            addLog(`Статистика пробежек:
-Всего пробежек: ${runs.length}
-Общая дистанция: ${totalDistance.toFixed(2)} км
-Последняя пробежка: ${new Date(lastRun.date).toLocaleDateString()}
-Дистанция последней пробежки: ${lastRun.distance} км`, 'success');
+            // Создаем элемент для статистики
+            const statsHtml = `
+                <div class="stats-summary">
+                    <h3>Общая статистика</h3>
+                    <p>Всего пробежек: ${runs.length}</p>
+                    <p>Общая дистанция: ${totalDistance.toFixed(2)} км</p>
+                </div>
+            `;
+            
+            // Создаем список пробежек
+            const runsListHtml = runs.map(run => {
+                const date = new Date(run.date_added).toLocaleDateString();
+                const duration = Math.floor(run.duration / 60); // переводим в минуты
+                return `
+                    <div class="run-item">
+                        <div class="run-date">${date}</div>
+                        <div class="run-details">
+                            <span class="run-distance">${run.km.toFixed(2)} км</span>
+                            <span class="run-time">${duration} мин</span>
+                            ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Добавляем всё в контейнер
+            addLog(statsHtml + `
+                <div class="runs-list">
+                    <h3>Список пробежек</h3>
+                    ${runsListHtml}
+                </div>
+            `, 'success');
         } else {
             addLog('Пробежки не найдены. Подключите Telegram бота для синхронизации данных.', 'info');
         }
