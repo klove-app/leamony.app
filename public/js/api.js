@@ -602,7 +602,8 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
