@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useAuth } from '@/lib/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -11,29 +10,35 @@ interface ClientWrapperProps {
   requireAuth?: boolean;
 }
 
-function ClientContent({ children }: { children: ReactNode }) {
-  const auth = useAuth();
-  const { isLoading, user } = auth;
+const DynamicAuthContent = dynamic(() => import('@/lib/useAuth').then(mod => {
+  const { useAuth } = mod;
+  return function AuthContent({ children }: { children: ReactNode }) {
+    const auth = useAuth();
+    const { isLoading, user } = auth;
 
-  if (isLoading) {
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      );
+    }
+
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
+      <>
+        <Navbar />
+        {children}
+        <Footer />
+      </>
     );
-  }
-
-  return (
-    <>
-      <Navbar />
-      {children}
-      <Footer />
-    </>
-  );
-}
-
-const ClientContentWithNoSSR = dynamic(() => Promise.resolve(ClientContent), {
+  };
+}), {
   ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  ),
 });
 
 export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
@@ -44,8 +49,14 @@ export default function ClientWrapper({ children, requireAuth = false }: ClientW
   }, []);
 
   if (!mounted) {
-    return <>{children}</>;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div aria-hidden="true" className="invisible">
+          {children}
+        </div>
+      </div>
+    );
   }
 
-  return <ClientContentWithNoSSR>{children}</ClientContentWithNoSSR>;
+  return <DynamicAuthContent>{children}</DynamicAuthContent>;
 } 
