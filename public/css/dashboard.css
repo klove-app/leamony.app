@@ -168,4 +168,54 @@ body {
 
 #logoutButton:hover {
     color: #c82333;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.runs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.run-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px;
+    background: white;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.run-date {
+    min-width: 90px;
+    color: #666;
+}
+
+.run-distance {
+    min-width: 70px;
+    color: #2196F3;
+    font-weight: 500;
+}
+
+.run-time {
+    min-width: 70px;
+    color: #666;
+}
+
+.run-notes {
+    color: #666;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 } 

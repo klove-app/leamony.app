@@ -27,7 +27,7 @@ function showError(message) {
 // Загрузка данных пользователя
 async function loadUserData(forceCheck = false) {
     try {
-        console.group('Load User Data');
+        console.group('Loading user data...');
         console.log('1. Начало загрузки данных пользователя');
         
         const user = await checkAuth(forceCheck);
@@ -55,35 +55,31 @@ Email: ${user.email}
         if (runs && runs.length > 0) {
             // Считаем общую статистику
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
+            const totalRuns = runs.length;
             
-            // Создаем элемент для статистики
+            // Компактное отображение статистики
             const statsHtml = `
-                <div class="stats-summary">
-                    <div class="stats-item">Всего пробежек: <strong>${runs.length}</strong></div>
-                    <div class="stats-item">Общая дистанция: <strong>${totalDistance.toFixed(2)} км</strong></div>
+                <div class="stats-row">
+                    <span>Всего пробежек: ${totalRuns}</span>
+                    <span>Общая дистанция: ${totalDistance.toFixed(2)} км</span>
+                </div>`;
+            
+            // Компактное отображение списка пробежек
+            const runsHtml = runs.map(run => `
+                <div class="run-item">
+                    <span class="run-date">${run.date_added.split('T')[0]}</span>
+                    <span class="run-distance">${run.km} км</span>
+                    ${run.duration ? `<span class="run-time">${run.duration} мин</span>` : ''}
+                    ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
                 </div>
-            `;
-            
-            // Создаем список пробежек
-            const runsListHtml = runs.map(run => {
-                const date = new Date(run.date_added).toLocaleDateString();
-                const duration = Math.floor(run.duration / 60); // переводим в минуты
-                return `
-                    <div class="run-item">
-                        <span class="run-date">${date}</span>
-                        <span class="run-distance">${run.km.toFixed(2)} км</span>
-                        <span class="run-time">${duration} мин</span>
-                        ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
-                    </div>
-                `;
-            }).join('');
-            
+            `).join('');
+
             // Добавляем всё в контейнер
             addLog(`
                 <div class="dashboard-container">
                     ${statsHtml}
                     <div class="runs-list">
-                        ${runsListHtml}
+                        ${runsHtml}
                     </div>
                 </div>
             `, 'success');
