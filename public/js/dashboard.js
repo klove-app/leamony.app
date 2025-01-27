@@ -14,7 +14,13 @@ function showError(message) {
     }
 }
 
+// Функция задержки для отладки
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function updateProgressSection(totalDistance, yearlyGoal) {
+    console.log('Обновляем прогресс:', { totalDistance, yearlyGoal });
     const progressSection = document.getElementById('progressSection');
     if (yearlyGoal > 0) {
         const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
@@ -34,12 +40,14 @@ function updateProgressSection(totalDistance, yearlyGoal) {
 }
 
 function updateMetrics(totalDistance, avgDistance, totalRuns) {
+    console.log('Обновляем метрики:', { totalDistance, avgDistance, totalRuns });
     document.querySelector('#totalDistanceCard .metric-value').textContent = `${totalDistance.toFixed(1)} км`;
     document.querySelector('#avgDistanceCard .metric-value').textContent = `${avgDistance.toFixed(1)} км`;
     document.querySelector('#totalRunsCard .metric-value').textContent = totalRuns;
 }
 
 function updateRunsTable(runs) {
+    console.log('Обновляем таблицу пробежек:', runs.length);
     const tbody = document.getElementById('runsTableBody');
     tbody.innerHTML = runs.slice(0, 5).map(run => `
         <tr class="animate-fade-in">
@@ -52,19 +60,35 @@ function updateRunsTable(runs) {
 }
 
 function toggleContentVisibility(hasRuns) {
+    console.group('Переключение видимости контента');
+    console.log('Есть пробежки:', hasRuns);
+    
     const progressSection = document.getElementById('progressSection');
     const metricsGrid = document.querySelector('.metrics-grid');
     const recentRuns = document.querySelector('.recent-runs');
     const actionButtons = document.querySelector('.action-buttons');
     const emptyState = document.querySelector('.empty-state') || document.createElement('div');
 
+    console.log('Найденные элементы:', {
+        progressSection: !!progressSection,
+        metricsGrid: !!metricsGrid,
+        recentRuns: !!recentRuns,
+        actionButtons: !!actionButtons,
+        emptyState: !!emptyState
+    });
+
     if (hasRuns) {
+        console.log('Показываем контент с пробежками');
         if (progressSection) progressSection.style.display = 'block';
         if (metricsGrid) metricsGrid.style.display = 'grid';
         if (recentRuns) recentRuns.style.display = 'block';
         if (actionButtons) actionButtons.style.display = 'flex';
-        if (emptyState.parentNode) emptyState.remove();
+        if (emptyState.parentNode) {
+            console.log('Удаляем пустое состояние');
+            emptyState.remove();
+        }
     } else {
+        console.log('Показываем пустое состояние');
         if (progressSection) progressSection.style.display = 'none';
         if (metricsGrid) metricsGrid.style.display = 'none';
         if (recentRuns) recentRuns.style.display = 'none';
@@ -82,21 +106,28 @@ function toggleContentVisibility(hasRuns) {
 
         const content = document.querySelector('.dashboard-content');
         if (content && !document.querySelector('.empty-state')) {
+            console.log('Добавляем пустое состояние');
             content.appendChild(emptyState);
         }
     }
+    console.groupEnd();
 }
 
 // Загрузка данных пользователя
 async function loadUserData(forceCheck = false) {
     try {
-        console.group('Loading user data...');
+        console.group('Загрузка данных пользователя');
+        console.log('Начало загрузки данных');
         
         const user = await checkAuth(forceCheck);
         if (!user) {
+            console.log('Пользователь не авторизован, редирект на главную');
             window.location.href = '/';
             return;
         }
+
+        console.log('Пользователь авторизован:', user);
+        await delay(1000); // Задержка для отладки
 
         // Обновляем приветствие
         document.getElementById('welcomeMessage').textContent = `Привет, ${user.username}! 👋`;
@@ -104,7 +135,10 @@ async function loadUserData(forceCheck = false) {
         const now = new Date();
         const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
         const endDate = now.toISOString().split('T')[0];
+        console.log('Запрашиваем пробежки:', { startDate, endDate });
+        
         const runs = await getRuns(startDate, endDate);
+        console.log('Получены пробежки:', runs?.length || 0);
         
         if (runs && runs.length > 0) {
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
@@ -113,17 +147,33 @@ async function loadUserData(forceCheck = false) {
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
 
+            console.log('Рассчитанные метрики:', {
+                totalDistance,
+                yearlyGoal,
+                avgDistance,
+                daysSinceLastRun
+            });
+
             // Обновляем информацию о последней пробежке
             document.getElementById('lastRunInfo').textContent = daysSinceLastRun === 0 
                 ? 'Отличная пробежка сегодня!'
                 : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
 
+            await delay(500); // Задержка для отладки
+
             // Обновляем секции
             updateProgressSection(totalDistance, yearlyGoal);
+            await delay(500); // Задержка для отладки
+            
             updateMetrics(totalDistance, avgDistance, runs.length);
+            await delay(500); // Задержка для отладки
+            
             updateRunsTable(runs);
+            await delay(500); // Задержка для отладки
+            
             toggleContentVisibility(true);
         } else {
+            console.log('Нет пробежек, показываем пустое состояние');
             toggleContentVisibility(false);
         }
         
@@ -138,7 +188,7 @@ async function loadUserData(forceCheck = false) {
 // Обработчик выхода
 async function handleLogout() {
     try {
-        console.group('Handle Logout Process');
+        console.group('Процесс выхода');
         console.log('1. Начало процесса выхода');
         
         // Проверяем состояние перед выходом с принудительной проверкой авторизации
@@ -173,10 +223,14 @@ async function handleLogout() {
 
 // Инициализация страницы
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM загружен, начинаем инициализацию');
+    
     // Загружаем данные без принудительной проверки
     await loadUserData(false);
 
     // Настраиваем обработчики событий
+    console.log('Настраиваем обработчики событий');
+    
     const logoutButton = document.getElementById('logoutButton');
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
@@ -200,4 +254,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             showError('Функция экспорта данных находится в разработке');
         });
     }
+    
+    console.log('Инициализация завершена');
 }); 
