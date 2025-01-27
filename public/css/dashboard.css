@@ -740,4 +740,163 @@ body {
     .monthly-stats {
         overflow-x: auto;
     }
+}
+
+/* Стили для аналитики */
+.analytics-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.year-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.year-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.comparison-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.weekly-stats {
+    margin-top: 2rem;
+}
+
+.weekly-stats h3 {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.week-card {
+    background: #f8fafc;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.week-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.week-number {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.week-distance {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+.week-runs {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .year-section {
+        padding: 1rem;
+    }
+
+    .weeks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .week-card {
+        padding: 0.75rem;
+    }
+
+    .week-distance {
+        font-size: 1rem;
+    }
+}
+
+/* Анимации для карточек */
+.year-section {
+    opacity: 0;
+    animation: slideDown 0.5s ease forwards;
+}
+
+.week-card {
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Улучшенные стили для таблиц */
+.monthly-stats table {
+    border-spacing: 0;
+    width: 100%;
+}
+
+.monthly-stats th,
+.monthly-stats td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.monthly-stats th {
+    background: #f8fafc;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.monthly-stats tr:last-child td {
+    border-bottom: none;
+}
+
+.monthly-stats tr:hover td {
+    background: #f8fafc;
+}
+
+/* Стили для мобильных устройств */
+@media (max-width: 640px) {
+    .monthly-stats {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .monthly-stats table {
+        min-width: 500px;
+    }
+
+    .monthly-stats th,
+    .monthly-stats td {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
 } 

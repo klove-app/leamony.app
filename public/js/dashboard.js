@@ -348,25 +348,20 @@ function switchTab(tabName) {
     });
 
     if (tabName === 'analytics') {
-        loadLastYearAnalytics();
+        loadDetailedAnalytics();
     }
 }
 
-// Функция для загрузки аналитики за прошлый год
-async function loadLastYearAnalytics() {
+// Функция для загрузки детальной аналитики
+async function loadDetailedAnalytics() {
     try {
-        const currentYear = new Date().getFullYear();
-        const lastYear = currentYear - 1;
-        
-        // Получаем данные за прошлый год
-        const startDate = `${lastYear}-01-01`;
-        const endDate = `${lastYear}-12-31`;
-        const lastYearRuns = await getRuns(startDate, endDate);
+        // Получаем все пробежки
+        const allRuns = await getRuns();
 
-        if (!lastYearRuns || lastYearRuns.length === 0) {
+        if (!allRuns || allRuns.length === 0) {
             document.getElementById('analyticsTab').innerHTML = `
                 <div class="empty-state">
-                    <h2>Нет данных за ${lastYear} год</h2>
+                    <h2>Нет данных о пробежках</h2>
                     <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
                     <button id="syncButtonAnalytics" class="sync-button">
                         <span class="button-icon">🔄</span>
@@ -382,56 +377,133 @@ async function loadLastYearAnalytics() {
             return;
         }
 
-        // Группируем пробежки по месяцам
-        const monthlyData = Array(12).fill().map(() => ({ distance: 0, runs: 0 }));
-        let bestMonth = { month: 0, distance: 0 };
-        let totalDistance = 0;
-
-        lastYearRuns.forEach(run => {
+        // Группируем пробежки по годам
+        const runsByYear = {};
+        allRuns.forEach(run => {
             const date = new Date(run.date_added);
+            const year = date.getFullYear();
             const month = date.getMonth();
-            
-            monthlyData[month].distance += run.km;
-            monthlyData[month].runs += 1;
-            totalDistance += run.km;
+            const week = getWeekNumber(date);
 
-            if (monthlyData[month].distance > bestMonth.distance) {
-                bestMonth = {
-                    month: month,
-                    distance: monthlyData[month].distance
+            if (!runsByYear[year]) {
+                runsByYear[year] = {
+                    totalDistance: 0,
+                    totalRuns: 0,
+                    months: Array(12).fill().map(() => ({ distance: 0, runs: 0 })),
+                    weeks: {}
                 };
             }
+
+            runsByYear[year].totalDistance += run.km;
+            runsByYear[year].totalRuns += 1;
+            runsByYear[year].months[month].distance += run.km;
+            runsByYear[year].months[month].runs += 1;
+
+            if (!runsByYear[year].weeks[week]) {
+                runsByYear[year].weeks[week] = { distance: 0, runs: 0 };
+            }
+            runsByYear[year].weeks[week].distance += run.km;
+            runsByYear[year].weeks[week].runs += 1;
         });
 
-        const avgMonthlyDistance = totalDistance / 12;
-        const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
-                          'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+        // Создаем HTML для аналитики
+        let analyticsHTML = '<div class="analytics-container">';
 
-        // Обновляем карточки с аналитикой
-        document.querySelector('#yearComparisonCard .comparison-value').textContent = 
-            `${totalDistance.toFixed(1)} км за ${lastYear}`;
-        
-        document.querySelector('#bestMonthCard .comparison-value').textContent = 
-            `${monthNames[bestMonth.month]}: ${bestMonth.distance.toFixed(1)} км`;
-        
-        document.querySelector('#avgMonthlyCard .comparison-value').textContent = 
-            `${avgMonthlyDistance.toFixed(1)} км`;
+        // Сортируем годы в обратном порядке
+        const years = Object.keys(runsByYear).sort((a, b) => b - a);
 
-        // Обновляем таблицу по месяцам
-        const monthlyStatsBody = document.getElementById('monthlyStatsBody');
-        monthlyStatsBody.innerHTML = monthlyData.map((data, index) => `
-            <tr>
-                <td>${monthNames[index]}</td>
-                <td>${data.distance.toFixed(1)} км</td>
-                <td>${data.runs}</td>
-                <td>${data.runs > 0 ? (data.distance / data.runs).toFixed(1) : '0'} км</td>
-            </tr>
-        `).join('');
+        years.forEach(year => {
+            const yearData = runsByYear[year];
+            const avgMonthlyDistance = yearData.totalDistance / 12;
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                              'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+            // Находим лучший месяц
+            let bestMonth = { month: 0, distance: 0 };
+            yearData.months.forEach((monthData, index) => {
+                if (monthData.distance > bestMonth.distance) {
+                    bestMonth = { month: index, distance: monthData.distance };
+                }
+            });
+
+            analyticsHTML += `
+                <div class="year-section">
+                    <h2>${year} год</h2>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Общая статистика за год</h3>
+                            <div class="comparison-value">${yearData.totalDistance.toFixed(1)} км</div>
+                            <div class="comparison-subtitle">${yearData.totalRuns} пробежек</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Лучший месяц</h3>
+                            <div class="comparison-value">${monthNames[bestMonth.month]}</div>
+                            <div class="comparison-subtitle">${bestMonth.distance.toFixed(1)} км</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Среднее за месяц</h3>
+                            <div class="comparison-value">${avgMonthlyDistance.toFixed(1)} км</div>
+                        </div>
+                    </div>
+
+                    <div class="monthly-stats">
+                        <h3>Статистика по месяцам</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Месяц</th>
+                                    <th>Дистанция (км)</th>
+                                    <th>Кол-во пробежек</th>
+                                    <th>Средняя дистанция</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${yearData.months.map((data, index) => `
+                                    <tr>
+                                        <td>${monthNames[index]}</td>
+                                        <td>${data.distance.toFixed(1)} км</td>
+                                        <td>${data.runs}</td>
+                                        <td>${data.runs > 0 ? (data.distance / data.runs).toFixed(1) : '0'} км</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="weekly-stats">
+                        <h3>Статистика по неделям</h3>
+                        <div class="weeks-grid">
+                            ${Object.entries(yearData.weeks)
+                                .sort(([weekA], [weekB]) => weekA - weekB)
+                                .map(([week, data]) => `
+                                    <div class="week-card">
+                                        <div class="week-number">Неделя ${week}</div>
+                                        <div class="week-distance">${data.distance.toFixed(1)} км</div>
+                                        <div class="week-runs">${data.runs} пробежек</div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        analyticsHTML += '</div>';
+        document.getElementById('analyticsTab').innerHTML = analyticsHTML;
 
     } catch (error) {
         console.error('Ошибка при загрузке аналитики:', error);
-        showError('Не удалось загрузить аналитику за прошлый год');
+        showError('Не удалось загрузить аналитику');
     }
+}
+
+// Вспомогательная функция для получения номера недели
+function getWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 // Инициализация страницы
