@@ -54,13 +54,15 @@ Email: ${user.email}
         
         if (runs && runs.length > 0) {
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
+            const yearlyGoal = user.yearly_goal || 0;
+            const goalText = yearlyGoal > 0 ? `${yearlyGoal} км` : 'не установлена';
             
             // Компактное отображение всей информации
             addLog(`
                 <div class="dashboard-content">
                     <div class="user-stats">
-                        <div>Цель на год: ${user.yearly_goal || 'не установлена'} км</div>
-                        <div>Текущий прогресс: ${totalDistance.toFixed(1)} / ${user.yearly_goal || 0} км</div>
+                        <div>Цель на год: ${goalText}</div>
+                        ${yearlyGoal > 0 ? `<div>Текущий прогресс: ${totalDistance.toFixed(1)} / ${yearlyGoal} км</div>` : ''}
                     </div>
                     <table class="runs-table">
                         <thead>
