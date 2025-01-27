@@ -166,7 +166,8 @@ async function loadUserData(forceCheck = false) {
             console.log('Подготавливаем данные для отображения');
             
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const yearlyGoal = user.goal_km || 0;
+            const yearlyGoal = user.goal_km;
+            console.log('Годовая цель из goal_km:', yearlyGoal);
             const avgDistance = totalDistance / runs.length;
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
@@ -205,10 +206,13 @@ async function loadUserData(forceCheck = false) {
                         avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
                         totalRuns: document.querySelector('#totalRunsCard .metric-value')
                     };
+                    
+                    // Обновляем значения только если элементы существуют
                     if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
                     if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
                     if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
-                    return { display: 'grid' };
+                    
+                    return { display: 'grid' }; // Всегда показываем метрики
                 }},
                 { element: document.querySelector('.recent-runs'), update: () => {
                     const tbody = document.getElementById('runsTableBody');
@@ -222,7 +226,7 @@ async function loadUserData(forceCheck = false) {
                             </tr>
                         `).join('');
                     }
-                    return { display: 'block' };
+                    return { display: 'block' }; // Всегда показываем таблицу
                 }},
                 { element: document.querySelector('.action-buttons'), update: () => ({ display: 'flex' })}
             ];
@@ -230,9 +234,16 @@ async function loadUserData(forceCheck = false) {
             // Применяем все обновления одновременно
             updates.forEach(({ element, update }) => {
                 if (element) {
+                    console.log('Обновляем элемент:', element.className || element.id);
                     const result = update();
-                    if (result.html) element.innerHTML = result.html;
+                    if (result.html) {
+                        console.log('Обновляем HTML');
+                        element.innerHTML = result.html;
+                    }
+                    console.log('Устанавливаем display:', result.display);
                     element.style.display = result.display;
+                } else {
+                    console.warn('Элемент не найден');
                 }
             });
         }
