@@ -161,22 +161,17 @@ async function loadUserData(forceCheck = false) {
             return acc;
         }, {}));
 
-        // Удаляем пустое состояние, если оно есть
+        // Удаляем существующее пустое состояние, если оно есть
         const existingEmptyState = document.querySelector('.empty-state');
         if (existingEmptyState) {
             existingEmptyState.remove();
         }
 
-        // Скрываем все секции перед обновлением
-        [elements.progress, elements.metrics, elements.runs, elements.actions].forEach(el => {
-            if (el) el.style.display = 'none';
-        });
-        
         if (runs && runs.length > 0) {
             console.log('Подготавливаем данные для отображения');
             
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const yearlyGoal = user.yearly_goal || 0;
+            const yearlyGoal = user.goal_km || 0;
             const avgDistance = totalDistance / runs.length;
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
@@ -201,15 +196,20 @@ async function loadUserData(forceCheck = false) {
                     </div>
                 `;
                 elements.progress.style.display = 'block';
+            } else {
+                if (elements.progress) elements.progress.style.display = 'none';
             }
 
             // Обновляем метрики
-            if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
-            if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
-            if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
+            if (elements.metrics) {
+                if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
+                if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
+                if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
+                elements.metrics.style.display = 'grid';
+            }
 
             // Обновляем таблицу пробежек
-            if (elements.runsTable) {
+            if (elements.runsTable && elements.runs) {
                 elements.runsTable.innerHTML = runs.slice(0, 5).map(run => `
                     <tr class="animate-fade-in">
                         <td>${new Date(run.date_added).toLocaleDateString()}</td>
@@ -218,15 +218,21 @@ async function loadUserData(forceCheck = false) {
                         <td class="notes">${run.notes || ''}</td>
                     </tr>
                 `).join('');
+                elements.runs.style.display = 'block';
             }
 
-            // Показываем секции с данными
-            console.log('Отображаем секции с данными');
-            if (elements.metrics) elements.metrics.style.display = 'grid';
-            if (elements.runs) elements.runs.style.display = 'block';
-            if (elements.actions) elements.actions.style.display = 'flex';
+            // Показываем кнопки действий
+            if (elements.actions) {
+                elements.actions.style.display = 'flex';
+            }
         } else {
             console.log('Нет пробежек, показываем пустое состояние');
+            // Скрываем все секции с данными
+            if (elements.progress) elements.progress.style.display = 'none';
+            if (elements.metrics) elements.metrics.style.display = 'none';
+            if (elements.runs) elements.runs.style.display = 'none';
+            if (elements.actions) elements.actions.style.display = 'none';
+
             if (elements.content) {
                 const emptyState = document.createElement('div');
                 emptyState.className = 'empty-state animate-fade-in';
