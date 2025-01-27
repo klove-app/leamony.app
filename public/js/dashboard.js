@@ -59,60 +59,6 @@ function updateRunsTable(runs) {
     `).join('');
 }
 
-function toggleContentVisibility(hasRuns) {
-    console.group('Переключение видимости контента');
-    console.log('Есть пробежки:', hasRuns);
-    
-    const progressSection = document.getElementById('progressSection');
-    const metricsGrid = document.querySelector('.metrics-grid');
-    const recentRuns = document.querySelector('.recent-runs');
-    const actionButtons = document.querySelector('.action-buttons');
-    const emptyState = document.querySelector('.empty-state') || document.createElement('div');
-
-    console.log('Найденные элементы:', {
-        progressSection: !!progressSection,
-        metricsGrid: !!metricsGrid,
-        recentRuns: !!recentRuns,
-        actionButtons: !!actionButtons,
-        emptyState: !!emptyState
-    });
-
-    if (hasRuns) {
-        console.log('Показываем контент с пробежками');
-        if (progressSection) progressSection.style.display = 'block';
-        if (metricsGrid) metricsGrid.style.display = 'grid';
-        if (recentRuns) recentRuns.style.display = 'block';
-        if (actionButtons) actionButtons.style.display = 'flex';
-        if (emptyState.parentNode) {
-            console.log('Удаляем пустое состояние');
-            emptyState.remove();
-        }
-    } else {
-        console.log('Показываем пустое состояние');
-        if (progressSection) progressSection.style.display = 'none';
-        if (metricsGrid) metricsGrid.style.display = 'none';
-        if (recentRuns) recentRuns.style.display = 'none';
-        if (actionButtons) actionButtons.style.display = 'none';
-
-        emptyState.className = 'empty-state animate-fade-in';
-        emptyState.innerHTML = `
-            <h2>Пока нет пробежек</h2>
-            <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
-            <button id="syncButton" class="sync-button">
-                <span class="button-icon">🔄</span>
-                Синхронизировать с Telegram
-            </button>
-        `;
-
-        const content = document.querySelector('.dashboard-content');
-        if (content && !document.querySelector('.empty-state')) {
-            console.log('Добавляем пустое состояние');
-            content.appendChild(emptyState);
-        }
-    }
-    console.groupEnd();
-}
-
 // Загрузка данных пользователя
 async function loadUserData(forceCheck = false) {
     try {
@@ -127,6 +73,7 @@ async function loadUserData(forceCheck = false) {
         }
 
         console.log('Пользователь авторизован:', user);
+        console.log('Годовая цель:', user.goal_km);
 
         // Обновляем приветствие
         const welcomeMessage = document.getElementById('welcomeMessage');
@@ -142,7 +89,20 @@ async function loadUserData(forceCheck = false) {
         const runs = await getRuns(startDate, endDate);
         console.log('Получены пробежки:', runs?.length || 0);
 
-        // Получаем все необходимые элементы
+        // Проверяем наличие всех необходимых элементов
+        const dashboardContent = document.querySelector('.dashboard-content');
+        if (!dashboardContent) {
+            console.error('Не найден основной контейнер дашборда');
+            return;
+        }
+
+        // Удаляем существующее пустое состояние, если оно есть
+        const existingEmptyState = document.querySelector('.empty-state');
+        if (existingEmptyState) {
+            existingEmptyState.remove();
+        }
+
+        // Получаем все элементы для обновления
         const elements = {
             progress: document.getElementById('progressSection'),
             metrics: document.querySelector('.metrics-grid'),
@@ -152,22 +112,44 @@ async function loadUserData(forceCheck = false) {
             totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
             avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
             totalRuns: document.querySelector('#totalRunsCard .metric-value'),
-            runsTable: document.getElementById('runsTableBody'),
-            content: document.querySelector('.dashboard-content')
+            runsTable: document.getElementById('runsTableBody')
         };
 
-        console.log('Проверка наличия элементов:', Object.entries(elements).reduce((acc, [key, el]) => {
+        // Проверяем наличие всех элементов
+        console.log('Проверка элементов:', Object.entries(elements).reduce((acc, [key, el]) => {
             acc[key] = !!el;
             return acc;
         }, {}));
 
-        // Удаляем существующее пустое состояние, если оно есть
-        const existingEmptyState = document.querySelector('.empty-state');
-        if (existingEmptyState) {
-            existingEmptyState.remove();
-        }
+        if (!runs || runs.length === 0) {
+            console.log('Нет пробежек, показываем пустое состояние');
+            
+            // Скрываем все секции
+            Object.values(elements).forEach(el => {
+                if (el) el.style.display = 'none';
+            });
 
-        if (runs && runs.length > 0) {
+            // Создаем пустое состояние
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state animate-fade-in';
+            emptyState.innerHTML = `
+                <h2>Пока нет пробежек</h2>
+                <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+                <button id="syncButton" class="sync-button">
+                    <span class="button-icon">🔄</span>
+                    Синхронизировать с Telegram
+                </button>
+            `;
+            dashboardContent.appendChild(emptyState);
+
+            // Добавляем обработчик для кнопки синхронизации
+            const syncButton = document.getElementById('syncButton');
+            if (syncButton) {
+                syncButton.addEventListener('click', () => {
+                    window.open('https://t.me/sl_run_bot', '_blank');
+                });
+            }
+        } else {
             console.log('Подготавливаем данные для отображения');
             
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
@@ -196,8 +178,8 @@ async function loadUserData(forceCheck = false) {
                     </div>
                 `;
                 elements.progress.style.display = 'block';
-            } else {
-                if (elements.progress) elements.progress.style.display = 'none';
+            } else if (elements.progress) {
+                elements.progress.style.display = 'none';
             }
 
             // Обновляем метрики
@@ -224,35 +206,6 @@ async function loadUserData(forceCheck = false) {
             // Показываем кнопки действий
             if (elements.actions) {
                 elements.actions.style.display = 'flex';
-            }
-        } else {
-            console.log('Нет пробежек, показываем пустое состояние');
-            // Скрываем все секции с данными
-            if (elements.progress) elements.progress.style.display = 'none';
-            if (elements.metrics) elements.metrics.style.display = 'none';
-            if (elements.runs) elements.runs.style.display = 'none';
-            if (elements.actions) elements.actions.style.display = 'none';
-
-            if (elements.content) {
-                const emptyState = document.createElement('div');
-                emptyState.className = 'empty-state animate-fade-in';
-                emptyState.innerHTML = `
-                    <h2>Пока нет пробежек</h2>
-                    <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
-                    <button id="syncButton" class="sync-button">
-                        <span class="button-icon">🔄</span>
-                        Синхронизировать с Telegram
-                    </button>
-                `;
-                elements.content.appendChild(emptyState);
-
-                // Добавляем обработчик для кнопки синхронизации
-                const syncButton = document.getElementById('syncButton');
-                if (syncButton) {
-                    syncButton.addEventListener('click', () => {
-                        window.open('https://t.me/sl_run_bot', '_blank');
-                    });
-                }
             }
         }
         
