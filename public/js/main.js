@@ -8,38 +8,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         // Проверяем авторизацию
-        const user = await checkAuth();
-        console.log('Результат проверки авторизации:', user);
-        
-        // Обновляем UI в зависимости от результата
-        updateAuthUI(!!user, user?.username);
+        await updateAuthUI();
     } catch (error) {
         // Если произошла ошибка, считаем что пользователь не авторизован
         console.log('Ошибка при проверке авторизации:', error);
-        updateAuthUI(false);
+        updateAuthUI();
     }
 });
 
 // Обновление UI в зависимости от состояния авторизации
-function updateAuthUI(isAuthenticated, username = '') {
-    const loginButton = document.getElementById('loginButton');
-    
-    if (isAuthenticated && username) {
-        // Если пользователь авторизован
-        if (loginButton) {
+async function updateAuthUI() {
+    console.group('Update Auth UI');
+    try {
+        const user = await checkAuth();
+        console.log('Результат проверки авторизации:', user);
+        
+        const loginButton = document.getElementById('loginButton');
+        if (!loginButton) {
+            console.log('Кнопка входа не найдена');
+            console.groupEnd();
+            return;
+        }
+
+        if (user) {
+            console.log('Пользователь авторизован, обновляем кнопку');
             loginButton.textContent = 'Личный кабинет';
             loginButton.href = '/dashboard.html';
+            // Удаляем обработчик открытия модального окна
             loginButton.removeEventListener('click', openAuthModal);
-        }
-    } else {
-        // Если пользователь не авторизован
-        if (loginButton) {
+        } else {
+            console.log('Пользователь не авторизован, возвращаем кнопку входа');
             loginButton.textContent = 'Sign In';
             loginButton.href = '#';
-            // Добавляем обработчик для открытия модального окна
+            // Добавляем обработчик открытия модального окна
             loginButton.addEventListener('click', openAuthModal);
         }
+    } catch (error) {
+        console.error('Ошибка при обновлении UI:', error);
     }
+    console.groupEnd();
 }
 
 // Настройка обработчиков событий
