@@ -103,19 +103,53 @@ function clearLogs() {
     localStorage.removeItem('auth_logs');
 }
 
+// Функция для проверки и логирования состояния куки
+function checkCookies(stage) {
+    const cookies = document.cookie.split(';');
+    const accessToken = cookies.find(c => c.trim().startsWith('access_token='));
+    const refreshToken = cookies.find(c => c.trim().startsWith('refresh_token='));
+    
+    console.group(`Cookie Check - ${stage}`);
+    console.log('All Cookies:', document.cookie);
+    console.log('Access Token:', accessToken ? 'present' : 'missing');
+    console.log('Refresh Token:', refreshToken ? 'present' : 'missing');
+    if (accessToken) {
+        console.log('Access Token Value:', accessToken.split('=')[1].substring(0, 10) + '...');
+    }
+    if (refreshToken) {
+        console.log('Refresh Token Value:', refreshToken.split('=')[1].substring(0, 10) + '...');
+    }
+    console.groupEnd();
+    
+    return { accessToken, refreshToken };
+}
+
+// Функция для сохранения куки с дополнительными параметрами
+function setCookie(name, value) {
+    const cookieValue = `${name}=${value}; path=/; secure; samesite=strict`;
+    document.cookie = cookieValue;
+    console.log(`Setting cookie: ${name}=${value.substring(0, 10)}...`);
+    
+    // Проверяем, сохранилась ли кука
+    setTimeout(() => {
+        const cookies = document.cookie.split(';');
+        const savedCookie = cookies.find(c => c.trim().startsWith(`${name}=`));
+        console.log(`Cookie ${name} after setting:`, savedCookie ? 'saved' : 'not saved');
+    }, 100);
+}
+
 // Функция для входа
 async function login(username, password) {
     try {
-        saveLog('Login', '1. Начало процесса входа', { username });
+        console.group('Login Process');
+        console.log('Initial cookie state:');
+        checkCookies('Before Login');
+
         const formData = new URLSearchParams();
         formData.append('username', username);
         formData.append('password', password);
 
-        console.group('Login Process');
-        console.log('1. Начало процесса входа');
-        console.log('URL:', `${config.API_URL}/auth/login`);
-        console.log('Body:', { username, password: '***' });
-
+        console.log('Sending login request...');
         const response = await fetch(`${config.API_URL}/auth/login`, {
             method: 'POST',
             credentials: 'include',
@@ -127,59 +161,39 @@ async function login(username, password) {
             body: formData
         });
 
-        let responseData;
-        try {
-            responseData = await response.json();
-            saveLog('Login', '2. Получен ответ от сервера', {
-                status: response.status,
-                hasAccessToken: !!responseData.access_token,
-                hasRefreshToken: !!responseData.refresh_token,
-                hasUser: !!responseData.user
-            });
-        } catch (e) {
-            saveLog('Login Error', '2. Ошибка при парсинге ответа', e);
-            responseData = null;
-        }
+        console.log('Login response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
+
+        const responseData = await response.json();
+        console.log('Login response data:', {
+            hasAccessToken: !!responseData.access_token,
+            hasRefreshToken: !!responseData.refresh_token,
+            hasUser: !!responseData.user
+        });
 
         if (!response.ok) {
-            saveLog('Login Error', '3. Ошибка входа', {
-                status: response.status,
-                data: responseData
-            });
             throw {
                 status: response.status,
                 data: responseData
             };
         }
 
-        // Сохраняем токены после успешного входа
         if (responseData.access_token) {
-            document.cookie = `access_token=${responseData.access_token}; path=/;`;
-            saveLog('Login', '4. Access token сохранен в куки');
-        } else {
-            saveLog('Login Warning', '4. Access token отсутствует в ответе');
+            setCookie('access_token', responseData.access_token);
         }
         
         if (responseData.refresh_token) {
-            document.cookie = `refresh_token=${responseData.refresh_token}; path=/;`;
-            saveLog('Login', '5. Refresh token сохранен в куки');
-        } else {
-            saveLog('Login Warning', '5. Refresh token отсутствует в ответе');
+            setCookie('refresh_token', responseData.refresh_token);
         }
 
-        // Проверяем сохранение токенов
-        const cookies = document.cookie.split(';');
-        saveLog('Login', '6. Проверка сохраненных токенов', {
-            hasAccessToken: cookies.some(c => c.trim().startsWith('access_token=')),
-            hasRefreshToken: cookies.some(c => c.trim().startsWith('refresh_token='))
-        });
+        // Проверяем состояние после сохранения
+        console.log('Cookie state after setting:');
+        checkCookies('After Login');
 
-        saveLog('Login', '7. Успешный вход');
         console.groupEnd();
-
         return { success: true, user: responseData.user };
     } catch (error) {
-        saveLog('Login Error', 'Ошибка входа', error);
+        console.error('Login error:', error);
         console.groupEnd();
         return { 
             success: false, 
@@ -384,43 +398,10 @@ function viewLogs() {
 // Функция для выхода
 async function logout() {
     try {
-        saveLog('Logout', 'Начало процесса выхода');
-        
-        // Сохраняем логи перед очисткой
-        const logs = JSON.parse(localStorage.getItem('auth_logs') || '[]');
-        
-        // Добавляем финальный лог о выходе
-        logs.push({
-            timestamp: new Date().toISOString(),
-            category: 'Logout',
-            message: 'Выход из системы',
-            data: {
-                totalLogs: logs.length + 1
-            }
-        });
-        
-        // Форматируем логи в читаемый текст
-        const formattedLogs = logs.map(log => {
-            const timestamp = new Date(log.timestamp).toLocaleString();
-            let logText = `[${timestamp}] ${log.category}: ${log.message}`;
-            if (log.data) {
-                logText += '\n    Данные: ' + JSON.stringify(log.data, null, 2).replace(/\n/g, '\n    ');
-            }
-            return logText;
-        }).join('\n\n');
+        console.group('Logout Process');
+        console.log('Cookie state before logout:');
+        checkCookies('Before Logout');
 
-        // Сохраняем форматированные логи
-        localStorage.setItem('pending_logs', formattedLogs);
-        
-        // Сразу показываем модальное окно с логами
-        showLogsModal(formattedLogs);
-        
-        console.log('Сохранены логи перед выходом:', {
-            rawLogs: logs,
-            formattedLogs: formattedLogs
-        });
-        
-        // Делаем запрос на выход
         const response = await fetch(`${config.API_URL}/auth/logout`, {
             method: 'POST',
             headers: {
@@ -428,17 +409,24 @@ async function logout() {
             },
             credentials: 'include'
         });
-        
-        // Очищаем токены только после успешного запроса
-        if (response.ok) {
-            document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
-            document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
-        }
-        
+
+        console.log('Logout response:', {
+            status: response.status,
+            ok: response.ok
+        });
+
+        // Очищаем куки
+        document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+
+        console.log('Cookie state after clearing:');
+        checkCookies('After Logout');
+
+        console.groupEnd();
         return true;
     } catch (error) {
-        console.error('Ошибка при выходе:', error);
-        saveLog('Logout Error', 'Ошибка при выходе', error);
+        console.error('Logout error:', error);
+        console.groupEnd();
         return false;
     }
 }
