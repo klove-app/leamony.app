@@ -32,14 +32,16 @@ async function updateAuthUI() {
 
         if (user) {
             console.log('Пользователь авторизован, обновляем кнопку');
-            loginButton.textContent = 'Личный кабинет';
+            loginButton.textContent = user.username;
             loginButton.href = '/dashboard.html';
+            loginButton.classList.add('auth-button');
             // Удаляем обработчик открытия модального окна
             loginButton.removeEventListener('click', openAuthModal);
         } else {
             console.log('Пользователь не авторизован, возвращаем кнопку входа');
             loginButton.textContent = 'Sign In';
             loginButton.href = '#';
+            loginButton.classList.remove('auth-button');
             // Добавляем обработчик открытия модального окна
             loginButton.addEventListener('click', openAuthModal);
         }

@@ -914,3 +914,18 @@ p {
     font-style: italic;
     font-size: 0.9em;
 }
+
+.auth-button {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    border-bottom: 2px dashed #666;
+    transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+    background-color: #e0e0e0;
+    border-bottom-style: solid;
+}
