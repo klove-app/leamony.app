@@ -263,7 +263,17 @@ async function logout() {
         saveLog('Logout', 'Начало процесса выхода');
         
         // Сохраняем логи перед очисткой
-        const currentLogs = localStorage.getItem('auth_logs');
+        const logs = JSON.parse(localStorage.getItem('auth_logs') || '[]');
+        
+        // Форматируем логи в читаемый текст
+        const formattedLogs = logs.map(log => {
+            const timestamp = new Date(log.timestamp).toLocaleString();
+            let logText = `[${timestamp}] ${log.category}: ${log.message}`;
+            if (log.data) {
+                logText += '\n    Данные: ' + JSON.stringify(log.data, null, 2).replace(/\n/g, '\n    ');
+            }
+            return logText;
+        }).join('\n\n');
         
         // Очищаем токены
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
@@ -279,15 +289,44 @@ async function logout() {
         
         saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
         
-        // Сохраняем логи в файл перед очисткой localStorage
-        const logsBlob = new Blob([currentLogs], { type: 'application/json' });
+        // Создаем и показываем уведомление
+        const notification = document.createElement('div');
+        notification.style.position = 'fixed';
+        notification.style.top = '20px';
+        notification.style.left = '50%';
+        notification.style.transform = 'translateX(-50%)';
+        notification.style.backgroundColor = '#4CAF50';
+        notification.style.color = 'white';
+        notification.style.padding = '15px 25px';
+        notification.style.borderRadius = '5px';
+        notification.style.zIndex = '9999';
+        notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        
+        const fileName = `auth_logs_${new Date().toISOString().replace(/:/g, '-')}.txt`;
+        notification.textContent = `Логи сохранены в Downloads/${fileName}`;
+        
+        // Сохраняем логи в файл
+        const logsBlob = new Blob([formattedLogs], { type: 'text/plain;charset=utf-8' });
         const logsUrl = URL.createObjectURL(logsBlob);
         const link = document.createElement('a');
         link.href = logsUrl;
-        link.download = `auth_logs_${new Date().toISOString()}.json`;
+        link.download = fileName;
+        
+        // Добавляем уведомление на страницу
+        document.body.appendChild(notification);
+        
+        // Скачиваем файл
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // Удаляем уведомление через 5 секунд
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 5000);
+        
         URL.revokeObjectURL(logsUrl);
         
         return true;
