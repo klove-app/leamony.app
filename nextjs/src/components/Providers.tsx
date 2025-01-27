@@ -8,15 +8,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
+    return () => setMounted(false);
   }, []);
 
-  // Показываем заглушку до монтирования
+  // На сервере или до гидратации возвращаем базовую разметку
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div aria-hidden="true" className="invisible">
-          {children}
-        </div>
+      <div style={{ display: 'contents' }}>
+        {children}
       </div>
     );
   }

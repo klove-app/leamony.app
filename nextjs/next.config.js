@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   images: {
     domains: ['api.runconnect.app', 'runconnect.app'],
+    unoptimized: true, // Для Netlify
   },
   // Отключаем статическую оптимизацию для страниц с авторизацией
   experimental: {

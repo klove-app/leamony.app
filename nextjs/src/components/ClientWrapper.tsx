@@ -12,16 +12,14 @@ interface ClientWrapperProps {
 
 export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
   const [mounted, setMounted] = useState(false);
-  const [auth, setAuth] = useState<ReturnType<typeof useAuth> | null>(null);
+  const auth = useAuth();
 
   useEffect(() => {
-    // Инициализируем auth только на клиенте
-    setAuth(useAuth());
     setMounted(true);
   }, []);
 
   // Показываем загрузку до монтирования
-  if (!mounted || !auth) {
+  if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
