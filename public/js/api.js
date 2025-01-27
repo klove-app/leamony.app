@@ -611,11 +611,9 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${accessToken}`,
-                'Origin': window.location.origin,
-                'Access-Control-Allow-Origin': '*'
+                'Origin': window.location.origin
             },
-            credentials: 'include',
-            mode: 'cors'
+            credentials: 'include'
         });
 
         if (!response.ok) {
