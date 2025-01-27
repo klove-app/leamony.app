@@ -53,34 +53,30 @@ Email: ${user.email}
         const runs = await getRuns(startDate, endDate);
         
         if (runs && runs.length > 0) {
-            // Считаем общую статистику
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const totalRuns = runs.length;
             
-            // Компактное отображение статистики
-            const statsHtml = `
-                <div class="stats-row">
-                    <span>Всего пробежек: ${totalRuns}</span>
-                    <span>Общая дистанция: ${totalDistance.toFixed(2)} км</span>
-                </div>`;
-            
-            // Компактное отображение списка пробежек в виде таблицы
-            const runsHtml = runs.map(run => `
-                <div class="run-item">
-                    <div class="run-date">${run.date_added.split('T')[0]}</div>
-                    <div class="run-distance">${run.km.toFixed(1)}</div>
-                    <div class="run-time">${run.duration || '-'}</div>
-                    <div class="run-notes">${run.notes || ''}</div>
-                </div>
-            `).join('');
-
-            // Добавляем всё в контейнер
+            // Компактное отображение всей информации
             addLog(`
-                <div class="dashboard-container">
-                    ${statsHtml}
-                    <div class="runs-list">
-                        ${runsHtml}
+                <div class="user-stats">
+                    <div>Пользователь: ${user.username}</div>
+                    <div>Цель на год: ${user.yearly_goal || 'не установлена'} км</div>
+                    <div>Текущий прогресс: ${totalDistance.toFixed(1)} / ${user.yearly_goal || 0} км</div>
+                </div>
+                <div class="runs-list">
+                    <div class="run-header">
+                        <div class="run-date">Дата</div>
+                        <div class="run-distance">Км</div>
+                        <div class="run-time">Мин</div>
+                        <div class="run-notes">Заметки</div>
                     </div>
+                    ${runs.map(run => `
+                        <div class="run-item">
+                            <div class="run-date">${run.date_added.split('T')[0]}</div>
+                            <div class="run-distance">${run.km.toFixed(1)}</div>
+                            <div class="run-time">${run.duration || '-'}</div>
+                            <div class="run-notes">${run.notes || ''}</div>
+                        </div>
+                    `).join('')}
                 </div>
             `, 'success');
         } else {

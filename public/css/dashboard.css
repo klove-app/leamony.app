@@ -180,11 +180,26 @@ body {
     font-size: 12px;
 }
 
+.user-stats {
+    font-size: 11px;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    color: #666;
+}
+
 .runs-list {
     display: table;
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.run-header {
+    display: table-row;
+    background: #f8f9fa;
+    font-weight: 500;
+    color: #666;
 }
 
 .run-item {
@@ -196,35 +211,40 @@ body {
     background: #f8f9fa;
 }
 
-.run-date, .run-distance, .run-time, .run-notes {
+.run-header > div,
+.run-date, 
+.run-distance, 
+.run-time, 
+.run-notes {
     display: table-cell;
-    padding: 4px 8px;
+    padding: 2px 4px;
     vertical-align: middle;
 }
 
 .run-date {
-    width: 80px;
-    color: #666;
+    width: 70px;
 }
 
 .run-distance {
-    width: 60px;
-    color: #2196F3;
-    font-weight: 500;
+    width: 40px;
     text-align: right;
 }
 
 .run-time {
-    width: 60px;
-    color: #666;
+    width: 40px;
     text-align: right;
 }
 
 .run-notes {
     color: #666;
     font-style: italic;
-    max-width: 200px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.run-item .run-distance {
+    color: #2196F3;
+    font-weight: 500;
 } 
