@@ -539,24 +539,16 @@ async function checkAuth() {
                 throw new Error(`Ошибка проверки авторизации: ${response.status}`);
             }
 
-            // Если запрос успешен, значит токен валиден
-            console.log('6. Access token валиден, обновляем для актуализации данных');
-            const refreshResult = await refreshToken();
-            console.log('7. Результат обновления токена:', {
-                success: refreshResult.success,
-                hasUser: !!refreshResult.user,
-                error: refreshResult.error
-            });
-            
-            if (!refreshResult.success) {
-                console.log('Причина разлогина: не удалось обновить токен при плановом обновлении');
+            // Если запрос успешен, значит токен валиден - возвращаем данные из ответа
+            try {
+                const userData = await response.json();
+                console.log('6. Access token валиден, возвращаем данные пользователя');
                 console.groupEnd();
-                return null;
+                return userData.user;
+            } catch (error) {
+                console.error('Ошибка при парсинге ответа:', error);
+                throw error;
             }
-            
-            console.log('8. Авторизация подтверждена');
-            console.groupEnd();
-            return refreshResult.user;
             
         } catch (error) {
             console.error('Ошибка при проверке токена:', {
