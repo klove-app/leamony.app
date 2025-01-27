@@ -644,5 +644,6 @@ export {
     checkAuth,
     getRuns,
     clearLogs,
-    viewLogs
+    viewLogs,
+    delay
 };
