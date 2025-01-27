@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/useAuth';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,23 +11,8 @@ interface ClientWrapperProps {
   requireAuth?: boolean;
 }
 
-export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
-  const [mounted, setMounted] = useState(false);
+function ClientContent({ children }: { children: ReactNode }) {
   const auth = useAuth();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Показываем загрузку до монтирования
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   const { isLoading, user } = auth;
 
   if (isLoading) {
@@ -37,13 +23,6 @@ export default function ClientWrapper({ children, requireAuth = false }: ClientW
     );
   }
 
-  if (requireAuth && !user) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
-    }
-    return null;
-  }
-
   return (
     <>
       <Navbar />
@@ -51,4 +30,22 @@ export default function ClientWrapper({ children, requireAuth = false }: ClientW
       <Footer />
     </>
   );
+}
+
+const ClientContentWithNoSSR = dynamic(() => Promise.resolve(ClientContent), {
+  ssr: false,
+});
+
+export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
+  return <ClientContentWithNoSSR>{children}</ClientContentWithNoSSR>;
 } 
