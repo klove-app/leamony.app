@@ -77,11 +77,10 @@ async function login(username, password) {
         formData.append('username', username);
         formData.append('password', password);
 
-        // Логируем запрос
-        console.group('Login Request');
+        console.group('Login Process');
+        console.log('1. Начало процесса входа');
         console.log('URL:', `${config.API_URL}/auth/login`);
         console.log('Body:', { username, password: '***' });
-        console.groupEnd();
 
         const response = await fetch(`${config.API_URL}/auth/login`, {
             method: 'POST',
@@ -97,17 +96,22 @@ async function login(username, password) {
         let responseData;
         try {
             responseData = await response.json();
+            console.log('2. Получен ответ от сервера:', {
+                status: response.status,
+                hasAccessToken: !!responseData.access_token,
+                hasRefreshToken: !!responseData.refresh_token,
+                hasUser: !!responseData.user
+            });
         } catch (e) {
+            console.error('2. Ошибка при парсинге ответа:', e);
             responseData = null;
         }
 
-        // Логируем ответ
-        console.group('Login Response');
-        console.log('Status:', response.status);
-        console.log('Data:', responseData);
-        console.groupEnd();
-
         if (!response.ok) {
+            console.error('3. Ошибка входа:', {
+                status: response.status,
+                data: responseData
+            });
             throw {
                 status: response.status,
                 data: responseData
@@ -117,18 +121,32 @@ async function login(username, password) {
         // Сохраняем токены после успешного входа
         if (responseData.access_token) {
             document.cookie = `access_token=${responseData.access_token}; path=/;`;
+            console.log('4. Access token сохранен в куки');
+        } else {
+            console.warn('4. Access token отсутствует в ответе');
         }
+        
         if (responseData.refresh_token) {
             document.cookie = `refresh_token=${responseData.refresh_token}; path=/;`;
+            console.log('5. Refresh token сохранен в куки');
+        } else {
+            console.warn('5. Refresh token отсутствует в ответе');
         }
+
+        // Проверяем сохранение токенов
+        const cookies = document.cookie.split(';');
+        console.log('6. Проверка сохраненных токенов:', {
+            hasAccessToken: cookies.some(c => c.trim().startsWith('access_token=')),
+            hasRefreshToken: cookies.some(c => c.trim().startsWith('refresh_token='))
+        });
+
+        console.log('7. Успешный вход');
+        console.groupEnd();
 
         return { success: true, user: responseData.user };
     } catch (error) {
-        console.group('Login Error');
-        console.error('Status:', error.status);
-        console.error('Data:', error.data);
+        console.error('Login Error:', error);
         console.groupEnd();
-
         return { 
             success: false, 
             error: error.data?.detail || error.data?.message || 'Login failed',
@@ -230,28 +248,47 @@ async function logout() {
 // Функция для проверки авторизации
 async function checkAuth() {
     try {
-        console.log('Отправляем запрос на проверку авторизации...');
+        console.group('Check Auth Process');
+        console.log('1. Начало проверки авторизации');
         
         // Проверяем наличие access_token
         const cookies = document.cookie.split(';');
-        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        console.log('2. Текущие куки:', cookies.map(c => {
+            const [name] = c.trim().split('=');
+            return name;
+        }));
         
+        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        const refreshTokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
+        
+        console.log('3. Статус токенов:', {
+            hasAccessToken: !!accessTokenCookie,
+            hasRefreshToken: !!refreshTokenCookie
+        });
+
         if (!accessTokenCookie) {
-            console.log('Access token не найден, пробуем обновить...');
-            // Пробуем обновить токен для проверки авторизации
+            console.log('4. Access token не найден, пробуем обновить');
             const refreshResult = await refreshToken();
-            console.log('Результат обновления токена:', refreshResult);
+            console.log('5. Результат обновления токена:', {
+                success: refreshResult.success,
+                error: refreshResult.error,
+                hasUser: !!refreshResult.user
+            });
             
             if (!refreshResult.success) {
-                console.log('Не удалось подтвердить авторизацию:', refreshResult.error);
+                console.log('6. Не удалось подтвердить авторизацию:', refreshResult.error);
+                console.groupEnd();
                 return null;
             }
 
+            console.log('6. Токен успешно обновлен');
+            console.groupEnd();
             return refreshResult.user;
         }
 
         // Проверяем валидность access_token через запрос пробежек
         try {
+            console.log('4. Проверка валидности access token');
             const today = new Date().toISOString().split('T')[0];
             const response = await fetch(`${config.API_URL}/runs/?start_date=${today}&end_date=${today}&limit=1`, {
                 method: 'GET',
@@ -262,41 +299,71 @@ async function checkAuth() {
                 }
             });
 
+            console.log('5. Статус проверки токена:', {
+                status: response.status,
+                ok: response.ok
+            });
+
             if (response.status === 401) {
-                console.log('Access token недействителен, пробуем обновить...');
+                console.log('6. Access token недействителен, пробуем обновить');
                 const refreshResult = await refreshToken();
+                console.log('7. Результат обновления токена:', {
+                    success: refreshResult.success,
+                    error: refreshResult.error,
+                    hasUser: !!refreshResult.user
+                });
+
                 if (!refreshResult.success) {
-                    console.log('Не удалось подтвердить авторизацию после обновления');
+                    console.log('8. Не удалось подтвердить авторизацию после обновления');
+                    console.groupEnd();
                     return null;
                 }
 
-                console.log('Авторизация подтверждена после обновления токена');
+                console.log('8. Авторизация подтверждена после обновления токена');
+                console.groupEnd();
                 return refreshResult.user;
             }
 
             if (!response.ok) {
+                console.error('6. Ошибка при проверке токена:', response.status);
                 throw new Error(`Ошибка проверки авторизации: ${response.status}`);
             }
 
             // Если запрос успешен, значит токен валиден
-            // Обновляем токен для актуализации данных пользователя
+            console.log('6. Access token валиден, обновляем для актуализации данных');
             const refreshResult = await refreshToken();
-            console.log('Авторизация подтверждена');
+            console.log('7. Результат обновления токена:', {
+                success: refreshResult.success,
+                hasUser: !!refreshResult.user
+            });
+            
+            console.log('8. Авторизация подтверждена');
+            console.groupEnd();
             return refreshResult.user;
             
         } catch (error) {
-            console.log('Ошибка при проверке токена, пробуем обновить...');
+            console.error('Ошибка при проверке токена:', error);
+            console.log('Пробуем обновить токен после ошибки');
             const refreshResult = await refreshToken();
+            console.log('Результат обновления токена после ошибки:', {
+                success: refreshResult.success,
+                error: refreshResult.error,
+                hasUser: !!refreshResult.user
+            });
+
             if (!refreshResult.success) {
-                console.log('Не удалось подтвердить авторизацию после обновления');
+                console.log('Не удалось подтвердить авторизацию после ошибки');
+                console.groupEnd();
                 return null;
             }
 
-            console.log('Авторизация подтверждена после обновления токена');
+            console.log('Авторизация подтверждена после ошибки');
+            console.groupEnd();
             return refreshResult.user;
         }
     } catch (error) {
         console.error('Auth check error:', error);
+        console.groupEnd();
         return null;
     }
 }
