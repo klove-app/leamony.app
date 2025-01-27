@@ -580,8 +580,16 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
     console.log('Параметры запроса:', { startDate, endDate, limit, offset });
 
     const params = new URLSearchParams();
-    if (startDate) params.append('start_date', startDate);
-    if (endDate) params.append('end_date', endDate);
+    if (startDate) {
+        // Форматируем дату в ISO формат
+        const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
+        params.append('start_date', formattedStartDate);
+    }
+    if (endDate) {
+        // Форматируем дату в ISO формат
+        const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
+        params.append('end_date', formattedEndDate);
+    }
     params.append('limit', limit.toString());
     params.append('offset', offset.toString());
 
@@ -603,9 +611,11 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${accessToken}`,
-                'Origin': window.location.origin
+                'Origin': window.location.origin,
+                'Access-Control-Allow-Origin': '*'
             },
-            credentials: 'include'
+            credentials: 'include',
+            mode: 'cors'
         });
 
         if (!response.ok) {
