@@ -8,115 +8,88 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
     
     <!-- Наши модули -->
     <script type="module" src="/js/config.js"></script>
     <script type="module" src="/js/api.js"></script>
     <script type="module" src="/js/dashboard.js"></script>
 
-    <!-- Обработка ошибок загрузки -->
-    <script>
-        window.addEventListener('error', function(e) {
-            console.error('Script error:', e);
-            if (e.target.src) {
-                console.error('Failed to load:', e.target.src);
-            }
-        });
-    </script>
+    <style>
+        .log-container {
+            background: #f8fafc;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .log-entry {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .log-entry.error {
+            border-left-color: #ef4444;
+            color: #dc2626;
+            background: #fee2e2;
+        }
+
+        .log-entry.success {
+            border-left-color: #10b981;
+            color: #059669;
+            background: #ecfdf5;
+        }
+
+        .log-entry.info {
+            border-left-color: #3b82f6;
+            color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">RunConnect</a>
             <div class="nav-links">
-                <span id="userName" class="nav-link">Loading...</span>
-                <button id="logoutButton" class="nav-link">Sign Out</button>
+                <button id="refreshButton" class="button button-secondary">Обновить данные</button>
+                <button id="logoutButton" class="button button-primary">Выйти</button>
             </div>
         </div>
     </nav>
 
-    <main class="dashboard">
-        <div class="container">
-            <div class="dashboard-header">
-                <h1>Welcome back, <span id="userNameHeader">Runner</span>!</h1>
-                <p class="last-sync">Last updated: <span id="lastSync">Just now</span></p>
+    <main class="dashboard" style="margin-top: 5rem;">
+        <div class="dashboard-container">
+            <h1>Личный кабинет</h1>
+            
+            <div class="log-container">
+                <div id="userInfo" class="log-entry info">
+                    Загрузка информации о пользователе...
+                </div>
+                <div id="dataInfo" class="log-entry">
+                    Загрузка данных...
+                </div>
+                <div id="errorLog" class="log-entry error" style="display: none;">
+                </div>
             </div>
 
-            <div class="dashboard-grid">
-                <!-- Общий прогресс -->
-                <div class="card progress-card">
-                    <h2>Overall Progress</h2>
-                    <div class="progress-chart-container">
-                        <div id="progressChart"></div>
-                        <div class="progress-center">
-                            <div class="progress-value">0</div>
-                            <div class="progress-label">km</div>
-                        </div>
-                    </div>
-                    <div class="progress-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Completed</span>
-                            <span class="detail-value">0</span>
-                            <span class="detail-unit">km</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Goal</span>
-                            <span class="detail-value">1000</span>
-                            <span class="detail-unit">km</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Статистика за неделю -->
-                <div class="card activity-card">
-                    <h2>Weekly Activity</h2>
-                    <div class="chart-container">
-                        <div id="activityChart"></div>
-                    </div>
-                    <div class="activity-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="weekTotal">0</span>
-                            <span class="stat-label">km this week</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="weekAvg">0</span>
-                            <span class="stat-label">km/day avg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Месячная статистика -->
-                <div class="card monthly-card">
-                    <h2>Monthly Progress</h2>
-                    <div class="chart-container">
-                        <div id="monthlyChart"></div>
-                    </div>
-                    <div class="monthly-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="monthTotal">0</span>
-                            <span class="stat-label">km this month</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="monthAvg">0</span>
-                            <span class="stat-label">km/day avg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Достижения -->
-                <div class="card achievements-card">
-                    <h2>Recent Achievements</h2>
-                    <div class="achievements-list" id="achievementsList">
-                        <div class="achievement">
-                            <div class="achievement-icon">🎯</div>
-                            <div class="achievement-details">
-                                <h3>Loading achievements...</h3>
-                                <p>Please wait...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="action-buttons">
+                <button id="syncButton" class="button button-primary">Синхронизировать с Telegram</button>
+                <button id="exportButton" class="button button-secondary">Экспорт данных</button>
             </div>
         </div>
     </main>
