@@ -58,9 +58,8 @@ Email: ${user.email}
             // Создаем элемент для статистики
             const statsHtml = `
                 <div class="stats-summary">
-                    <h3>Общая статистика</h3>
-                    <p>Всего пробежек: ${runs.length}</p>
-                    <p>Общая дистанция: ${totalDistance.toFixed(2)} км</p>
+                    <div class="stats-item">Всего пробежек: <strong>${runs.length}</strong></div>
+                    <div class="stats-item">Общая дистанция: <strong>${totalDistance.toFixed(2)} км</strong></div>
                 </div>
             `;
             
@@ -70,21 +69,21 @@ Email: ${user.email}
                 const duration = Math.floor(run.duration / 60); // переводим в минуты
                 return `
                     <div class="run-item">
-                        <div class="run-date">${date}</div>
-                        <div class="run-details">
-                            <span class="run-distance">${run.km.toFixed(2)} км</span>
-                            <span class="run-time">${duration} мин</span>
-                            ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
-                        </div>
+                        <span class="run-date">${date}</span>
+                        <span class="run-distance">${run.km.toFixed(2)} км</span>
+                        <span class="run-time">${duration} мин</span>
+                        ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
                     </div>
                 `;
             }).join('');
             
             // Добавляем всё в контейнер
-            addLog(statsHtml + `
-                <div class="runs-list">
-                    <h3>Список пробежек</h3>
-                    ${runsListHtml}
+            addLog(`
+                <div class="dashboard-container">
+                    ${statsHtml}
+                    <div class="runs-list">
+                        ${runsListHtml}
+                    </div>
                 </div>
             `, 'success');
         } else {
