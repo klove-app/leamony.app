@@ -114,7 +114,15 @@ async function login(username, password) {
             };
         }
 
-        return { success: true, user: responseData };
+        // Сохраняем токены после успешного входа
+        if (responseData.access_token) {
+            document.cookie = `access_token=${responseData.access_token}; path=/;`;
+        }
+        if (responseData.refresh_token) {
+            document.cookie = `refresh_token=${responseData.refresh_token}; path=/;`;
+        }
+
+        return { success: true, user: responseData.user };
     } catch (error) {
         console.group('Login Error');
         console.error('Status:', error.status);
@@ -177,6 +185,14 @@ async function refreshToken() {
             }
             console.log('Не удалось обновить токен:', data);
             return { success: false, error: 'refresh_failed', details: data };
+        }
+
+        // Сохраняем новые токены
+        if (data.access_token) {
+            document.cookie = `access_token=${data.access_token}; path=/;`;
+        }
+        if (data.refresh_token) {
+            document.cookie = `refresh_token=${data.refresh_token}; path=/;`;
         }
 
         console.log('Токен успешно обновлен');
