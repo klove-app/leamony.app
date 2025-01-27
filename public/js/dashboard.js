@@ -39,11 +39,6 @@ async function loadUserData(forceCheck = false) {
             return;
         }
 
-        addLog(`Пользователь: ${user.username}
-Email: ${user.email}
-Цель на год: ${user.yearly_goal || 'не установлена'} км
-Текущий прогресс: ${user.yearly_progress || 0} км`, 'info', 'userInfo');
-
         // Загружаем данные о пробежках
         const now = new Date();
         const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
@@ -56,9 +51,12 @@ Email: ${user.email}
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
             const yearlyGoal = user.goal_km || 0;
             
-            // Компактное отображение всей информации
             addLog(`
                 <div class="dashboard-content">
+                    <div class="user-info">
+                        <div class="username">${user.username}</div>
+                        ${user.email ? `<div class="email">${user.email}</div>` : ''}
+                    </div>
                     <div class="stats-header">
                         <div class="goal-info">
                             <div class="goal-value">${totalDistance.toFixed(1)} км</div>
@@ -96,9 +94,9 @@ Email: ${user.email}
                         </tbody>
                     </table>
                 </div>
-            `, 'success');
+            `, 'success', 'dataInfo');
         } else {
-            addLog('Пробежки не найдены. Подключите Telegram бота для синхронизации данных.', 'info');
+            addLog('Пробежки не найдены. Подключите Telegram бота для синхронизации данных.', 'info', 'dataInfo');
         }
         
         console.log('5. Загрузка данных завершена');
