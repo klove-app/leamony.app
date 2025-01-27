@@ -102,7 +102,7 @@ async function loadUserData(forceCheck = false) {
         }
 
         console.log('Пользователь авторизован:', user);
-        console.log('Годовая цель из goal_km:', user.goal_km);
+        console.log('Годовая цель:', user.yearly_goal);
 
         // Получаем все необходимые элементы один раз
         const elements = {
@@ -147,13 +147,6 @@ async function loadUserData(forceCheck = false) {
         if (!runs || runs.length === 0) {
             console.log('Нет пробежек, показываем пустое состояние');
             
-            // Скрываем все секции
-            Object.entries(elements).forEach(([key, element]) => {
-                if (element && key !== 'dashboardContent' && key !== 'welcomeMessage') {
-                    element.style.display = 'none';
-                }
-            });
-            
             // Создаем пустое состояние
             const emptyState = document.createElement('div');
             emptyState.className = 'empty-state animate-fade-in';
@@ -174,11 +167,17 @@ async function loadUserData(forceCheck = false) {
                     window.open('https://t.me/sl_run_bot', '_blank');
                 });
             }
+
+            // Скрываем секции с данными
+            if (elements.progressSection) elements.progressSection.style.display = 'none';
+            if (elements.metricsGrid) elements.metricsGrid.style.display = 'none';
+            if (elements.recentRuns) elements.recentRuns.style.display = 'none';
+            if (elements.actionButtons) elements.actionButtons.style.display = 'none';
         } else {
             console.log('Подготавливаем данные для отображения');
             
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const yearlyGoal = user.goal_km;
+            const yearlyGoal = user.yearly_goal;
             const avgDistance = totalDistance / runs.length;
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
@@ -220,7 +219,7 @@ async function loadUserData(forceCheck = false) {
             // Обновляем таблицу пробежек
             if (elements.recentRuns && elements.runsTable) {
                 elements.runsTable.innerHTML = runs.slice(0, 5).map(run => `
-                    <tr class="animate-fade-in">
+                    <tr>
                         <td>${new Date(run.date_added).toLocaleDateString()}</td>
                         <td class="distance">${run.km.toFixed(1)}</td>
                         <td class="time">${run.duration || '-'}</td>
