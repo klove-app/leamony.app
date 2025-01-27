@@ -257,6 +257,102 @@ async function refreshToken() {
     }
 }
 
+// Функция для показа модального окна с логами
+function showLogsModal(logs) {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '50%';
+    modal.style.left = '50%';
+    modal.style.transform = 'translate(-50%, -50%)';
+    modal.style.backgroundColor = 'white';
+    modal.style.padding = '20px';
+    modal.style.borderRadius = '10px';
+    modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    modal.style.zIndex = '10000';
+    modal.style.maxWidth = '400px';
+    modal.style.width = '90%';
+    modal.style.textAlign = 'center';
+
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    overlay.style.zIndex = '9999';
+
+    const title = document.createElement('h3');
+    title.style.margin = '0 0 15px 0';
+    title.style.color = '#333';
+    title.textContent = 'Сохранение логов';
+
+    const text = document.createElement('p');
+    text.style.margin = '0 0 20px 0';
+    text.style.color = '#666';
+    text.textContent = 'Нажмите кнопку ниже, чтобы сохранить логи авторизации';
+
+    const downloadButton = document.createElement('button');
+    downloadButton.style.backgroundColor = '#4CAF50';
+    downloadButton.style.color = 'white';
+    downloadButton.style.padding = '10px 20px';
+    downloadButton.style.border = 'none';
+    downloadButton.style.borderRadius = '5px';
+    downloadButton.style.cursor = 'pointer';
+    downloadButton.style.marginRight = '10px';
+    downloadButton.textContent = 'Скачать логи';
+    downloadButton.onmouseover = () => downloadButton.style.backgroundColor = '#45a049';
+    downloadButton.onmouseout = () => downloadButton.style.backgroundColor = '#4CAF50';
+
+    const closeButton = document.createElement('button');
+    closeButton.style.backgroundColor = '#f44336';
+    closeButton.style.color = 'white';
+    closeButton.style.padding = '10px 20px';
+    closeButton.style.border = 'none';
+    closeButton.style.borderRadius = '5px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.textContent = 'Закрыть';
+    closeButton.onmouseover = () => closeButton.style.backgroundColor = '#da190b';
+    closeButton.onmouseout = () => closeButton.style.backgroundColor = '#f44336';
+
+    const closeModal = () => {
+        document.body.removeChild(modal);
+        document.body.removeChild(overlay);
+        localStorage.removeItem('pending_logs');
+    };
+
+    downloadButton.onclick = () => {
+        const blob = new Blob([logs], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'auth_logs.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    closeButton.onclick = closeModal;
+    overlay.onclick = closeModal;
+
+    modal.appendChild(title);
+    modal.appendChild(text);
+    modal.appendChild(downloadButton);
+    modal.appendChild(closeButton);
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(modal);
+}
+
+// Функция для проверки и показа отложенных логов
+function checkPendingLogs() {
+    const pendingLogs = localStorage.getItem('pending_logs');
+    if (pendingLogs) {
+        showLogsModal(pendingLogs);
+    }
+}
+
 // Функция для выхода
 async function logout() {
     try {
@@ -274,6 +370,9 @@ async function logout() {
             }
             return logText;
         }).join('\n\n');
+
+        // Сохраняем форматированные логи для показа после перезагрузки
+        localStorage.setItem('pending_logs', formattedLogs);
         
         // Очищаем токены
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
@@ -289,105 +388,15 @@ async function logout() {
         
         saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
         
-        // Создаем модальное окно
-        const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.top = '50%';
-        modal.style.left = '50%';
-        modal.style.transform = 'translate(-50%, -50%)';
-        modal.style.backgroundColor = 'white';
-        modal.style.padding = '20px';
-        modal.style.borderRadius = '10px';
-        modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-        modal.style.zIndex = '10000';
-        modal.style.maxWidth = '400px';
-        modal.style.width = '90%';
-        modal.style.textAlign = 'center';
-
-        // Создаем затемнение
-        const overlay = document.createElement('div');
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.right = '0';
-        overlay.style.bottom = '0';
-        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        overlay.style.zIndex = '9999';
-
-        // Создаем заголовок
-        const title = document.createElement('h3');
-        title.style.margin = '0 0 15px 0';
-        title.style.color = '#333';
-        title.textContent = 'Сохранение логов';
-
-        // Создаем текст
-        const text = document.createElement('p');
-        text.style.margin = '0 0 20px 0';
-        text.style.color = '#666';
-        text.textContent = 'Нажмите кнопку ниже, чтобы сохранить логи авторизации';
-
-        // Создаем кнопку скачивания
-        const downloadButton = document.createElement('button');
-        downloadButton.style.backgroundColor = '#4CAF50';
-        downloadButton.style.color = 'white';
-        downloadButton.style.padding = '10px 20px';
-        downloadButton.style.border = 'none';
-        downloadButton.style.borderRadius = '5px';
-        downloadButton.style.cursor = 'pointer';
-        downloadButton.style.marginRight = '10px';
-        downloadButton.textContent = 'Скачать логи';
-        downloadButton.onmouseover = () => downloadButton.style.backgroundColor = '#45a049';
-        downloadButton.onmouseout = () => downloadButton.style.backgroundColor = '#4CAF50';
-
-        // Создаем кнопку закрытия
-        const closeButton = document.createElement('button');
-        closeButton.style.backgroundColor = '#f44336';
-        closeButton.style.color = 'white';
-        closeButton.style.padding = '10px 20px';
-        closeButton.style.border = 'none';
-        closeButton.style.borderRadius = '5px';
-        closeButton.style.cursor = 'pointer';
-        closeButton.textContent = 'Закрыть';
-        closeButton.onmouseover = () => closeButton.style.backgroundColor = '#da190b';
-        closeButton.onmouseout = () => closeButton.style.backgroundColor = '#f44336';
-
-        // Добавляем обработчики
-        downloadButton.onclick = () => {
-            const blob = new Blob([formattedLogs], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'auth_logs.txt';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        };
-
-        const closeModal = () => {
-            document.body.removeChild(modal);
-            document.body.removeChild(overlay);
-        };
-
-        closeButton.onclick = closeModal;
-        overlay.onclick = closeModal;
-
-        // Собираем модальное окно
-        modal.appendChild(title);
-        modal.appendChild(text);
-        modal.appendChild(downloadButton);
-        modal.appendChild(closeButton);
-
-        // Добавляем на страницу
-        document.body.appendChild(overlay);
-        document.body.appendChild(modal);
-        
         return true;
     } catch (error) {
         saveLog('Logout Error', 'Ошибка при выходе', error);
         return false;
     }
 }
+
+// Добавляем проверку отложенных логов при загрузке страницы
+document.addEventListener('DOMContentLoaded', checkPendingLogs);
 
 // Функция для проверки авторизации
 async function checkAuth() {
