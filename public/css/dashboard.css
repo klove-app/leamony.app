@@ -21,7 +21,9 @@ body {
 }
 
 .dashboard-container {
-    padding-top: 6rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .dashboard-content {
@@ -338,29 +340,37 @@ body {
 .period-selector {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
 .period-button {
+    background: #f3f4f6;
+    border: none;
     padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    background: white;
     border-radius: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
 .period-button:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    background: #e5e7eb;
 }
 
 .period-button.active {
     background: var(--primary-color);
     color: white;
-    border-color: var(--primary-color);
+}
+
+.period-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
 }
 
 @media (max-width: 768px) {
@@ -386,22 +396,23 @@ body {
 .progress-info {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .progress-label {
     color: var(--text-secondary);
+    font-size: 0.875rem;
 }
 
 .progress-value {
     color: var(--primary-color);
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .progress-bar {
-    height: 8px;
-    background: #e5e7eb;
-    border-radius: 4px;
+    height: 0.5rem;
+    background: #f3f4f6;
+    border-radius: 0.25rem;
     overflow: hidden;
 }
 
@@ -413,31 +424,29 @@ body {
 
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
     margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeIn 0.3s ease-out 0.1s forwards;
 }
 
 .metric-card {
     background: white;
     padding: 1.5rem;
-    border-radius: var(--border-radius);
+    border-radius: 0.5rem;
     box-shadow: var(--shadow-sm);
-    text-align: center;
+}
+
+.metric-card h3 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem;
+    font-weight: 500;
 }
 
 .metric-value {
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-}
-
-.metric-label {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
+    color: var(--text-primary);
 }
 
 .recent-runs {
@@ -512,35 +521,14 @@ body {
 }
 
 .empty-state h2 {
+    font-size: 1.25rem;
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .empty-state p {
     color: var(--text-secondary);
-    margin-bottom: 2rem;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    margin-bottom: 1.5rem;
 }
 
 .animate-fade-in {
@@ -558,7 +546,8 @@ body {
         gap: 1rem;
     }
 
-    .metrics-grid {
+    .metrics-grid,
+    .analytics-grid {
         grid-template-columns: 1fr;
     }
 
@@ -621,8 +610,8 @@ body {
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
 }
 
 .tab-button {
@@ -633,19 +622,6 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     position: relative;
-    transition: color 0.3s ease;
-}
-
-.tab-button::after {
-    content: '';
-    position: absolute;
-    bottom: -1rem;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--primary-color);
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
 }
 
 .tab-button.active {
@@ -654,7 +630,13 @@ body {
 }
 
 .tab-button.active::after {
-    transform: scaleX(1);
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
 }
 
 .tab-content {
@@ -664,41 +646,44 @@ body {
 .analytics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
 .analytics-card {
     background: white;
-    border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: var(--card-shadow);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .analytics-card h3 {
+    font-size: 0.875rem;
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+    margin: 0 0 1rem;
+    font-weight: 500;
 }
 
 .comparison-value {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.comparison-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
 }
 
 .monthly-stats {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: var(--card-shadow);
     margin-bottom: 2rem;
 }
 
 .monthly-stats h3 {
-    color: var(--text-secondary);
-    font-size: 1rem;
+    font-size: 1.125rem;
     margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
 .monthly-stats table {
@@ -711,144 +696,83 @@ body {
     padding: 0.75rem;
     color: var(--text-secondary);
     font-weight: 500;
-    border-bottom: 1px solid var(--border-color);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #eee;
 }
 
 .monthly-stats td {
     padding: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.monthly-stats tr:last-child td {
-    border-bottom: none;
-}
-
-@media (max-width: 768px) {
-    .tab-switcher {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .tab-button::after {
-        bottom: -0.5rem;
-    }
-
-    .analytics-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .monthly-stats {
-        overflow-x: auto;
-    }
-}
-
-/* Стили для аналитики */
-.analytics-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.year-section {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    box-shadow: var(--shadow-md);
-}
-
-.year-section h2 {
-    color: var(--text-primary);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.comparison-subtitle {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
+    border-bottom: 1px solid #eee;
 }
 
 .weekly-stats {
-    margin-top: 2rem;
+    margin-bottom: 2rem;
 }
 
 .weekly-stats h3 {
-    color: var(--text-secondary);
-    font-size: 1rem;
+    font-size: 1.125rem;
     margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
 .weeks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1rem;
-    margin-top: 1rem;
 }
 
 .week-card {
-    background: #f8fafc;
-    border-radius: var(--border-radius);
+    background: white;
     padding: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.week-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .week-number {
-    font-weight: 500;
-    color: var(--text-primary);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }
 
 .week-distance {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
 
 .week-runs {
-    color: var(--text-secondary);
     font-size: 0.875rem;
+    color: var(--text-secondary);
 }
 
+/* Адаптивность */
 @media (max-width: 768px) {
-    .year-section {
+    .dashboard-container {
         padding: 1rem;
     }
 
+    .metrics-grid,
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
     .weeks-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-
-    .week-card {
-        padding: 0.75rem;
-    }
-
-    .week-distance {
-        font-size: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     }
 }
 
-/* Анимации для карточек */
-.year-section {
-    opacity: 0;
-    animation: slideDown 0.5s ease forwards;
-}
-
-.week-card {
-    opacity: 0;
-    animation: fadeIn 0.3s ease forwards;
-}
-
-@keyframes slideDown {
+/* Анимации */
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(10px);
     }
     to {
         opacity: 1;
@@ -856,47 +780,171 @@ body {
     }
 }
 
-/* Улучшенные стили для таблиц */
-.monthly-stats table {
-    border-spacing: 0;
-    width: 100%;
+/* Основные стили для личного кабинета */
+.user-welcome {
+    margin-bottom: 2rem;
 }
 
-.monthly-stats th,
-.monthly-stats td {
+.user-welcome h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.user-welcome p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0;
+}
+
+/* Стили для аналитики */
+.analytics-container {
     padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
 }
 
-.monthly-stats th {
-    background: #f8fafc;
+.year-section {
+    margin-bottom: 3rem;
+}
+
+.year-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.analytics-card h3 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 1rem;
     font-weight: 500;
+}
+
+.comparison-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.comparison-subtitle {
+    font-size: 0.875rem;
     color: var(--text-secondary);
 }
 
-.monthly-stats tr:last-child td {
-    border-bottom: none;
+.monthly-stats {
+    margin-bottom: 2rem;
 }
 
-.monthly-stats tr:hover td {
-    background: #f8fafc;
+.monthly-stats h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
-/* Стили для мобильных устройств */
-@media (max-width: 640px) {
-    .monthly-stats {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+.monthly-stats table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.monthly-stats th {
+    text-align: left;
+    padding: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #eee;
+}
+
+.monthly-stats td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.weekly-stats {
+    margin-bottom: 2rem;
+}
+
+.weekly-stats h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.week-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.week-number {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.week-distance {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.week-runs {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
     }
 
-    .monthly-stats table {
-        min-width: 500px;
+    .metrics-grid,
+    .analytics-grid {
+        grid-template-columns: 1fr;
     }
 
-    .monthly-stats th,
-    .monthly-stats td {
-        padding: 0.75rem;
-        font-size: 0.875rem;
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .weeks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 } 
