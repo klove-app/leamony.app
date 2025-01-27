@@ -138,18 +138,12 @@ async function loadUserData(forceCheck = false) {
         
         const runs = await getRuns(startDate, endDate);
         console.log('Получены пробежки:', runs?.length || 0);
-
-        // Сначала скрываем все секции
-        document.getElementById('progressSection').style.display = 'none';
-        document.querySelector('.metrics-grid').style.display = 'none';
-        document.querySelector('.recent-runs').style.display = 'none';
-        document.querySelector('.action-buttons').style.display = 'none';
         
         if (runs && runs.length > 0) {
             console.log('Подготавливаем данные для отображения');
             
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const yearlyGoal = user.goal_km || 0;
+            const yearlyGoal = user.yearly_goal || 0;
             const avgDistance = totalDistance / runs.length;
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
@@ -166,10 +160,11 @@ async function loadUserData(forceCheck = false) {
                 ? 'Отличная пробежка сегодня!'
                 : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
 
-            // Подготавливаем все обновления
+            // Обновляем прогресс
+            const progressSection = document.getElementById('progressSection');
             if (yearlyGoal > 0) {
                 const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
-                document.getElementById('progressSection').innerHTML = `
+                progressSection.innerHTML = `
                     <div class="progress-info">
                         <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
                         <span class="progress-value">${percentage.toFixed(1)}%</span>
@@ -178,12 +173,17 @@ async function loadUserData(forceCheck = false) {
                         <div class="progress-fill" style="width: ${percentage}%"></div>
                     </div>
                 `;
+                progressSection.style.display = 'block';
+            } else {
+                progressSection.style.display = 'none';
             }
 
+            // Обновляем метрики
             document.querySelector('#totalDistanceCard .metric-value').textContent = `${totalDistance.toFixed(1)} км`;
             document.querySelector('#avgDistanceCard .metric-value').textContent = `${avgDistance.toFixed(1)} км`;
             document.querySelector('#totalRunsCard .metric-value').textContent = runs.length;
 
+            // Обновляем таблицу пробежек
             document.getElementById('runsTableBody').innerHTML = runs.slice(0, 5).map(run => `
                 <tr class="animate-fade-in">
                     <td>${new Date(run.date_added).toLocaleDateString()}</td>
@@ -193,7 +193,7 @@ async function loadUserData(forceCheck = false) {
                 </tr>
             `).join('');
 
-            // Показываем все секции разом
+            // Показываем все секции
             console.log('Отображаем все секции');
             if (yearlyGoal > 0) {
                 document.getElementById('progressSection').style.display = 'block';
@@ -208,21 +208,28 @@ async function loadUserData(forceCheck = false) {
                 emptyState.remove();
             }
         } else {
-            console.log('Показываем пустое состояние');
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state animate-fade-in';
-            emptyState.innerHTML = `
-                <h2>Пока нет пробежек</h2>
-                <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
-                <button id="syncButton" class="sync-button">
-                    <span class="button-icon">🔄</span>
-                    Синхронизировать с Telegram
-                </button>
-            `;
+            console.log('Нет пробежек, показываем пустое состояние');
+            // Скрываем все секции
+            document.getElementById('progressSection').style.display = 'none';
+            document.querySelector('.metrics-grid').style.display = 'none';
+            document.querySelector('.recent-runs').style.display = 'none';
+            document.querySelector('.action-buttons').style.display = 'none';
 
+            // Показываем пустое состояние
             const content = document.querySelector('.dashboard-content');
-            const existingEmptyState = document.querySelector('.empty-state');
-            if (content && !existingEmptyState) {
+            let emptyState = document.querySelector('.empty-state');
+            
+            if (!emptyState) {
+                emptyState = document.createElement('div');
+                emptyState.className = 'empty-state animate-fade-in';
+                emptyState.innerHTML = `
+                    <h2>Пока нет пробежек</h2>
+                    <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+                    <button id="syncButton" class="sync-button">
+                        <span class="button-icon">🔄</span>
+                        Синхронизировать с Telegram
+                    </button>
+                `;
                 content.appendChild(emptyState);
                 
                 // Добавляем обработчик для кнопки синхронизации
@@ -299,11 +306,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         refreshButton.addEventListener('click', () => loadUserData(true));
     }
 
-    const syncButton = document.getElementById('syncButton');
-    if (syncButton) {
-        syncButton.addEventListener('click', () => {
-            window.open('https://t.me/sl_run_bot', '_blank');
-        });
+    const viewLogsButton = document.getElementById('viewLogsButton');
+    if (viewLogsButton) {
+        viewLogsButton.addEventListener('click', viewLogs);
     }
 
     const exportButton = document.getElementById('exportButton');

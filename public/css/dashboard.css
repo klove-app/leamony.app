@@ -320,33 +320,34 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 2rem;
 }
 
 .user-welcome h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--text-primary);
 }
 
 .last-run {
+    display: block;
     color: var(--text-secondary);
-    font-size: 14px;
+    margin-top: 0.5rem;
 }
 
 .period-selector {
     display: flex;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .period-selector button {
-    padding: 8px 16px;
-    border: 1px solid #eee;
-    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
     background: white;
+    border-radius: var(--border-radius);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.2s;
 }
 
 .period-selector button.active {
@@ -356,32 +357,31 @@ body {
 }
 
 .progress-section {
-    margin-bottom: 24px;
-    padding: 16px;
-    background: #f8f9fa;
+    background: white;
+    padding: 1.5rem;
     border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .progress-info {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 1rem;
 }
 
 .progress-label {
     color: var(--text-secondary);
-    font-size: 14px;
 }
 
 .progress-value {
     color: var(--primary-color);
     font-weight: 600;
-    font-size: 14px;
 }
 
 .progress-bar {
     height: 8px;
-    background: #e9ecef;
+    background: #e5e7eb;
     border-radius: 4px;
     overflow: hidden;
 }
@@ -389,60 +389,54 @@ body {
 .progress-fill {
     height: 100%;
     background: var(--primary-color);
-    border-radius: 4px;
-    transition: width 1s ease-in-out;
+    transition: width 0.3s ease;
 }
 
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .metric-card {
-    padding: 16px;
     background: white;
+    padding: 1.5rem;
     border-radius: var(--border-radius);
-    border: 1px solid #eee;
+    box-shadow: var(--shadow-sm);
     text-align: center;
-    transition: var(--transition);
-}
-
-.metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-shadow);
 }
 
 .metric-value {
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--primary-color);
-    margin-bottom: 4px;
+    margin-bottom: 0.5rem;
 }
 
 .metric-label {
-    font-size: 12px;
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 0.875rem;
 }
 
 .recent-runs {
-    margin-bottom: 24px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
 }
 
 .section-header h3 {
-    font-size: 18px;
-    font-weight: 600;
     margin: 0;
+    color: var(--text-primary);
 }
 
 .view-all {
@@ -450,28 +444,26 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
-    transition: var(--transition);
+    font-size: 0.875rem;
 }
 
 .action-buttons {
     display: flex;
-    gap: 16px;
-    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
 }
 
 .sync-button,
 .export-button {
-    padding: 12px 24px;
-    border-radius: 24px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: var(--transition);
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .sync-button {
@@ -481,51 +473,33 @@ body {
 
 .export-button {
     background: white;
-    color: var(--text-color);
-    border: 1px solid #eee;
+    color: var(--text-primary);
+    border: 1px solid #e5e7eb;
 }
 
 .button-icon {
-    font-size: 16px;
+    font-size: 1.25rem;
 }
 
 .empty-state {
     text-align: center;
-    padding: 48px 0;
+    padding: 3rem 1rem;
 }
 
 .empty-state h2 {
-    font-size: 24px;
-    margin-bottom: 8px;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
 }
 
 .empty-state p {
     color: var(--text-secondary);
-    margin-bottom: 24px;
-}
-
-/* Animations */
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-}
-
-.animate-slide-in {
-    animation: slideIn 0.5s ease-out;
+    margin-bottom: 2rem;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(10px);
     }
     to {
         opacity: 1;
@@ -533,15 +507,30 @@ body {
     }
 }
 
-@media (max-width: 768px) {
-    body {
-        padding: 16px;
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
     }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
     .dashboard-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
+        gap: 1rem;
     }
 
     .metrics-grid {
@@ -550,12 +539,6 @@ body {
 
     .action-buttons {
         flex-direction: column;
-    }
-
-    .sync-button,
-    .export-button {
-        width: 100%;
-        justify-content: center;
     }
 }
 
@@ -575,4 +558,5 @@ body {
 /* Удаляю старые стили для header, так как теперь используем navbar */
 .main-header {
     display: none;
+} 
 } 
