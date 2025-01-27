@@ -28,6 +28,8 @@
             margin: 0.5rem 0;
             padding: 0.5rem;
             border-left: 3px solid var(--primary-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .log-entry.error {
@@ -58,6 +60,31 @@
             display: flex;
             gap: 1rem;
             margin: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo:hover {
+            color: var(--primary-dark);
+        }
+
+        @media (max-width: 640px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .button {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
         }
     </style>
 </head>
