@@ -127,7 +127,6 @@ async function loadUserData(forceCheck = false) {
         }
 
         console.log('Пользователь авторизован:', user);
-        await delay(1000); // Задержка для отладки
 
         // Обновляем приветствие
         document.getElementById('welcomeMessage').textContent = `Привет, ${user.username}! 👋`;
@@ -139,8 +138,16 @@ async function loadUserData(forceCheck = false) {
         
         const runs = await getRuns(startDate, endDate);
         console.log('Получены пробежки:', runs?.length || 0);
+
+        // Сначала скрываем все секции
+        document.getElementById('progressSection').style.display = 'none';
+        document.querySelector('.metrics-grid').style.display = 'none';
+        document.querySelector('.recent-runs').style.display = 'none';
+        document.querySelector('.action-buttons').style.display = 'none';
         
         if (runs && runs.length > 0) {
+            console.log('Подготавливаем данные для отображения');
+            
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
             const yearlyGoal = user.goal_km || 0;
             const avgDistance = totalDistance / runs.length;
@@ -159,22 +166,73 @@ async function loadUserData(forceCheck = false) {
                 ? 'Отличная пробежка сегодня!'
                 : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
 
-            await delay(500); // Задержка для отладки
+            // Подготавливаем все обновления
+            if (yearlyGoal > 0) {
+                const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
+                document.getElementById('progressSection').innerHTML = `
+                    <div class="progress-info">
+                        <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
+                        <span class="progress-value">${percentage.toFixed(1)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+            }
 
-            // Обновляем секции
-            updateProgressSection(totalDistance, yearlyGoal);
-            await delay(500); // Задержка для отладки
-            
-            updateMetrics(totalDistance, avgDistance, runs.length);
-            await delay(500); // Задержка для отладки
-            
-            updateRunsTable(runs);
-            await delay(500); // Задержка для отладки
-            
-            toggleContentVisibility(true);
+            document.querySelector('#totalDistanceCard .metric-value').textContent = `${totalDistance.toFixed(1)} км`;
+            document.querySelector('#avgDistanceCard .metric-value').textContent = `${avgDistance.toFixed(1)} км`;
+            document.querySelector('#totalRunsCard .metric-value').textContent = runs.length;
+
+            document.getElementById('runsTableBody').innerHTML = runs.slice(0, 5).map(run => `
+                <tr class="animate-fade-in">
+                    <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                    <td class="distance">${run.km.toFixed(1)}</td>
+                    <td class="time">${run.duration || '-'}</td>
+                    <td class="notes">${run.notes || ''}</td>
+                </tr>
+            `).join('');
+
+            // Показываем все секции разом
+            console.log('Отображаем все секции');
+            if (yearlyGoal > 0) {
+                document.getElementById('progressSection').style.display = 'block';
+            }
+            document.querySelector('.metrics-grid').style.display = 'grid';
+            document.querySelector('.recent-runs').style.display = 'block';
+            document.querySelector('.action-buttons').style.display = 'flex';
+
+            // Удаляем пустое состояние, если оно есть
+            const emptyState = document.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
         } else {
-            console.log('Нет пробежек, показываем пустое состояние');
-            toggleContentVisibility(false);
+            console.log('Показываем пустое состояние');
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state animate-fade-in';
+            emptyState.innerHTML = `
+                <h2>Пока нет пробежек</h2>
+                <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+                <button id="syncButton" class="sync-button">
+                    <span class="button-icon">🔄</span>
+                    Синхронизировать с Telegram
+                </button>
+            `;
+
+            const content = document.querySelector('.dashboard-content');
+            const existingEmptyState = document.querySelector('.empty-state');
+            if (content && !existingEmptyState) {
+                content.appendChild(emptyState);
+                
+                // Добавляем обработчик для кнопки синхронизации
+                const syncButton = document.getElementById('syncButton');
+                if (syncButton) {
+                    syncButton.addEventListener('click', () => {
+                        window.open('https://t.me/sl_run_bot', '_blank');
+                    });
+                }
+            }
         }
         
         console.groupEnd();
