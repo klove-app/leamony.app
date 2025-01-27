@@ -173,48 +173,57 @@ body {
 .stats-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px;
+    padding: 5px 10px;
     background: #f8f9fa;
     border-radius: 4px;
-    margin-bottom: 10px;
-    font-size: 14px;
+    margin-bottom: 5px;
+    font-size: 12px;
 }
 
 .runs-list {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
 }
 
 .run-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 8px;
-    background: white;
-    border-radius: 4px;
-    font-size: 14px;
+    display: table-row;
+    border-bottom: 1px solid #eee;
+}
+
+.run-item:hover {
+    background: #f8f9fa;
+}
+
+.run-date, .run-distance, .run-time, .run-notes {
+    display: table-cell;
+    padding: 4px 8px;
+    vertical-align: middle;
 }
 
 .run-date {
-    min-width: 90px;
+    width: 80px;
     color: #666;
 }
 
 .run-distance {
-    min-width: 70px;
+    width: 60px;
     color: #2196F3;
     font-weight: 500;
+    text-align: right;
 }
 
 .run-time {
-    min-width: 70px;
+    width: 60px;
     color: #666;
+    text-align: right;
 }
 
 .run-notes {
     color: #666;
     font-style: italic;
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

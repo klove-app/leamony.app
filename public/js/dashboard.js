@@ -64,13 +64,13 @@ Email: ${user.email}
                     <span>Общая дистанция: ${totalDistance.toFixed(2)} км</span>
                 </div>`;
             
-            // Компактное отображение списка пробежек
+            // Компактное отображение списка пробежек в виде таблицы
             const runsHtml = runs.map(run => `
                 <div class="run-item">
-                    <span class="run-date">${run.date_added.split('T')[0]}</span>
-                    <span class="run-distance">${run.km} км</span>
-                    ${run.duration ? `<span class="run-time">${run.duration} мин</span>` : ''}
-                    ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
+                    <div class="run-date">${run.date_added.split('T')[0]}</div>
+                    <div class="run-distance">${run.km.toFixed(1)}</div>
+                    <div class="run-time">${run.duration || '-'}</div>
+                    <div class="run-notes">${run.notes || ''}</div>
                 </div>
             `).join('');
 
