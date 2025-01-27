@@ -289,55 +289,98 @@ async function logout() {
         
         saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
         
-        try {
-            // Сохраняем логи в файл
-            const logsBlob = new Blob([formattedLogs], { type: 'text/plain;charset=utf-8' });
-            const logsUrl = URL.createObjectURL(logsBlob);
+        // Создаем модальное окно
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '50%';
+        modal.style.left = '50%';
+        modal.style.transform = 'translate(-50%, -50%)';
+        modal.style.backgroundColor = 'white';
+        modal.style.padding = '20px';
+        modal.style.borderRadius = '10px';
+        modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+        modal.style.zIndex = '10000';
+        modal.style.maxWidth = '400px';
+        modal.style.width = '90%';
+        modal.style.textAlign = 'center';
+
+        // Создаем затемнение
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.bottom = '0';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.zIndex = '9999';
+
+        // Создаем заголовок
+        const title = document.createElement('h3');
+        title.style.margin = '0 0 15px 0';
+        title.style.color = '#333';
+        title.textContent = 'Сохранение логов';
+
+        // Создаем текст
+        const text = document.createElement('p');
+        text.style.margin = '0 0 20px 0';
+        text.style.color = '#666';
+        text.textContent = 'Нажмите кнопку ниже, чтобы сохранить логи авторизации';
+
+        // Создаем кнопку скачивания
+        const downloadButton = document.createElement('button');
+        downloadButton.style.backgroundColor = '#4CAF50';
+        downloadButton.style.color = 'white';
+        downloadButton.style.padding = '10px 20px';
+        downloadButton.style.border = 'none';
+        downloadButton.style.borderRadius = '5px';
+        downloadButton.style.cursor = 'pointer';
+        downloadButton.style.marginRight = '10px';
+        downloadButton.textContent = 'Скачать логи';
+        downloadButton.onmouseover = () => downloadButton.style.backgroundColor = '#45a049';
+        downloadButton.onmouseout = () => downloadButton.style.backgroundColor = '#4CAF50';
+
+        // Создаем кнопку закрытия
+        const closeButton = document.createElement('button');
+        closeButton.style.backgroundColor = '#f44336';
+        closeButton.style.color = 'white';
+        closeButton.style.padding = '10px 20px';
+        closeButton.style.border = 'none';
+        closeButton.style.borderRadius = '5px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.textContent = 'Закрыть';
+        closeButton.onmouseover = () => closeButton.style.backgroundColor = '#da190b';
+        closeButton.onmouseout = () => closeButton.style.backgroundColor = '#f44336';
+
+        // Добавляем обработчики
+        downloadButton.onclick = () => {
+            const blob = new Blob([formattedLogs], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = logsUrl;
+            link.href = url;
             link.download = 'auth_logs.txt';
-            
-            // Добавляем ссылку в документ
             document.body.appendChild(link);
-            
-            // Принудительно вызываем клик
-            const clickEvent = new MouseEvent('click', {
-                view: window,
-                bubbles: true,
-                cancelable: false
-            });
-            link.dispatchEvent(clickEvent);
-            
-            // Удаляем ссылку
+            link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(logsUrl);
-            
-            // Показываем уведомление
-            const notification = document.createElement('div');
-            notification.style.position = 'fixed';
-            notification.style.top = '20px';
-            notification.style.left = '50%';
-            notification.style.transform = 'translateX(-50%)';
-            notification.style.backgroundColor = '#4CAF50';
-            notification.style.color = 'white';
-            notification.style.padding = '15px 25px';
-            notification.style.borderRadius = '5px';
-            notification.style.zIndex = '9999';
-            notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-            notification.textContent = 'Логи сохранены в файл auth_logs.txt';
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 5000);
-            
-        } catch (saveError) {
-            console.error('Ошибка при сохранении логов:', saveError);
-            alert('Не удалось сохранить логи. Пожалуйста, проверьте консоль для деталей.');
-        }
+            URL.revokeObjectURL(url);
+        };
+
+        const closeModal = () => {
+            document.body.removeChild(modal);
+            document.body.removeChild(overlay);
+        };
+
+        closeButton.onclick = closeModal;
+        overlay.onclick = closeModal;
+
+        // Собираем модальное окно
+        modal.appendChild(title);
+        modal.appendChild(text);
+        modal.appendChild(downloadButton);
+        modal.appendChild(closeButton);
+
+        // Добавляем на страницу
+        document.body.appendChild(overlay);
+        document.body.appendChild(modal);
         
         return true;
     } catch (error) {
