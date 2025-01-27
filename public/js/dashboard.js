@@ -102,12 +102,32 @@ async function loadUserData(forceCheck = false) {
         }
 
         console.log('Пользователь авторизован:', user);
-        console.log('Годовая цель:', user.goal_km);
+        console.log('Годовая цель из goal_km:', user.goal_km);
+
+        // Получаем все необходимые элементы один раз
+        const elements = {
+            dashboardContent: document.querySelector('.dashboard-content'),
+            welcomeMessage: document.getElementById('welcomeMessage'),
+            progressSection: document.getElementById('progressSection'),
+            metricsGrid: document.querySelector('.metrics-grid'),
+            totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
+            avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
+            totalRuns: document.querySelector('#totalRunsCard .metric-value'),
+            recentRuns: document.querySelector('.recent-runs'),
+            runsTable: document.getElementById('runsTableBody'),
+            actionButtons: document.querySelector('.action-buttons'),
+            lastRunInfo: document.getElementById('lastRunInfo')
+        };
+
+        // Проверяем наличие основных элементов
+        if (!elements.dashboardContent) {
+            console.error('Не найден основной контейнер дашборда');
+            return;
+        }
 
         // Обновляем приветствие
-        const welcomeMessage = document.getElementById('welcomeMessage');
-        if (welcomeMessage) {
-            welcomeMessage.textContent = `Привет, ${user.username}! 👋`;
+        if (elements.welcomeMessage) {
+            elements.welcomeMessage.textContent = `Привет, ${user.username}! 👋`;
         }
 
         const now = new Date();
@@ -118,28 +138,20 @@ async function loadUserData(forceCheck = false) {
         const runs = await getRuns(startDate, endDate);
         console.log('Получены пробежки:', runs?.length || 0);
 
-        // Проверяем наличие основного контейнера
-        const dashboardContent = document.querySelector('.dashboard-content');
-        if (!dashboardContent) {
-            console.error('Не найден основной контейнер дашборда');
-            return;
-        }
-
         // Удаляем существующее пустое состояние
         const existingEmptyState = document.querySelector('.empty-state');
         if (existingEmptyState) {
             existingEmptyState.remove();
         }
 
-        // Подготавливаем данные
         if (!runs || runs.length === 0) {
             console.log('Нет пробежек, показываем пустое состояние');
             
             // Скрываем все секции
-            const sections = ['#progressSection', '.metrics-grid', '.recent-runs', '.action-buttons'];
-            sections.forEach(selector => {
-                const element = document.querySelector(selector);
-                if (element) element.style.display = 'none';
+            Object.entries(elements).forEach(([key, element]) => {
+                if (element && key !== 'dashboardContent' && key !== 'welcomeMessage') {
+                    element.style.display = 'none';
+                }
             });
             
             // Создаем пустое состояние
@@ -153,7 +165,7 @@ async function loadUserData(forceCheck = false) {
                     Синхронизировать с Telegram
                 </button>
             `;
-            dashboardContent.appendChild(emptyState);
+            elements.dashboardContent.appendChild(emptyState);
 
             // Добавляем обработчик для кнопки синхронизации
             const syncButton = document.getElementById('syncButton');
@@ -167,85 +179,61 @@ async function loadUserData(forceCheck = false) {
             
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
             const yearlyGoal = user.goal_km;
-            console.log('Годовая цель из goal_km:', yearlyGoal);
             const avgDistance = totalDistance / runs.length;
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
 
             // Обновляем информацию о последней пробежке
-            const lastRunInfo = document.getElementById('lastRunInfo');
-            if (lastRunInfo) {
-                lastRunInfo.textContent = daysSinceLastRun === 0 
+            if (elements.lastRunInfo) {
+                elements.lastRunInfo.textContent = daysSinceLastRun === 0 
                     ? 'Отличная пробежка сегодня!'
                     : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
             }
 
-            // Подготавливаем все обновления
-            const updates = [
-                { element: document.getElementById('progressSection'), update: () => {
-                    if (yearlyGoal > 0) {
-                        const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
-                        return {
-                            html: `
-                                <div class="progress-info">
-                                    <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
-                                    <span class="progress-value">${percentage.toFixed(1)}%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${percentage}%"></div>
-                                </div>
-                            `,
-                            display: 'block'
-                        };
-                    }
-                    return { display: 'none' };
-                }},
-                { element: document.querySelector('.metrics-grid'), update: () => {
-                    const elements = {
-                        totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
-                        avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
-                        totalRuns: document.querySelector('#totalRunsCard .metric-value')
-                    };
-                    
-                    // Обновляем значения только если элементы существуют
-                    if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
-                    if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
-                    if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
-                    
-                    return { display: 'grid' }; // Всегда показываем метрики
-                }},
-                { element: document.querySelector('.recent-runs'), update: () => {
-                    const tbody = document.getElementById('runsTableBody');
-                    if (tbody) {
-                        tbody.innerHTML = runs.slice(0, 5).map(run => `
-                            <tr class="animate-fade-in">
-                                <td>${new Date(run.date_added).toLocaleDateString()}</td>
-                                <td class="distance">${run.km.toFixed(1)}</td>
-                                <td class="time">${run.duration || '-'}</td>
-                                <td class="notes">${run.notes || ''}</td>
-                            </tr>
-                        `).join('');
-                    }
-                    return { display: 'block' }; // Всегда показываем таблицу
-                }},
-                { element: document.querySelector('.action-buttons'), update: () => ({ display: 'flex' })}
-            ];
-
-            // Применяем все обновления одновременно
-            updates.forEach(({ element, update }) => {
-                if (element) {
-                    console.log('Обновляем элемент:', element.className || element.id);
-                    const result = update();
-                    if (result.html) {
-                        console.log('Обновляем HTML');
-                        element.innerHTML = result.html;
-                    }
-                    console.log('Устанавливаем display:', result.display);
-                    element.style.display = result.display;
+            // Обновляем прогресс
+            if (elements.progressSection) {
+                if (yearlyGoal > 0) {
+                    const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
+                    elements.progressSection.innerHTML = `
+                        <div class="progress-info">
+                            <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
+                            <span class="progress-value">${percentage.toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                    `;
+                    elements.progressSection.style.display = 'block';
                 } else {
-                    console.warn('Элемент не найден');
+                    elements.progressSection.style.display = 'none';
                 }
-            });
+            }
+
+            // Обновляем метрики
+            if (elements.metricsGrid) {
+                if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
+                if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
+                if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
+                elements.metricsGrid.style.display = 'grid';
+            }
+
+            // Обновляем таблицу пробежек
+            if (elements.recentRuns && elements.runsTable) {
+                elements.runsTable.innerHTML = runs.slice(0, 5).map(run => `
+                    <tr class="animate-fade-in">
+                        <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                        <td class="distance">${run.km.toFixed(1)}</td>
+                        <td class="time">${run.duration || '-'}</td>
+                        <td class="notes">${run.notes || ''}</td>
+                    </tr>
+                `).join('');
+                elements.recentRuns.style.display = 'block';
+            }
+
+            // Показываем кнопки действий
+            if (elements.actionButtons) {
+                elements.actionButtons.style.display = 'flex';
+            }
         }
         
         console.groupEnd();
@@ -293,13 +281,24 @@ async function handleLogout() {
 }
 
 // Инициализация страницы
+let isInitialized = false;
 let isLoading = false;
 
 document.addEventListener('DOMContentLoaded', async function() {
+    console.group('Инициализация страницы');
     console.log('DOM загружен, начинаем инициализацию');
+    console.log('isInitialized:', isInitialized);
+    console.log('isLoading:', isLoading);
+    
+    if (isInitialized) {
+        console.warn('Страница уже инициализирована, пропускаем');
+        console.groupEnd();
+        return;
+    }
     
     if (isLoading) {
-        console.log('Загрузка уже выполняется, пропускаем');
+        console.warn('Загрузка уже выполняется, пропускаем');
+        console.groupEnd();
         return;
     }
     
@@ -332,8 +331,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Загружаем данные без принудительной проверки
         await loadUserData(false);
         
+        isInitialized = true;
         console.log('Инициализация завершена');
     } finally {
         isLoading = false;
+        console.groupEnd();
     }
 }); 
