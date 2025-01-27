@@ -12,7 +12,7 @@ interface ClientWrapperProps {
 
 export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const { isLoading, user } = useAuth();
+  const auth = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
@@ -21,6 +21,16 @@ export default function ClientWrapper({ children, requireAuth = false }: ClientW
   if (!isMounted) {
     return null;
   }
+
+  if (!auth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const { isLoading, user } = auth;
 
   if (isLoading) {
     return (
