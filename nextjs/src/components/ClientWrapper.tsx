@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
-import { useAuth } from '@/lib/useAuth';
+import dynamic from 'next/dynamic';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -10,45 +10,53 @@ interface ClientWrapperProps {
   requireAuth?: boolean;
 }
 
+const DynamicAuthContent = dynamic(() => import('@/lib/useAuth').then(mod => {
+  const { useAuth } = mod;
+  return function AuthContent({ children }: { children: ReactNode }) {
+    const auth = useAuth();
+    const { isLoading, user } = auth;
+
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <Navbar />
+        {children}
+        <Footer />
+      </>
+    );
+  };
+}), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  ),
+});
+
 export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
   const [mounted, setMounted] = useState(false);
-  const auth = useAuth();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Показываем загрузку до монтирования
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div aria-hidden="true" className="invisible">
+          {children}
+        </div>
       </div>
     );
   }
 
-  const { isLoading, user } = auth;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (requireAuth && !user) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
-    }
-    return null;
-  }
-
-  return (
-    <>
-      <Navbar />
-      {children}
-      <Footer />
-    </>
-  );
+  return <DynamicAuthContent>{children}</DynamicAuthContent>;
 } 
