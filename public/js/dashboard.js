@@ -41,7 +41,8 @@ async function loadUserData(forceCheck = false) {
 
         addLog(`Пользователь: ${user.username}
 Email: ${user.email}
-Цель на год: ${user.goal_km || 'не установлена'} км`, 'info', 'userInfo');
+Цель на год: ${user.yearly_goal || 'не установлена'} км
+Текущий прогресс: ${user.yearly_progress || 0} км`, 'info', 'userInfo');
 
         // Загружаем данные о пробежках
         const now = new Date();

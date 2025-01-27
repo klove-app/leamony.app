@@ -495,10 +495,60 @@ async function checkAuth(forceCheck = false) {
         }
     }
 
-    // Если есть access token или только что получили новый, возвращаем информацию о пользователе
-    console.log('7. Access token валиден, возвращаем данные пользователя');
-    console.groupEnd();
-    return { username: 'User', email: 'user@example.com' };
+    try {
+        // Получаем данные пользователя через /users/me
+        console.log('7. Запрашиваем данные пользователя');
+        const response = await fetch(`${config.API_URL}/users/me`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            console.log('8. Ошибка получения данных пользователя:', response.status);
+            if (response.status === 401) {
+                // Если токен истек, пробуем обновить
+                const refreshResult = await refreshToken();
+                if (!refreshResult.success) {
+                    console.log('9. Не удалось обновить токен после ошибки 401');
+                    console.groupEnd();
+                    return null;
+                }
+                // Повторяем запрос с новым токеном
+                const retryResponse = await fetch(`${config.API_URL}/users/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!retryResponse.ok) {
+                    console.log('10. Повторный запрос не удался:', retryResponse.status);
+                    console.groupEnd();
+                    return null;
+                }
+                
+                const userData = await retryResponse.json();
+                console.log('11. Данные пользователя получены после обновления токена:', userData);
+                console.groupEnd();
+                return userData;
+            }
+            console.groupEnd();
+            return null;
+        }
+
+        const userData = await response.json();
+        console.log('8. Данные пользователя получены:', userData);
+        console.groupEnd();
+        return userData;
+    } catch (error) {
+        console.error('Ошибка при получении данных пользователя:', error);
+        console.groupEnd();
+        return null;
+    }
 }
 
 // Получение списка пробежек
