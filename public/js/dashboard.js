@@ -4,7 +4,7 @@ import { checkAuth, logout, getRuns, viewLogs, delay } from './api.js';
 function addLog(message, type = '', container = 'dataInfo') {
     const logElement = document.getElementById(container);
     if (logElement) {
-        logElement.textContent = message;
+        logElement.innerHTML = message;
         logElement.className = `log-entry ${type}`;
         logElement.style.display = 'block';
     }
