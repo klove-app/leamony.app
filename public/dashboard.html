@@ -28,17 +28,15 @@
             <div id="errorLog" class="error" style="display: none;"></div>
             
             <div class="dashboard-content">
-                <header class="dashboard-header">
-                    <div class="user-welcome">
-                        <h2 id="welcomeMessage"></h2>
-                        <span id="lastRunInfo" class="last-run"></span>
-                    </div>
+                <div class="dashboard-header">
+                    <h1 id="welcomeMessage"></h1>
+                    <p id="lastRunInfo" class="last-run-info"></p>
                     <div class="period-selector">
-                        <button class="active">Год</button>
-                        <button>Месяц</button>
-                        <button>Неделя</button>
+                        <button class="period-button" data-period="week">Неделя</button>
+                        <button class="period-button" data-period="month">Месяц</button>
+                        <button class="period-button active" data-period="year">Год</button>
                     </div>
-                </header>
+                </div>
 
                 <div id="progressSection" class="progress-section"></div>
 
