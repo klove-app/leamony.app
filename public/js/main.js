@@ -4,23 +4,18 @@ import { login, register, checkAuth } from './api.js';
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Инициализация главной страницы...');
     
+    setupEventListeners();
+    
     try {
-        setupEventListeners();
-        
         // Проверяем авторизацию
         const user = await checkAuth();
         console.log('Результат проверки авторизации:', user);
         
-        if (user) {
-            // Если пользователь авторизован, обновляем UI
-            updateAuthUI(true, user.username);
-        } else {
-            // Если не авторизован, показываем кнопку входа
-            updateAuthUI(false);
-        }
+        // Обновляем UI в зависимости от результата
+        updateAuthUI(!!user, user?.username);
     } catch (error) {
-        console.error('Ошибка при инициализации:', error);
-        showError('Произошла ошибка при загрузке страницы');
+        // Если произошла ошибка, считаем что пользователь не авторизован
+        console.log('Ошибка при проверке авторизации:', error);
         updateAuthUI(false);
     }
 });

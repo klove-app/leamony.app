@@ -466,7 +466,6 @@ async function checkAuth(force = false) {
 
         console.group('Check Auth Process');
         console.log('1. Начало проверки авторизации');
-        console.log('URL:', config.API_URL);
         
         // Проверяем наличие access_token
         const cookies = document.cookie.split(';');
@@ -482,19 +481,20 @@ async function checkAuth(force = false) {
             refreshToken: refreshTokenCookie ? refreshTokenCookie.split('=')[1].substring(0, 10) + '...' : null
         });
 
+        // Если нет ни access token, ни refresh token - пользователь не авторизован
+        if (!accessTokenCookie && !refreshTokenCookie) {
+            console.log('4. Токены отсутствуют - пользователь не авторизован');
+            console.groupEnd();
+            return null;
+        }
+
         if (!accessTokenCookie) {
             console.log('4. Access token не найден, пробуем обновить через refresh token');
             const refreshResult = await refreshToken();
-            console.log('5. Результат обновления токена:', {
-                success: refreshResult.success,
-                error: refreshResult.error,
-                hasUser: !!refreshResult.user,
-                errorDetails: refreshResult.error ? JSON.stringify(refreshResult.error) : null
-            });
+            console.log('5. Результат обновления токена:', refreshResult);
             
             if (!refreshResult.success) {
                 console.log('6. Не удалось подтвердить авторизацию:', refreshResult.error);
-                console.log('Причина разлогина: отсутствует access token и не удалось обновить через refresh token');
                 console.groupEnd();
                 return null;
             }
@@ -519,23 +519,16 @@ async function checkAuth(force = false) {
             console.log('5. Ответ на проверку токена:', {
                 status: response.status,
                 ok: response.ok,
-                statusText: response.statusText,
-                headers: [...response.headers.entries()]
+                statusText: response.statusText
             });
 
-            if (response.status === 401) {
-                console.log('6. Access token недействителен (401), пробуем обновить');
+            if (response.status === 401 || response.status === 404) {
+                console.log('6. Access token недействителен, пробуем обновить');
                 const refreshResult = await refreshToken();
-                console.log('7. Результат обновления токена:', {
-                    success: refreshResult.success,
-                    error: refreshResult.error,
-                    hasUser: !!refreshResult.user,
-                    errorDetails: refreshResult.error ? JSON.stringify(refreshResult.error) : null
-                });
+                console.log('7. Результат обновления токена:', refreshResult);
 
                 if (!refreshResult.success) {
-                    console.log('8. Не удалось подтвердить авторизацию после получения 401');
-                    console.log('Причина разлогина: access token недействителен и не удалось обновить через refresh token');
+                    console.log('8. Не удалось подтвердить авторизацию после получения 401/404');
                     console.groupEnd();
                     return null;
                 }
@@ -548,8 +541,7 @@ async function checkAuth(force = false) {
             if (!response.ok) {
                 console.error('6. Ошибка при проверке токена:', {
                     status: response.status,
-                    statusText: response.statusText,
-                    responseText: await response.text()
+                    statusText: response.statusText
                 });
                 throw new Error(`Ошибка проверки авторизации: ${response.status}`);
             }
@@ -567,21 +559,13 @@ async function checkAuth(force = false) {
             return userData;
             
         } catch (error) {
-            console.error('Ошибка при проверке токена:', {
-                error: error.message,
-                stack: error.stack
-            });
+            console.error('Ошибка при проверке токена:', error);
             console.log('Пробуем обновить токен после ошибки');
             const refreshResult = await refreshToken();
-            console.log('Результат обновления токена после ошибки:', {
-                success: refreshResult.success,
-                error: refreshResult.error,
-                hasUser: !!refreshResult.user,
-                errorDetails: refreshResult.error ? JSON.stringify(refreshResult.error) : null
-            });
+            console.log('Результат обновления токена после ошибки:', refreshResult);
 
             if (!refreshResult.success) {
-                console.log('Причина разлогина: ошибка при проверке токена и не удалось обновить');
+                console.log('Не удалось подтвердить авторизацию после ошибки');
                 console.groupEnd();
                 return null;
             }
@@ -595,11 +579,7 @@ async function checkAuth(force = false) {
         authCheckCache.user = null;
         authCheckCache.timestamp = null;
         
-        console.error('Общая ошибка проверки авторизации:', {
-            error: error.message,
-            stack: error.stack
-        });
-        console.log('Причина разлогина: необработанная ошибка в checkAuth');
+        console.error('Общая ошибка проверки авторизации:', error);
         console.groupEnd();
         return null;
     }
