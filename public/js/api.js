@@ -135,50 +135,56 @@ async function refreshToken() {
         console.group('Token Refresh');
         // Получаем refresh_token из куки
         const cookies = document.cookie.split(';');
-        console.log('Все куки:', cookies);
+        console.log('Проверка кук для refresh token');
         
         const refreshTokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
         if (!refreshTokenCookie) {
             console.log('Refresh token не найден в куки');
             console.groupEnd();
-            return { success: false };
+            return { success: false, error: 'refresh_token_not_found' };
         }
         
         const refreshToken = refreshTokenCookie.split('=')[1].trim();
+        if (!refreshToken) {
+            console.log('Refresh token пустой');
+            console.groupEnd();
+            return { success: false, error: 'empty_refresh_token' };
+        }
+        
         console.log('Найден refresh_token:', refreshToken.substring(0, 10) + '...');
         
-        const params = new URLSearchParams({ refresh_token: refreshToken });
-        const url = `${config.API_URL}/auth/refresh?${params}`;
-        console.log('URL запроса:', url);
-        
-        console.log('Отправляем запрос на обновление токена...');
-        const response = await fetch(url, {
+        const response = await fetch(`${config.API_URL}/auth/refresh`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            credentials: 'include'
+            credentials: 'include',
+            body: JSON.stringify({ refresh_token: refreshToken })
         });
         
         console.log('Статус ответа:', response.status, response.statusText);
-        console.log('Заголовки ответа:', [...response.headers.entries()]);
-
+        
         if (!response.ok) {
+            if (response.status === 401) {
+                console.log('Refresh token истек или недействителен');
+                // Очищаем куки при невалидном токене
+                document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+                document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+                return { success: false, error: 'invalid_refresh_token' };
+            }
             console.log('Не удалось обновить токен');
-            console.groupEnd();
-            return { success: false };
+            return { success: false, error: 'refresh_failed' };
         }
 
         const data = await response.json();
-        console.log('Ответ сервера:', data);
         console.log('Токен успешно обновлен');
         console.groupEnd();
         return { success: true, ...data };
     } catch (error) {
         console.error('Token refresh error:', error);
         console.groupEnd();
-        return { success: false };
+        return { success: false, error: 'refresh_error' };
     }
 }
 

@@ -1,10 +1,12 @@
 import { login, register, checkAuth } from './api.js';
 
 // Инициализация при загрузке страницы
-(async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('Инициализация главной страницы...');
     
     try {
+        setupEventListeners();
+        
         // Проверяем авторизацию
         const user = await checkAuth();
         console.log('Результат проверки авторизации:', user);
@@ -16,17 +18,12 @@ import { login, register, checkAuth } from './api.js';
             // Если не авторизован, показываем кнопку входа
             updateAuthUI(false);
         }
-
-        // Настраиваем обработчики событий после загрузки DOM
-        document.addEventListener('DOMContentLoaded', () => {
-            setupEventListeners();
-        });
-        
     } catch (error) {
         console.error('Ошибка при инициализации:', error);
         showError('Произошла ошибка при загрузке страницы');
+        updateAuthUI(false);
     }
-})();
+});
 
 // Обновление UI в зависимости от состояния авторизации
 function updateAuthUI(isAuthenticated, username = '') {
@@ -108,6 +105,12 @@ async function handleLogin(event) {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const errorElement = document.querySelector('#loginForm .error-message');
+    const submitButton = document.querySelector('#loginForm button[type="submit"]');
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Вход...';
+    }
 
     try {
         const result = await login(username, password);
@@ -118,15 +121,36 @@ async function handleLogin(event) {
             window.location.href = '/dashboard.html';
         } else {
             if (errorElement) {
-                errorElement.textContent = result.error || 'Failed to login';
+                let errorMessage = 'Ошибка входа';
+                
+                switch(result.error) {
+                    case 'invalid_credentials':
+                        errorMessage = 'Неверное имя пользователя или пароль';
+                        break;
+                    case 'user_not_found':
+                        errorMessage = 'Пользователь не найден';
+                        break;
+                    case 'account_disabled':
+                        errorMessage = 'Аккаунт отключен';
+                        break;
+                    default:
+                        errorMessage = result.error || 'Произошла ошибка при входе';
+                }
+                
+                errorElement.textContent = errorMessage;
                 errorElement.style.display = 'block';
             }
         }
     } catch (error) {
         console.error('Ошибка при входе:', error);
         if (errorElement) {
-            errorElement.textContent = 'An error occurred during login';
+            errorElement.textContent = 'Произошла ошибка при попытке входа';
             errorElement.style.display = 'block';
+        }
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Войти';
         }
     }
 }
