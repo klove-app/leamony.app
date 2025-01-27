@@ -65,8 +65,13 @@ Email: ${user.email}
 // Обработчик выхода
 async function handleLogout() {
     try {
-        await logout();
-        window.location.href = '/';
+        // Сначала выполняем выход
+        const result = await logout();
+        
+        // Добавляем задержку перед редиректом
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000); // Даем время на сохранение логов и показ модального окна
     } catch (error) {
         console.error('Ошибка при выходе:', error);
         showError('Произошла ошибка при выходе');

@@ -389,6 +389,16 @@ async function logout() {
         // Сохраняем логи перед очисткой
         const logs = JSON.parse(localStorage.getItem('auth_logs') || '[]');
         
+        // Добавляем финальный лог о выходе
+        logs.push({
+            timestamp: new Date().toISOString(),
+            category: 'Logout',
+            message: 'Выход из системы',
+            data: {
+                totalLogs: logs.length + 1
+            }
+        });
+        
         // Форматируем логи в читаемый текст
         const formattedLogs = logs.map(log => {
             const timestamp = new Date(log.timestamp).toLocaleString();
@@ -401,12 +411,16 @@ async function logout() {
 
         // Сохраняем форматированные логи
         localStorage.setItem('pending_logs', formattedLogs);
-        console.log('Логи сохранены перед выходом:', formattedLogs);
         
-        // Очищаем токены
-        document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
-        document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        // Сразу показываем модальное окно с логами
+        showLogsModal(formattedLogs);
         
+        console.log('Сохранены логи перед выходом:', {
+            rawLogs: logs,
+            formattedLogs: formattedLogs
+        });
+        
+        // Делаем запрос на выход
         const response = await fetch(`${config.API_URL}/auth/logout`, {
             method: 'POST',
             headers: {
@@ -415,13 +429,15 @@ async function logout() {
             credentials: 'include'
         });
         
-        saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
-        
-        // Показываем логи перед выходом
-        showLogsModal(formattedLogs);
+        // Очищаем токены только после успешного запроса
+        if (response.ok) {
+            document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+            document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        }
         
         return true;
     } catch (error) {
+        console.error('Ошибка при выходе:', error);
         saveLog('Logout Error', 'Ошибка при выходе', error);
         return false;
     }
