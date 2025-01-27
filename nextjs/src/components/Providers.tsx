@@ -10,8 +10,15 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Показываем заглушку до монтирования
   if (!mounted) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div aria-hidden="true" className="invisible">
+          {children}
+        </div>
+      </div>
+    );
   }
 
   return (

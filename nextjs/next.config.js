@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
-const path = require('path')
-
-module.exports = {
+const nextConfig = {
+  output: 'standalone',
   images: {
-    domains: ['runconnect.app'],
-    unoptimized: true
+    domains: ['api.runconnect.app', 'runconnect.app'],
+  },
+  // Отключаем статическую оптимизацию для страниц с авторизацией
+  experimental: {
+    serverActions: true,
   },
   webpack: (config) => {
     config.module.rules.push({
@@ -13,4 +15,6 @@ module.exports = {
     });
     return config;
   }
-} 
+}
+
+module.exports = nextConfig 
