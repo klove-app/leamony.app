@@ -334,6 +334,106 @@ async function handleLogout() {
     }
 }
 
+// Функция для переключения вкладок
+function switchTab(tabName) {
+    const tabs = document.querySelectorAll('.tab-content');
+    const buttons = document.querySelectorAll('.tab-button');
+    
+    tabs.forEach(tab => {
+        tab.style.display = tab.id === `${tabName}Tab` ? 'block' : 'none';
+    });
+    
+    buttons.forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === tabName);
+    });
+
+    if (tabName === 'analytics') {
+        loadLastYearAnalytics();
+    }
+}
+
+// Функция для загрузки аналитики за прошлый год
+async function loadLastYearAnalytics() {
+    try {
+        const currentYear = new Date().getFullYear();
+        const lastYear = currentYear - 1;
+        
+        // Получаем данные за прошлый год
+        const startDate = `${lastYear}-01-01`;
+        const endDate = `${lastYear}-12-31`;
+        const lastYearRuns = await getRuns(startDate, endDate);
+
+        if (!lastYearRuns || lastYearRuns.length === 0) {
+            document.getElementById('analyticsTab').innerHTML = `
+                <div class="empty-state">
+                    <h2>Нет данных за ${lastYear} год</h2>
+                    <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+                    <button id="syncButtonAnalytics" class="sync-button">
+                        <span class="button-icon">🔄</span>
+                        Синхронизировать с Telegram
+                    </button>
+                </div>
+            `;
+            
+            const syncButton = document.getElementById('syncButtonAnalytics');
+            if (syncButton) {
+                syncButton.addEventListener('click', handleTelegramSync);
+            }
+            return;
+        }
+
+        // Группируем пробежки по месяцам
+        const monthlyData = Array(12).fill().map(() => ({ distance: 0, runs: 0 }));
+        let bestMonth = { month: 0, distance: 0 };
+        let totalDistance = 0;
+
+        lastYearRuns.forEach(run => {
+            const date = new Date(run.date_added);
+            const month = date.getMonth();
+            
+            monthlyData[month].distance += run.km;
+            monthlyData[month].runs += 1;
+            totalDistance += run.km;
+
+            if (monthlyData[month].distance > bestMonth.distance) {
+                bestMonth = {
+                    month: month,
+                    distance: monthlyData[month].distance
+                };
+            }
+        });
+
+        const avgMonthlyDistance = totalDistance / 12;
+        const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                          'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+        // Обновляем карточки с аналитикой
+        document.querySelector('#yearComparisonCard .comparison-value').textContent = 
+            `${totalDistance.toFixed(1)} км за ${lastYear}`;
+        
+        document.querySelector('#bestMonthCard .comparison-value').textContent = 
+            `${monthNames[bestMonth.month]}: ${bestMonth.distance.toFixed(1)} км`;
+        
+        document.querySelector('#avgMonthlyCard .comparison-value').textContent = 
+            `${avgMonthlyDistance.toFixed(1)} км`;
+
+        // Обновляем таблицу по месяцам
+        const monthlyStatsBody = document.getElementById('monthlyStatsBody');
+        monthlyStatsBody.innerHTML = monthlyData.map((data, index) => `
+            <tr>
+                <td>${monthNames[index]}</td>
+                <td>${data.distance.toFixed(1)} км</td>
+                <td>${data.runs}</td>
+                <td>${data.runs > 0 ? (data.distance / data.runs).toFixed(1) : '0'} км</td>
+            </tr>
+        `).join('');
+
+    } catch (error) {
+        console.error('Ошибка при загрузке аналитики:', error);
+        showError('Не удалось загрузить аналитику за прошлый год');
+    }
+}
+
 // Инициализация страницы
 let isInitialized = false;
 let isLoading = false;
@@ -377,6 +477,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         const periodButtons = document.querySelectorAll('.period-button');
         periodButtons.forEach(button => {
             button.addEventListener('click', () => updatePeriod(button.dataset.period));
+        });
+
+        // Добавляем обработчики для вкладок
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => switchTab(button.dataset.tab));
         });
 
         // Загружаем данные
