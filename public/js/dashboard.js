@@ -28,84 +28,128 @@ function showError(message) {
 async function loadUserData(forceCheck = false) {
     try {
         console.group('Loading user data...');
-        console.log('1. Начало загрузки данных пользователя');
         
         const user = await checkAuth(forceCheck);
-        console.log('2. Результат проверки авторизации:', user ? 'успешно' : 'не авторизован');
-        
         if (!user) {
-            console.log('3. Пользователь не авторизован, перенаправление на главную');
             window.location.href = '/';
             return;
         }
 
-        // Загружаем данные о пробежках
         const now = new Date();
         const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
         const endDate = now.toISOString().split('T')[0];
-
-        console.log('4. Загрузка данных о пробежках');
         const runs = await getRuns(startDate, endDate);
         
         if (runs && runs.length > 0) {
             const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
             const yearlyGoal = user.goal_km || 0;
+            const avgDistance = totalDistance / runs.length;
+            const lastRun = new Date(runs[0].date_added);
+            const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
             
             addLog(`
-                <div class="dashboard-content">
-                    <div class="user-info">
-                        <div class="username">${user.username}</div>
-                        ${user.email ? `<div class="email">${user.email}</div>` : ''}
-                    </div>
-                    <div class="stats-header">
-                        <div class="goal-info">
-                            <div class="goal-value">${totalDistance.toFixed(1)} км</div>
-                            <div class="goal-label">пройдено в этом году</div>
+                <div class="dashboard-content animate-fade-in">
+                    <header class="dashboard-header">
+                        <div class="user-welcome">
+                            <h2>Привет, ${user.username}! 👋</h2>
+                            ${daysSinceLastRun === 0 ? 
+                                '<span class="last-run">Отличная пробежка сегодня!</span>' : 
+                                `<span class="last-run">Последняя пробежка: ${daysSinceLastRun} дн. назад</span>`
+                            }
                         </div>
-                        ${yearlyGoal > 0 ? `
-                            <div class="goal-info">
-                                <div class="goal-value">${yearlyGoal} км</div>
-                                <div class="goal-label">цель на год</div>
+                        <div class="period-selector">
+                            <button class="active">Год</button>
+                            <button>Месяц</button>
+                            <button>Неделя</button>
+                        </div>
+                    </header>
+
+                    ${yearlyGoal > 0 ? `
+                        <div class="progress-section animate-slide-in">
+                            <div class="progress-info">
+                                <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
+                                <span class="progress-value">${((totalDistance / yearlyGoal) * 100).toFixed(1)}%</span>
                             </div>
-                            <div class="goal-info">
-                                <div class="goal-value">${((totalDistance / yearlyGoal) * 100).toFixed(1)}%</div>
-                                <div class="goal-label">выполнено</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.min((totalDistance / yearlyGoal) * 100, 100)}%"></div>
                             </div>
-                        ` : ''}
+                        </div>
+                    ` : ''}
+
+                    <div class="metrics-grid animate-slide-in">
+                        <div class="metric-card">
+                            <div class="metric-value">${totalDistance.toFixed(1)} км</div>
+                            <div class="metric-label">Пройдено в этом году</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${avgDistance.toFixed(1)} км</div>
+                            <div class="metric-label">Средняя дистанция</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${runs.length}</div>
+                            <div class="metric-label">Всего пробежек</div>
+                        </div>
                     </div>
-                    <table class="runs-table">
-                        <thead>
-                            <tr>
-                                <th>Дата</th>
-                                <th>Км</th>
-                                <th>Мин</th>
-                                <th>Заметки</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${runs.map(run => `
+
+                    <div class="recent-runs animate-slide-in">
+                        <div class="section-header">
+                            <h3>Последние пробежки</h3>
+                            <button class="view-all">Показать все</button>
+                        </div>
+                        <table class="runs-table">
+                            <thead>
                                 <tr>
-                                    <td>${run.date_added.split('T')[0]}</td>
-                                    <td class="distance">${run.km.toFixed(1)}</td>
-                                    <td class="time">${run.duration || '-'}</td>
-                                    <td class="notes">${run.notes || ''}</td>
+                                    <th>Дата</th>
+                                    <th>Км</th>
+                                    <th>Мин</th>
+                                    <th>Заметки</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${runs.slice(0, 5).map(run => `
+                                    <tr class="animate-fade-in">
+                                        <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                                        <td class="distance">${run.km.toFixed(1)}</td>
+                                        <td class="time">${run.duration || '-'}</td>
+                                        <td class="notes">${run.notes || ''}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="action-buttons animate-slide-in">
+                        <button class="sync-button">
+                            <span class="button-icon">🔄</span>
+                            Синхронизировать с Telegram
+                        </button>
+                        <button class="export-button">
+                            <span class="button-icon">📊</span>
+                            Экспорт данных
+                        </button>
+                    </div>
                 </div>
             `, 'success', 'dataInfo');
         } else {
-            addLog('Пробежки не найдены. Подключите Telegram бота для синхронизации данных.', 'info', 'dataInfo');
+            addLog(`
+                <div class="dashboard-content animate-fade-in">
+                    <div class="empty-state">
+                        <h2>Пока нет пробежек</h2>
+                        <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+                        <button class="sync-button">
+                            <span class="button-icon">🔄</span>
+                            Синхронизировать с Telegram
+                        </button>
+                    </div>
+                </div>
+            `, 'info', 'dataInfo');
         }
         
-        console.log('5. Загрузка данных завершена');
         console.groupEnd();
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
         showError('Произошла ошибка при загрузке данных');
         console.groupEnd();
-        window.location.href = '/';
     }
 }
 
