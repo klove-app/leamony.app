@@ -51,18 +51,40 @@ function updateRunsTable(runs) {
     `).join('');
 }
 
-function showEmptyState() {
-    const content = document.querySelector('.dashboard-content');
-    content.innerHTML = `
-        <div class="empty-state">
+function toggleContentVisibility(hasRuns) {
+    const progressSection = document.getElementById('progressSection');
+    const metricsGrid = document.querySelector('.metrics-grid');
+    const recentRuns = document.querySelector('.recent-runs');
+    const actionButtons = document.querySelector('.action-buttons');
+    const emptyState = document.querySelector('.empty-state') || document.createElement('div');
+
+    if (hasRuns) {
+        if (progressSection) progressSection.style.display = 'block';
+        if (metricsGrid) metricsGrid.style.display = 'grid';
+        if (recentRuns) recentRuns.style.display = 'block';
+        if (actionButtons) actionButtons.style.display = 'flex';
+        if (emptyState.parentNode) emptyState.remove();
+    } else {
+        if (progressSection) progressSection.style.display = 'none';
+        if (metricsGrid) metricsGrid.style.display = 'none';
+        if (recentRuns) recentRuns.style.display = 'none';
+        if (actionButtons) actionButtons.style.display = 'none';
+
+        emptyState.className = 'empty-state animate-fade-in';
+        emptyState.innerHTML = `
             <h2>Пока нет пробежек</h2>
             <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
             <button id="syncButton" class="sync-button">
                 <span class="button-icon">🔄</span>
                 Синхронизировать с Telegram
             </button>
-        </div>
-    `;
+        `;
+
+        const content = document.querySelector('.dashboard-content');
+        if (content && !document.querySelector('.empty-state')) {
+            content.appendChild(emptyState);
+        }
+    }
 }
 
 // Загрузка данных пользователя
@@ -100,8 +122,9 @@ async function loadUserData(forceCheck = false) {
             updateProgressSection(totalDistance, yearlyGoal);
             updateMetrics(totalDistance, avgDistance, runs.length);
             updateRunsTable(runs);
+            toggleContentVisibility(true);
         } else {
-            showEmptyState();
+            toggleContentVisibility(false);
         }
         
         console.groupEnd();
