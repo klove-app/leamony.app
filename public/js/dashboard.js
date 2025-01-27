@@ -19,9 +19,15 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Обновление прогресса
 function updateProgressSection(totalDistance, yearlyGoal) {
     console.log('Обновляем прогресс:', { totalDistance, yearlyGoal });
     const progressSection = document.getElementById('progressSection');
+    if (!progressSection) {
+        console.error('Секция прогресса не найдена');
+        return;
+    }
+
     if (yearlyGoal > 0) {
         const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
         progressSection.innerHTML = `
@@ -39,16 +45,38 @@ function updateProgressSection(totalDistance, yearlyGoal) {
     }
 }
 
+// Обновление метрик
 function updateMetrics(totalDistance, avgDistance, totalRuns) {
     console.log('Обновляем метрики:', { totalDistance, avgDistance, totalRuns });
-    document.querySelector('#totalDistanceCard .metric-value').textContent = `${totalDistance.toFixed(1)} км`;
-    document.querySelector('#avgDistanceCard .metric-value').textContent = `${avgDistance.toFixed(1)} км`;
-    document.querySelector('#totalRunsCard .metric-value').textContent = totalRuns;
+    const metricsGrid = document.querySelector('.metrics-grid');
+    if (!metricsGrid) {
+        console.error('Сетка метрик не найдена');
+        return;
+    }
+
+    const elements = {
+        totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
+        avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
+        totalRuns: document.querySelector('#totalRunsCard .metric-value')
+    };
+
+    if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
+    if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
+    if (elements.totalRuns) elements.totalRuns.textContent = totalRuns;
+    metricsGrid.style.display = 'grid';
 }
 
+// Обновление таблицы пробежек
 function updateRunsTable(runs) {
     console.log('Обновляем таблицу пробежек:', runs.length);
+    const runsSection = document.querySelector('.recent-runs');
     const tbody = document.getElementById('runsTableBody');
+    
+    if (!runsSection || !tbody) {
+        console.error('Секция пробежек или таблица не найдены');
+        return;
+    }
+
     tbody.innerHTML = runs.slice(0, 5).map(run => `
         <tr class="animate-fade-in">
             <td>${new Date(run.date_added).toLocaleDateString()}</td>
@@ -57,6 +85,7 @@ function updateRunsTable(runs) {
             <td class="notes">${run.notes || ''}</td>
         </tr>
     `).join('');
+    runsSection.style.display = 'block';
 }
 
 // Загрузка данных пользователя
@@ -89,46 +118,29 @@ async function loadUserData(forceCheck = false) {
         const runs = await getRuns(startDate, endDate);
         console.log('Получены пробежки:', runs?.length || 0);
 
-        // Проверяем наличие всех необходимых элементов
+        // Проверяем наличие основного контейнера
         const dashboardContent = document.querySelector('.dashboard-content');
         if (!dashboardContent) {
             console.error('Не найден основной контейнер дашборда');
             return;
         }
 
-        // Удаляем существующее пустое состояние, если оно есть
+        // Удаляем существующее пустое состояние
         const existingEmptyState = document.querySelector('.empty-state');
         if (existingEmptyState) {
             existingEmptyState.remove();
         }
 
-        // Получаем все элементы для обновления
-        const elements = {
-            progress: document.getElementById('progressSection'),
-            metrics: document.querySelector('.metrics-grid'),
-            runs: document.querySelector('.recent-runs'),
-            actions: document.querySelector('.action-buttons'),
-            lastRun: document.getElementById('lastRunInfo'),
-            totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
-            avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
-            totalRuns: document.querySelector('#totalRunsCard .metric-value'),
-            runsTable: document.getElementById('runsTableBody')
-        };
-
-        // Проверяем наличие всех элементов
-        console.log('Проверка элементов:', Object.entries(elements).reduce((acc, [key, el]) => {
-            acc[key] = !!el;
-            return acc;
-        }, {}));
+        // Скрываем все секции перед обновлением
+        const sections = ['#progressSection', '.metrics-grid', '.recent-runs', '.action-buttons'];
+        sections.forEach(selector => {
+            const element = document.querySelector(selector);
+            if (element) element.style.display = 'none';
+        });
 
         if (!runs || runs.length === 0) {
             console.log('Нет пробежек, показываем пустое состояние');
             
-            // Скрываем все секции
-            Object.values(elements).forEach(el => {
-                if (el) el.style.display = 'none';
-            });
-
             // Создаем пустое состояние
             const emptyState = document.createElement('div');
             emptyState.className = 'empty-state animate-fade-in';
@@ -159,53 +171,22 @@ async function loadUserData(forceCheck = false) {
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
 
             // Обновляем информацию о последней пробежке
-            if (elements.lastRun) {
-                elements.lastRun.textContent = daysSinceLastRun === 0 
+            const lastRunInfo = document.getElementById('lastRunInfo');
+            if (lastRunInfo) {
+                lastRunInfo.textContent = daysSinceLastRun === 0 
                     ? 'Отличная пробежка сегодня!'
                     : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
             }
 
-            // Обновляем прогресс
-            if (yearlyGoal > 0 && elements.progress) {
-                const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
-                elements.progress.innerHTML = `
-                    <div class="progress-info">
-                        <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
-                        <span class="progress-value">${percentage.toFixed(1)}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percentage}%"></div>
-                    </div>
-                `;
-                elements.progress.style.display = 'block';
-            } else if (elements.progress) {
-                elements.progress.style.display = 'none';
-            }
-
-            // Обновляем метрики
-            if (elements.metrics) {
-                if (elements.totalDistance) elements.totalDistance.textContent = `${totalDistance.toFixed(1)} км`;
-                if (elements.avgDistance) elements.avgDistance.textContent = `${avgDistance.toFixed(1)} км`;
-                if (elements.totalRuns) elements.totalRuns.textContent = runs.length;
-                elements.metrics.style.display = 'grid';
-            }
-
-            // Обновляем таблицу пробежек
-            if (elements.runsTable && elements.runs) {
-                elements.runsTable.innerHTML = runs.slice(0, 5).map(run => `
-                    <tr class="animate-fade-in">
-                        <td>${new Date(run.date_added).toLocaleDateString()}</td>
-                        <td class="distance">${run.km.toFixed(1)}</td>
-                        <td class="time">${run.duration || '-'}</td>
-                        <td class="notes">${run.notes || ''}</td>
-                    </tr>
-                `).join('');
-                elements.runs.style.display = 'block';
-            }
+            // Обновляем все секции с данными
+            updateProgressSection(totalDistance, yearlyGoal);
+            updateMetrics(totalDistance, avgDistance, runs.length);
+            updateRunsTable(runs);
 
             // Показываем кнопки действий
-            if (elements.actions) {
-                elements.actions.style.display = 'flex';
+            const actionButtons = document.querySelector('.action-buttons');
+            if (actionButtons) {
+                actionButtons.style.display = 'flex';
             }
         }
         
