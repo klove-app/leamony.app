@@ -30,6 +30,8 @@ body {
     box-shadow: var(--shadow-md);
     padding: 2rem;
     margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out forwards;
 }
 
 .stats-grid {
@@ -104,7 +106,7 @@ body {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -397,6 +399,8 @@ body {
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out 0.1s forwards;
 }
 
 .metric-card {
@@ -425,6 +429,8 @@ body {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out 0.2s forwards;
 }
 
 .section-header {
@@ -451,6 +457,8 @@ body {
     display: flex;
     gap: 1rem;
     margin-top: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out 0.3s forwards;
 }
 
 .sync-button,
@@ -499,7 +507,7 @@ body {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -558,5 +566,9 @@ body {
 /* Удаляю старые стили для header, так как теперь используем navbar */
 .main-header {
     display: none;
-} 
+}
+
+/* Добавляем свойство для всех анимаций */
+.dashboard-content, .metrics-grid, .recent-runs, .action-buttons {
+    will-change: opacity, transform;
 } 
