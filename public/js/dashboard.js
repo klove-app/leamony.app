@@ -1,4 +1,4 @@
-import { checkAuth, logout, getRuns, viewLogs, delay } from './api.js';
+import { checkAuth, logout, getRuns, viewLogs } from './api.js';
 
 // Функция для добавления лога
 function addLog(message, type = '', container = 'dataInfo') {
@@ -24,6 +24,42 @@ function showError(message) {
     }
 }
 
+function updateProgressSection(totalDistance, yearlyGoal) {
+    const progressSection = document.getElementById('progressSection');
+    if (yearlyGoal > 0) {
+        const percentage = Math.min((totalDistance / yearlyGoal) * 100, 100);
+        progressSection.innerHTML = `
+            <div class="progress-info">
+                <span class="progress-label">Цель на год: ${yearlyGoal} км</span>
+                <span class="progress-value">${percentage.toFixed(1)}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%"></div>
+            </div>
+        `;
+    } else {
+        progressSection.style.display = 'none';
+    }
+}
+
+function updateMetrics(totalDistance, avgDistance, totalRuns) {
+    document.querySelector('#totalDistanceCard .metric-value').textContent = `${totalDistance.toFixed(1)} км`;
+    document.querySelector('#avgDistanceCard .metric-value').textContent = `${avgDistance.toFixed(1)} км`;
+    document.querySelector('#totalRunsCard .metric-value').textContent = totalRuns;
+}
+
+function updateRunsTable(runs) {
+    const tbody = document.getElementById('runsTableBody');
+    tbody.innerHTML = runs.slice(0, 5).map(run => `
+        <tr class="animate-fade-in">
+            <td>${new Date(run.date_added).toLocaleDateString()}</td>
+            <td class="distance">${run.km.toFixed(1)}</td>
+            <td class="time">${run.duration || '-'}</td>
+            <td class="notes">${run.notes || ''}</td>
+        </tr>
+    `).join('');
+}
+
 // Загрузка данных пользователя
 async function loadUserData(forceCheck = false) {
     try {
@@ -34,6 +70,9 @@ async function loadUserData(forceCheck = false) {
             window.location.href = '/';
             return;
         }
+
+        // Обновляем приветствие
+        document.getElementById('welcomeMessage').textContent = `Привет, ${user.username}! 👋`;
 
         const now = new Date();
         const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
@@ -46,7 +85,17 @@ async function loadUserData(forceCheck = false) {
             const avgDistance = totalDistance / runs.length;
             const lastRun = new Date(runs[0].date_added);
             const daysSinceLastRun = Math.floor((now - lastRun) / (1000 * 60 * 60 * 24));
-            
+
+            // Обновляем информацию о последней пробежке
+            document.getElementById('lastRunInfo').textContent = daysSinceLastRun === 0 
+                ? 'Отличная пробежка сегодня!'
+                : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
+
+            // Обновляем секции
+            updateProgressSection(totalDistance, yearlyGoal);
+            updateMetrics(totalDistance, avgDistance, runs.length);
+            updateRunsTable(runs);
+
             addLog(`
                 <div class="dashboard-content animate-fade-in">
                     <header class="dashboard-header">
