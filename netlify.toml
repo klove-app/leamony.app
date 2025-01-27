@@ -5,8 +5,8 @@ base = "/"
 
 [build.environment]
 NEXT_TELEMETRY_DISABLED = "1"
-NODE_VERSION = "16"
-NPM_VERSION = "8"
+NODE_VERSION = "18"
+NPM_VERSION = "9"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"
