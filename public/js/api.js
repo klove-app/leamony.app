@@ -488,6 +488,14 @@ async function checkAuth(force = false) {
             return null;
         }
 
+        // Если мы на главной странице и нет access token, не пытаемся его обновить
+        const isMainPage = window.location.pathname === '/' || window.location.pathname === '/index.html';
+        if (isMainPage && !accessTokenCookie) {
+            console.log('4. На главной странице без access token - считаем пользователя неавторизованным');
+            console.groupEnd();
+            return null;
+        }
+
         if (!accessTokenCookie) {
             console.log('4. Access token не найден, пробуем обновить через refresh token');
             const refreshResult = await refreshToken();
@@ -521,6 +529,13 @@ async function checkAuth(force = false) {
                 ok: response.ok,
                 statusText: response.statusText
             });
+
+            // На главной странице не обновляем токен при ошибках
+            if (isMainPage && (response.status === 401 || response.status === 404)) {
+                console.log('6. На главной странице получили ошибку авторизации - считаем пользователя неавторизованным');
+                console.groupEnd();
+                return null;
+            }
 
             if (response.status === 401 || response.status === 404) {
                 console.log('6. Access token недействителен, пробуем обновить');
@@ -559,6 +574,13 @@ async function checkAuth(force = false) {
             return userData;
             
         } catch (error) {
+            // На главной странице не пытаемся восстановить сессию при ошибках
+            if (isMainPage) {
+                console.log('Ошибка при проверке токена на главной странице - считаем пользователя неавторизованным');
+                console.groupEnd();
+                return null;
+            }
+
             console.error('Ошибка при проверке токена:', error);
             console.log('Пробуем обновить токен после ошибки');
             const refreshResult = await refreshToken();
