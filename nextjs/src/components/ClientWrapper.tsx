@@ -11,16 +11,17 @@ interface ClientWrapperProps {
 }
 
 export default function ClientWrapper({ children, requireAuth = false }: ClientWrapperProps) {
-  const [isMounted, setIsMounted] = useState(false);
-  const auth = useAuth();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    setMounted(true);
   }, []);
 
-  if (!isMounted) {
+  if (!mounted) {
     return null;
   }
+
+  const auth = useAuth();
 
   if (!auth) {
     return (
