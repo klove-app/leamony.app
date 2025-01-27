@@ -138,6 +138,11 @@ function setCookie(name, value) {
     }, 100);
 }
 
+// Функция задержки для отладки
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Функция для входа
 async function login(username, password) {
     try {
@@ -401,6 +406,8 @@ async function logout() {
         console.group('Logout Process');
         console.log('Cookie state before logout:');
         checkCookies('Before Logout');
+        
+        await delay(3000); // Задержка 3 секунды перед запросом
 
         const response = await fetch(`${config.API_URL}/auth/logout`, {
             method: 'POST',
@@ -415,12 +422,16 @@ async function logout() {
             ok: response.ok
         });
 
+        await delay(3000); // Задержка 3 секунды перед очисткой куки
+
         // Очищаем куки
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
         document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
 
         console.log('Cookie state after clearing:');
         checkCookies('After Logout');
+
+        await delay(3000); // Задержка 3 секунды перед завершением
 
         console.groupEnd();
         return true;
@@ -440,6 +451,8 @@ async function checkAuth() {
         console.group('Check Auth Process');
         console.log('1. Начало проверки авторизации');
         
+        await delay(3000); // Задержка 3 секунды в начале проверки
+        
         // Проверяем наличие access_token
         const cookies = document.cookie.split(';');
         console.log('2. Текущие куки:', cookies.map(c => {
@@ -455,6 +468,8 @@ async function checkAuth() {
             hasRefreshToken: !!refreshTokenCookie
         });
 
+        await delay(3000); // Задержка 3 секунды перед проверкой токенов
+
         if (!accessTokenCookie) {
             console.log('4. Access token не найден, пробуем обновить');
             const refreshResult = await refreshToken();
@@ -463,6 +478,8 @@ async function checkAuth() {
                 error: refreshResult.error,
                 hasUser: !!refreshResult.user
             });
+            
+            await delay(3000); // Задержка 3 секунды после обновления токена
             
             if (!refreshResult.success) {
                 console.log('6. Не удалось подтвердить авторизацию:', refreshResult.error);
