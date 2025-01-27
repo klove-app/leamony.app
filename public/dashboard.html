@@ -4,80 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RunConnect - Личный кабинет</title>
+    <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="main-header">
-        <div class="header-content">
-            <a href="/" class="logo">RunConnect</a>
-            <div class="header-actions">
-                <button id="refreshButton" class="refresh-button">Обновить данные</button>
-                <button id="viewLogsButton" class="logs-button">Просмотр логов</button>
-                <button id="logoutButton" class="logout-button">Выйти</button>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/images/logo.svg" alt="RunConnect" width="32" height="32">
+                RunConnect
+            </a>
+            <div class="nav-links">
+                <button id="refreshButton" class="nav-link">Обновить данные</button>
+                <button id="viewLogsButton" class="nav-link">Просмотр логов</button>
+                <button id="logoutButton" class="nav-link">Выйти</button>
             </div>
         </div>
-    </header>
+    </nav>
 
     <main class="dashboard-container">
-        <div id="errorLog" class="error" style="display: none;"></div>
-        
-        <div class="dashboard-content animate-fade-in">
-            <header class="dashboard-header">
-                <div class="user-welcome">
-                    <h2 id="welcomeMessage"></h2>
-                    <span id="lastRunInfo" class="last-run"></span>
-                </div>
-                <div class="period-selector">
-                    <button class="active">Год</button>
-                    <button>Месяц</button>
-                    <button>Неделя</button>
-                </div>
-            </header>
+        <div class="container">
+            <div id="errorLog" class="error" style="display: none;"></div>
+            
+            <div class="dashboard-content animate-fade-in">
+                <header class="dashboard-header">
+                    <div class="user-welcome">
+                        <h2 id="welcomeMessage"></h2>
+                        <span id="lastRunInfo" class="last-run"></span>
+                    </div>
+                    <div class="period-selector">
+                        <button class="active">Год</button>
+                        <button>Месяц</button>
+                        <button>Неделя</button>
+                    </div>
+                </header>
 
-            <div id="progressSection" class="progress-section animate-slide-in"></div>
+                <div id="progressSection" class="progress-section animate-slide-in"></div>
 
-            <div class="metrics-grid animate-slide-in">
-                <div class="metric-card" id="totalDistanceCard">
-                    <div class="metric-value"></div>
-                    <div class="metric-label">Пройдено в этом году</div>
+                <div class="metrics-grid animate-slide-in">
+                    <div class="metric-card" id="totalDistanceCard">
+                        <div class="metric-value"></div>
+                        <div class="metric-label">Пройдено в этом году</div>
+                    </div>
+                    <div class="metric-card" id="avgDistanceCard">
+                        <div class="metric-value"></div>
+                        <div class="metric-label">Средняя дистанция</div>
+                    </div>
+                    <div class="metric-card" id="totalRunsCard">
+                        <div class="metric-value"></div>
+                        <div class="metric-label">Всего пробежек</div>
+                    </div>
                 </div>
-                <div class="metric-card" id="avgDistanceCard">
-                    <div class="metric-value"></div>
-                    <div class="metric-label">Средняя дистанция</div>
-                </div>
-                <div class="metric-card" id="totalRunsCard">
-                    <div class="metric-value"></div>
-                    <div class="metric-label">Всего пробежек</div>
-                </div>
-            </div>
 
-            <div class="recent-runs animate-slide-in">
-                <div class="section-header">
-                    <h3>Последние пробежки</h3>
-                    <button class="view-all">Показать все</button>
+                <div class="recent-runs animate-slide-in">
+                    <div class="section-header">
+                        <h3>Последние пробежки</h3>
+                        <button class="view-all">Показать все</button>
+                    </div>
+                    <table class="runs-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Км</th>
+                                <th>Мин</th>
+                                <th>Заметки</th>
+                            </tr>
+                        </thead>
+                        <tbody id="runsTableBody"></tbody>
+                    </table>
                 </div>
-                <table class="runs-table">
-                    <thead>
-                        <tr>
-                            <th>Дата</th>
-                            <th>Км</th>
-                            <th>Мин</th>
-                            <th>Заметки</th>
-                        </tr>
-                    </thead>
-                    <tbody id="runsTableBody"></tbody>
-                </table>
-            </div>
 
-            <div class="action-buttons animate-slide-in">
-                <button id="syncButton" class="sync-button">
-                    <span class="button-icon">🔄</span>
-                    Синхронизировать с Telegram
-                </button>
-                <button id="exportButton" class="export-button">
-                    <span class="button-icon">📊</span>
-                    Экспорт данных
-                </button>
+                <div class="action-buttons animate-slide-in">
+                    <button id="syncButton" class="sync-button">
+                        <span class="button-icon">🔄</span>
+                        Синхронизировать с Telegram
+                    </button>
+                    <button id="exportButton" class="export-button">
+                        <span class="button-icon">📊</span>
+                        Экспорт данных
+                    </button>
+                </div>
             </div>
         </div>
     </main>
