@@ -12,18 +12,73 @@
     --border-radius: 0.5rem;
 }
 
+/* Базовые стили */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-primary);
     line-height: 1.5;
     background: #F9FAFB;
     margin: 0;
+    padding-top: 60px;
 }
 
-.dashboard-container {
-    padding: 2rem;
+/* Навигация */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: var(--shadow-sm);
+    z-index: 1000;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
     max-width: 1200px;
     margin: 0 auto;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-link {
+    padding: 0.5rem 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    background: #f3f4f6;
+}
+
+/* Контейнер дашборда */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 .dashboard-content {
@@ -32,8 +87,264 @@ body {
     box-shadow: var(--shadow-md);
     padding: 2rem;
     margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Приветствие */
+.user-welcome {
+    margin-bottom: 2rem;
+}
+
+.user-welcome h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.user-welcome p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0;
+}
+
+/* Вкладки */
+.tab-switcher {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
+}
+
+/* Селектор периода */
+.period-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.period-button {
+    background: #f3f4f6;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-button:hover {
+    background: #e5e7eb;
+}
+
+.period-button.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Метрики */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.metric-card h3 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Таблица пробежек */
+.recent-runs {
+    margin-bottom: 2rem;
+}
+
+.recent-runs h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.recent-runs table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recent-runs th {
+    text-align: left;
+    padding: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #eee;
+}
+
+.recent-runs td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.recent-runs tr:hover {
+    background: #f9fafb;
+}
+
+.recent-runs .distance {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Кнопки действий */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.action-buttons button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-buttons button:first-child {
+    background: var(--primary-color);
+    color: white;
+}
+
+.action-buttons button:not(:first-child) {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: var(--text-primary);
+}
+
+.action-buttons button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state h2 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    body {
+        padding-top: 120px;
+    }
+
+    .navbar .container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .dashboard-container {
+        padding: 1rem;
+    }
+
+    .dashboard-content {
+        padding: 1rem;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .period-selector {
+        flex-wrap: wrap;
+    }
+
+    .period-button {
+        flex: 1;
+        text-align: center;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
 }
 
 .stats-grid {
@@ -103,17 +414,6 @@ body {
     text-align: center;
     font-weight: 500;
     box-shadow: var(--card-shadow);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 @media (max-width: 768px) {
@@ -337,308 +637,6 @@ body {
     font-size: 0.9rem;
 }
 
-.period-selector {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-}
-
-.period-button {
-    background: #f3f4f6;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.period-button:hover {
-    background: #e5e7eb;
-}
-
-.period-button.active {
-    background: var(--primary-color);
-    color: white;
-}
-
-.period-button.active::after {
-    content: '';
-    position: absolute;
-    bottom: -0.5rem;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--primary-color);
-}
-
-@media (max-width: 768px) {
-    .period-selector {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .period-button {
-        flex: 1;
-        text-align: center;
-    }
-}
-
-.progress-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-sm);
-}
-
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.progress-label {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-.progress-value {
-    color: var(--primary-color);
-    font-weight: 500;
-}
-
-.progress-bar {
-    height: 0.5rem;
-    background: #f3f4f6;
-    border-radius: 0.25rem;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: var(--primary-color);
-    transition: width 0.3s ease;
-}
-
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.metric-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    box-shadow: var(--shadow-sm);
-}
-
-.metric-card h3 {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0 0 0.5rem;
-    font-weight: 500;
-}
-
-.metric-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.recent-runs {
-    background: white;
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeIn 0.3s ease-out 0.2s forwards;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.section-header h3 {
-    margin: 0;
-    color: var(--text-primary);
-}
-
-.view-all {
-    color: var(--primary-color);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    opacity: 0;
-    animation: fadeIn 0.3s ease-out 0.3s forwards;
-}
-
-.sync-button,
-.export-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.sync-button {
-    background: var(--primary-color);
-    color: white;
-}
-
-.export-button {
-    background: white;
-    color: var(--text-primary);
-    border: 1px solid #e5e7eb;
-}
-
-.button-icon {
-    font-size: 1.25rem;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-}
-
-.empty-state h2 {
-    font-size: 1.25rem;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-    color: var(--text-secondary);
-    margin-bottom: 1.5rem;
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
-}
-
-.animate-slide-in {
-    animation: slideIn 0.3s ease-out;
-}
-
-@media (max-width: 768px) {
-    .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .metrics-grid,
-    .analytics-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-
-    /* Добавляем стили для мобильной навигации */
-    .navbar .container {
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-    }
-
-    .nav-links {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-    }
-
-    .nav-links button.nav-link {
-        width: 100%;
-        padding: 0.5rem;
-        text-align: center;
-        border-radius: var(--border-radius);
-    }
-
-    .nav-links button.nav-link:hover {
-        background: var(--primary-light);
-        color: white;
-    }
-}
-
-.nav-links button.nav-link {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: inherit;
-    font-family: inherit;
-    padding: 0;
-}
-
-.nav-links button.nav-link:hover {
-    color: var(--primary-color);
-}
-
-/* Удаляю старые стили для header, так как теперь используем navbar */
-.main-header {
-    display: none;
-}
-
-/* Добавляем свойство для всех анимаций */
-.dashboard-content, .metrics-grid, .recent-runs, .action-buttons {
-    will-change: opacity, transform;
-}
-
-.tab-switcher {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 0.5rem;
-}
-
-.tab-button {
-    background: none;
-    border: none;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    position: relative;
-}
-
-.tab-button.active {
-    color: var(--primary-color);
-    font-weight: 500;
-}
-
-.tab-button.active::after {
-    content: '';
-    position: absolute;
-    bottom: -0.5rem;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--primary-color);
-}
-
 .tab-content {
     animation: fadeIn 0.3s ease-out;
 }
@@ -778,23 +776,6 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* Основные стили для личного кабинета */
-.user-welcome {
-    margin-bottom: 2rem;
-}
-
-.user-welcome h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text-primary);
-}
-
-.user-welcome p {
-    color: var(--text-secondary);
-    margin: 0.5rem 0 0;
 }
 
 /* Стили для аналитики */
