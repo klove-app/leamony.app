@@ -488,10 +488,10 @@ async function checkAuth() {
             return refreshResult.user;
         }
 
-        // Проверяем валидность access_token через запрос информации о пользователе
+        // Проверяем валидность access_token через запрос к /auth/check
         try {
-            console.log('4. Проверка валидности access token через запрос /auth/me');
-            const response = await fetch(`${config.API_URL}/auth/me`, {
+            console.log('4. Проверка валидности access token через запрос /auth/check');
+            const response = await fetch(`${config.API_URL}/auth/check`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -538,9 +538,10 @@ async function checkAuth() {
                 throw new Error(`Ошибка проверки авторизации: ${response.status}`);
             }
 
-            // Если запрос успешен, возвращаем данные пользователя
+            // Если запрос успешен, значит токен валиден
+            console.log('6. Access token валиден');
             const userData = await response.json();
-            console.log('6. Access token валиден, получены данные пользователя:', userData);
+            console.log('7. Данные пользователя получены:', userData);
             console.groupEnd();
             return userData;
             
