@@ -496,12 +496,23 @@ async function checkAuth(forceCheck = false) {
     }
 
     try {
-        // Получаем данные пользователя через /users/me
+        // Получаем access_token из куки
+        const cookies = document.cookie.split(';');
+        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        
+        if (!accessTokenCookie) {
+            console.log('7. Access token не найден в куках');
+            console.groupEnd();
+            return null;
+        }
+
+        const accessToken = accessTokenCookie.split('=')[1].trim();
         console.log('7. Запрашиваем данные пользователя');
         const response = await fetch(`${config.API_URL}/users/me`, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
             },
             credentials: 'include'
         });
@@ -516,23 +527,35 @@ async function checkAuth(forceCheck = false) {
                     console.groupEnd();
                     return null;
                 }
+
+                // Получаем новый access token
+                const newAccessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('access_token='));
+                if (!newAccessTokenCookie) {
+                    console.log('10. Новый access token не найден после обновления');
+                    console.groupEnd();
+                    return null;
+                }
+
+                const newAccessToken = newAccessTokenCookie.split('=')[1].trim();
+                
                 // Повторяем запрос с новым токеном
                 const retryResponse = await fetch(`${config.API_URL}/users/me`, {
                     method: 'GET',
                     headers: {
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${newAccessToken}`
                     },
                     credentials: 'include'
                 });
                 
                 if (!retryResponse.ok) {
-                    console.log('10. Повторный запрос не удался:', retryResponse.status);
+                    console.log('11. Повторный запрос не удался:', retryResponse.status);
                     console.groupEnd();
                     return null;
                 }
                 
                 const userData = await retryResponse.json();
-                console.log('11. Данные пользователя получены после обновления токена:', userData);
+                console.log('12. Данные пользователя получены после обновления токена:', userData);
                 console.groupEnd();
                 return userData;
             }
@@ -575,17 +598,52 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
             throw new Error('Access token не найден');
         }
 
+        const accessToken = accessTokenCookie.split('=')[1].trim();
         const response = await fetch(url, {
             method: 'GET',
-            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
-                'Authorization': `Bearer ${accessTokenCookie.split('=')[1].trim()}`
-            }
+                'Authorization': `Bearer ${accessToken}`
+            },
+            credentials: 'include'
         });
 
         if (!response.ok) {
-            throw new Error(`Ошибка получения пробежек: ${response.status} ${response.statusText}`);
+            if (response.status === 401) {
+                // Если токен истек, пробуем обновить
+                const refreshResult = await refreshToken();
+                if (!refreshResult.success) {
+                    throw new Error('Не удалось обновить токен');
+                }
+
+                // Получаем новый access token
+                const newAccessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('access_token='));
+                if (!newAccessTokenCookie) {
+                    throw new Error('Новый access token не найден после обновления');
+                }
+
+                const newAccessToken = newAccessTokenCookie.split('=')[1].trim();
+                
+                // Повторяем запрос с новым токеном
+                const retryResponse = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${newAccessToken}`
+                    },
+                    credentials: 'include'
+                });
+
+                if (!retryResponse.ok) {
+                    throw new Error(`Ошибка получения пробежек после обновления токена: ${retryResponse.status}`);
+                }
+
+                const data = await retryResponse.json();
+                console.log('Получены данные после обновления токена:', data);
+                console.groupEnd();
+                return data.runs || data;
+            }
+            throw new Error(`Ошибка получения пробежек: ${response.status}`);
         }
 
         const data = await response.json();
