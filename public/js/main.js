@@ -23,34 +23,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Обновление UI в зависимости от состояния авторизации
 function updateAuthUI(isAuthenticated, username = '') {
     const loginButton = document.getElementById('loginButton');
-    const userMenu = document.getElementById('userMenu');
     
     if (isAuthenticated && username) {
         // Если пользователь авторизован
-        if (loginButton) loginButton.style.display = 'none';
-        if (userMenu) {
-            userMenu.style.display = 'flex';
-            const usernameElement = userMenu.querySelector('.username');
-            if (usernameElement) usernameElement.textContent = username;
+        if (loginButton) {
+            loginButton.textContent = 'Личный кабинет';
+            loginButton.href = '/dashboard.html';
+            loginButton.removeEventListener('click', openAuthModal);
         }
     } else {
         // Если пользователь не авторизован
-        if (loginButton) loginButton.style.display = 'block';
-        if (userMenu) userMenu.style.display = 'none';
+        if (loginButton) {
+            loginButton.textContent = 'Sign In';
+            loginButton.href = '#';
+            // Добавляем обработчик для открытия модального окна
+            loginButton.addEventListener('click', openAuthModal);
+        }
     }
 }
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Открытие модального окна
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.addEventListener('click', () => {
-            console.log('Открываем модальное окно авторизации');
-            openAuthModal();
-        });
-    }
-
     // Закрытие модального окна
     const closeButton = document.querySelector('.close-button');
     if (closeButton) {
@@ -67,6 +60,16 @@ function setupEventListeners() {
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
+    }
+
+    // Закрытие модального окна при клике вне его области
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeAuthModal();
+            }
+        });
     }
 }
 
