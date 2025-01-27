@@ -585,7 +585,7 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
     params.append('limit', limit.toString());
     params.append('offset', offset.toString());
 
-    const url = `${config.API_URL}/runs/?${params}`;
+    const url = `${config.API_URL}/runs?${params}`;
     console.log('URL запроса:', url);
 
     try {
