@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Отключаем все анимации для отладки */
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -27,7 +34,7 @@
         <div class="container">
             <div id="errorLog" class="error" style="display: none;"></div>
             
-            <div class="dashboard-content animate-fade-in">
+            <div class="dashboard-content">
                 <header class="dashboard-header">
                     <div class="user-welcome">
                         <h2 id="welcomeMessage"></h2>
@@ -40,9 +47,9 @@
                     </div>
                 </header>
 
-                <div id="progressSection" class="progress-section animate-slide-in"></div>
+                <div id="progressSection" class="progress-section"></div>
 
-                <div class="metrics-grid animate-slide-in">
+                <div class="metrics-grid">
                     <div class="metric-card" id="totalDistanceCard">
                         <div class="metric-value"></div>
                         <div class="metric-label">Пройдено в этом году</div>
@@ -57,7 +64,7 @@
                     </div>
                 </div>
 
-                <div class="recent-runs animate-slide-in">
+                <div class="recent-runs">
                     <div class="section-header">
                         <h3>Последние пробежки</h3>
                         <button class="view-all">Показать все</button>
@@ -75,7 +82,7 @@
                     </table>
                 </div>
 
-                <div class="action-buttons animate-slide-in">
+                <div class="action-buttons">
                     <button id="syncButton" class="sync-button">
                         <span class="button-icon">🔄</span>
                         Синхронизировать с Telegram
