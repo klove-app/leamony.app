@@ -488,11 +488,10 @@ async function checkAuth() {
             return refreshResult.user;
         }
 
-        // Проверяем валидность access_token через запрос пробежек
+        // Проверяем валидность access_token через запрос информации о пользователе
         try {
-            console.log('4. Проверка валидности access token через запрос пробежек');
-            const today = new Date().toISOString().split('T')[0];
-            const response = await fetch(`${config.API_URL}/runs/?start_date=${today}&end_date=${today}&limit=1`, {
+            console.log('4. Проверка валидности access token через запрос /auth/me');
+            const response = await fetch(`${config.API_URL}/auth/me`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -539,16 +538,11 @@ async function checkAuth() {
                 throw new Error(`Ошибка проверки авторизации: ${response.status}`);
             }
 
-            // Если запрос успешен, значит токен валиден - возвращаем данные из ответа
-            try {
-                const userData = await response.json();
-                console.log('6. Access token валиден, возвращаем данные пользователя');
-                console.groupEnd();
-                return userData.user;
-            } catch (error) {
-                console.error('Ошибка при парсинге ответа:', error);
-                throw error;
-            }
+            // Если запрос успешен, возвращаем данные пользователя
+            const userData = await response.json();
+            console.log('6. Access token валиден, получены данные пользователя:', userData);
+            console.groupEnd();
+            return userData;
             
         } catch (error) {
             console.error('Ошибка при проверке токена:', {
