@@ -70,9 +70,43 @@ async function register(username, email, password, yearly_goal = 0) {
     }
 }
 
+// Функция для сохранения логов
+function saveLog(category, message, data = null) {
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+        timestamp,
+        category,
+        message,
+        data
+    };
+    
+    // Получаем существующие логи
+    const logs = JSON.parse(localStorage.getItem('auth_logs') || '[]');
+    
+    // Добавляем новую запись
+    logs.push(logEntry);
+    
+    // Ограничиваем количество сохраненных логов (хранить последние 100)
+    if (logs.length > 100) {
+        logs.shift();
+    }
+    
+    // Сохраняем обновленные логи
+    localStorage.setItem('auth_logs', JSON.stringify(logs));
+    
+    // Выводим в консоль как обычно
+    console.log(`${category}: ${message}`, data || '');
+}
+
+// Функция для очистки логов
+function clearLogs() {
+    localStorage.removeItem('auth_logs');
+}
+
 // Функция для входа
 async function login(username, password) {
     try {
+        saveLog('Login', '1. Начало процесса входа', { username });
         const formData = new URLSearchParams();
         formData.append('username', username);
         formData.append('password', password);
@@ -96,19 +130,19 @@ async function login(username, password) {
         let responseData;
         try {
             responseData = await response.json();
-            console.log('2. Получен ответ от сервера:', {
+            saveLog('Login', '2. Получен ответ от сервера', {
                 status: response.status,
                 hasAccessToken: !!responseData.access_token,
                 hasRefreshToken: !!responseData.refresh_token,
                 hasUser: !!responseData.user
             });
         } catch (e) {
-            console.error('2. Ошибка при парсинге ответа:', e);
+            saveLog('Login Error', '2. Ошибка при парсинге ответа', e);
             responseData = null;
         }
 
         if (!response.ok) {
-            console.error('3. Ошибка входа:', {
+            saveLog('Login Error', '3. Ошибка входа', {
                 status: response.status,
                 data: responseData
             });
@@ -121,31 +155,31 @@ async function login(username, password) {
         // Сохраняем токены после успешного входа
         if (responseData.access_token) {
             document.cookie = `access_token=${responseData.access_token}; path=/;`;
-            console.log('4. Access token сохранен в куки');
+            saveLog('Login', '4. Access token сохранен в куки');
         } else {
-            console.warn('4. Access token отсутствует в ответе');
+            saveLog('Login Warning', '4. Access token отсутствует в ответе');
         }
         
         if (responseData.refresh_token) {
             document.cookie = `refresh_token=${responseData.refresh_token}; path=/;`;
-            console.log('5. Refresh token сохранен в куки');
+            saveLog('Login', '5. Refresh token сохранен в куки');
         } else {
-            console.warn('5. Refresh token отсутствует в ответе');
+            saveLog('Login Warning', '5. Refresh token отсутствует в ответе');
         }
 
         // Проверяем сохранение токенов
         const cookies = document.cookie.split(';');
-        console.log('6. Проверка сохраненных токенов:', {
+        saveLog('Login', '6. Проверка сохраненных токенов', {
             hasAccessToken: cookies.some(c => c.trim().startsWith('access_token=')),
             hasRefreshToken: cookies.some(c => c.trim().startsWith('refresh_token='))
         });
 
-        console.log('7. Успешный вход');
+        saveLog('Login', '7. Успешный вход');
         console.groupEnd();
 
         return { success: true, user: responseData.user };
     } catch (error) {
-        console.error('Login Error:', error);
+        saveLog('Login Error', 'Ошибка входа', error);
         console.groupEnd();
         return { 
             success: false, 
@@ -226,6 +260,11 @@ async function refreshToken() {
 // Функция для выхода
 async function logout() {
     try {
+        saveLog('Logout', 'Начало процесса выхода');
+        
+        // Сохраняем логи перед очисткой
+        const currentLogs = localStorage.getItem('auth_logs');
+        
         // Очищаем токены
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
         document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
@@ -238,9 +277,22 @@ async function logout() {
             credentials: 'include'
         });
         
+        saveLog('Logout', 'Завершение процесса выхода', { status: response.status });
+        
+        // Сохраняем логи в файл перед очисткой localStorage
+        const logsBlob = new Blob([currentLogs], { type: 'application/json' });
+        const logsUrl = URL.createObjectURL(logsBlob);
+        const link = document.createElement('a');
+        link.href = logsUrl;
+        link.download = `auth_logs_${new Date().toISOString()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(logsUrl);
+        
         return true;
     } catch (error) {
-        console.error('Logout error:', error);
+        saveLog('Logout Error', 'Ошибка при выходе', error);
         return false;
     }
 }
@@ -436,5 +488,6 @@ export {
     logout,
     refreshToken,
     checkAuth,
-    getRuns
+    getRuns,
+    clearLogs
 };
