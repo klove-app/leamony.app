@@ -192,15 +192,18 @@ body {
 
 .runs-table th {
     text-align: left;
-    padding: 4px;
-    border-bottom: 1px solid #eee;
+    padding: 8px;
     color: #666;
     font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #eee;
 }
 
 .runs-table td {
-    padding: 4px;
+    padding: 8px;
     border-bottom: 1px solid #eee;
+    font-size: 12px;
 }
 
 .runs-table tr:hover {
@@ -229,18 +232,63 @@ body {
 
 .runs-table th:nth-child(1),
 .runs-table td:nth-child(1) {
-    width: 70px;
+    width: 80px;
 }
 
 .runs-table th:nth-child(2),
 .runs-table td:nth-child(2),
 .runs-table th:nth-child(3),
 .runs-table td:nth-child(3) {
-    width: 40px;
+    width: 50px;
 }
 
 .dashboard-content {
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu;
     font-size: 11px;
     line-height: 1.2;
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.goal-info {
+    text-align: center;
+    flex: 1;
+}
+
+.goal-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2196F3;
+    margin-bottom: 4px;
+}
+
+.goal-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .stats-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .goal-info {
+        text-align: left;
+    }
+    
+    .goal-value {
+        font-size: 20px;
+    }
 } 
