@@ -245,6 +245,12 @@ async function refreshToken() {
         console.log('Статус ответа:', response.status, response.statusText);
 
         const data = await response.json();
+        console.log('Ответ от сервера:', {
+            hasAccessToken: !!data.access_token,
+            hasRefreshToken: !!data.refresh_token,
+            hasUser: !!data.user,
+            userData: data.user
+        });
         
         if (!response.ok) {
             if (response.status === 401) {
@@ -258,6 +264,16 @@ async function refreshToken() {
             return { success: false, error: 'refresh_failed', details: data };
         }
 
+        // Проверяем наличие всех необходимых данных
+        if (!data.access_token || !data.refresh_token || !data.user) {
+            console.log('Отсутствуют необходимые данные в ответе:', {
+                hasAccessToken: !!data.access_token,
+                hasRefreshToken: !!data.refresh_token,
+                hasUser: !!data.user
+            });
+            return { success: false, error: 'incomplete_response' };
+        }
+
         // Сохраняем новые токены
         if (data.access_token) {
             document.cookie = `access_token=${data.access_token}; path=/;`;
@@ -266,7 +282,7 @@ async function refreshToken() {
             document.cookie = `refresh_token=${data.refresh_token}; path=/;`;
         }
 
-        console.log('Токен успешно обновлен');
+        console.log('Токен успешно обновлен, данные пользователя:', data.user);
         console.groupEnd();
         return { success: true, user: data.user };
     } catch (error) {
