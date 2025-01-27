@@ -1,4 +1,4 @@
-import { checkAuth, logout, getRuns, viewLogs } from './api.js';
+import { checkAuth, logout, getRuns, viewLogs, delay } from './api.js';
 
 // Функция для добавления лога
 function addLog(message, type = '', container = 'dataInfo') {
@@ -27,11 +27,23 @@ function showError(message) {
 // Загрузка данных пользователя
 async function loadUserData() {
     try {
+        console.group('Load User Data');
+        console.log('1. Начало загрузки данных пользователя');
+        
+        await delay(5000); // Задержка перед проверкой авторизации
+        
         const user = await checkAuth();
+        console.log('2. Результат проверки авторизации:', user ? 'успешно' : 'не авторизован');
+        
         if (!user) {
+            console.log('3. Пользователь не авторизован, перенаправление на главную');
+            await delay(5000); // Задержка перед редиректом
+            console.groupEnd();
             window.location.href = '/';
             return;
         }
+
+        await delay(5000); // Задержка перед загрузкой данных
 
         addLog(`Пользователь: ${user.username}
 Email: ${user.email}
@@ -42,6 +54,7 @@ Email: ${user.email}
         const startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
         const endDate = now.toISOString().split('T')[0];
 
+        console.log('4. Загрузка данных о пробежках');
         const runs = await getRuns(startDate, endDate);
         
         if (runs && runs.length > 0) {
@@ -56,9 +69,17 @@ Email: ${user.email}
         } else {
             addLog('Пробежки не найдены. Подключите Telegram бота для синхронизации данных.', 'info');
         }
+        
+        console.log('5. Загрузка данных завершена');
+        console.groupEnd();
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
         showError('Произошла ошибка при загрузке данных');
+        console.groupEnd();
+        
+        // Если ошибка связана с авторизацией, делаем задержку перед редиректом
+        await delay(5000);
+        window.location.href = '/';
     }
 }
 
@@ -87,11 +108,17 @@ async function handleLogout() {
         console.log('6. Выполняем редирект на главную страницу');
         console.groupEnd();
         
+        // Добавляем еще одну задержку перед самим редиректом
+        await delay(5000);
         window.location.href = '/';
     } catch (error) {
         console.error('Ошибка при выходе:', error);
         showError('Произошла ошибка при выходе');
         console.groupEnd();
+        
+        // Даже при ошибке делаем задержку
+        await delay(5000);
+        window.location.href = '/';
     }
 }
 
