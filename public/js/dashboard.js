@@ -30,20 +30,14 @@ async function loadUserData(forceCheck = false) {
         console.group('Load User Data');
         console.log('1. Начало загрузки данных пользователя');
         
-        await delay(5000); // Задержка перед проверкой авторизации
-        
         const user = await checkAuth(forceCheck);
         console.log('2. Результат проверки авторизации:', user ? 'успешно' : 'не авторизован');
         
         if (!user) {
             console.log('3. Пользователь не авторизован, перенаправление на главную');
-            await delay(5000); // Задержка перед редиректом
-            console.groupEnd();
             window.location.href = '/';
             return;
         }
-
-        await delay(5000); // Задержка перед загрузкой данных
 
         addLog(`Пользователь: ${user.username}
 Email: ${user.email}
@@ -103,9 +97,6 @@ Email: ${user.email}
         console.error('Ошибка загрузки данных:', error);
         showError('Произошла ошибка при загрузке данных');
         console.groupEnd();
-        
-        // Если ошибка связана с авторизацией, делаем задержку перед редиректом
-        await delay(5000);
         window.location.href = '/';
     }
 }
@@ -128,31 +119,20 @@ async function handleLogout() {
         const cookies = document.cookie.split(';');
         console.log('2. Текущие куки перед выходом:', cookies);
         
-        await delay(5000); // Задержка 5 секунд перед выходом
-        
         console.log('3. Вызываем функцию logout');
         const result = await logout();
         console.log('4. Результат logout:', result);
         
-        await delay(5000); // Задержка 5 секунд после выхода
-        
         console.log('5. Проверяем куки после выхода:', document.cookie);
-        
-        await delay(5000); // Задержка 5 секунд перед редиректом
         
         console.log('6. Выполняем редирект на главную страницу');
         console.groupEnd();
         
-        // Добавляем еще одну задержку перед самим редиректом
-        await delay(5000);
         window.location.href = '/';
     } catch (error) {
         console.error('Ошибка при выходе:', error);
         showError('Произошла ошибка при выходе');
         console.groupEnd();
-        
-        // Даже при ошибке делаем задержку
-        await delay(5000);
         window.location.href = '/';
     }
 }

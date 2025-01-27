@@ -422,8 +422,6 @@ async function logout() {
         console.group('Logout Process');
         console.log('Cookie state before logout:');
         checkCookies('Before Logout');
-        
-        await delay(5000); // Задержка 5 секунд перед запросом
 
         const response = await fetch(`${config.API_URL}/auth/logout`, {
             method: 'POST',
@@ -438,16 +436,12 @@ async function logout() {
             ok: response.ok
         });
 
-        await delay(5000); // Задержка 5 секунд перед очисткой куки
-
         // Очищаем куки
         document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
         document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
 
         console.log('Cookie state after clearing:');
         checkCookies('After Logout');
-
-        await delay(5000); // Задержка 5 секунд перед завершением
 
         console.groupEnd();
         return true;
