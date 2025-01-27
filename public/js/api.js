@@ -640,7 +640,7 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                 const data = await retryResponse.json();
                 console.log('Получены данные после обновления токена:', data);
                 console.groupEnd();
-                return data.runs || data;
+                return data;
             }
             throw new Error(`Ошибка получения пробежек: ${response.status}`);
         }
@@ -648,7 +648,7 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
         const data = await response.json();
         console.log('Получены данные:', data);
         console.groupEnd();
-        return data.runs || data;
+        return data;
     } catch (error) {
         console.error('Ошибка при получении пробежек:', error);
         console.groupEnd();

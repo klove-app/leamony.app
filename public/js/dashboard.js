@@ -151,7 +151,11 @@ async function loadUserData(forceCheck = false) {
 
         // Получаем даты для текущего периода
         const { startDate, endDate } = getPeriodDates(currentPeriod);
-        const runs = await getRuns(startDate, endDate);
+        const response = await getRuns(startDate, endDate);
+        console.log('Получен ответ:', response);
+        
+        const runs = response.runs || [];
+        console.log('Извлечены пробежки:', runs);
         
         // Подготавливаем все данные
         const data = {
@@ -359,8 +363,11 @@ async function loadDetailedAnalytics() {
         console.log('Запрашиваем все пробежки без ограничений по датам...');
         
         // Получаем все пробежки без параметров дат
-        const allRuns = await getRuns(null, null);
-        console.log('Получены пробежки:', allRuns);
+        const response = await getRuns(null, null);
+        console.log('Получен ответ:', response);
+        
+        const allRuns = response.runs || [];
+        console.log('Извлечены пробежки:', allRuns);
 
         if (!allRuns || allRuns.length === 0) {
             console.log('Пробежки не найдены, показываем пустое состояние');
