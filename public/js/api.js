@@ -153,17 +153,19 @@ async function refreshToken() {
         
         console.log('Найден refresh_token:', refreshToken.substring(0, 10) + '...');
         
-        const response = await fetch(`${config.API_URL}/auth/refresh`, {
+        const params = new URLSearchParams({ refresh_token: refreshToken });
+        const response = await fetch(`${config.API_URL}/auth/refresh?${params}`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            credentials: 'include',
-            body: JSON.stringify({ refresh_token: refreshToken })
+            credentials: 'include'
         });
         
         console.log('Статус ответа:', response.status, response.statusText);
+
+        const data = await response.json();
         
         if (!response.ok) {
             if (response.status === 401) {
@@ -173,14 +175,13 @@ async function refreshToken() {
                 document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
                 return { success: false, error: 'invalid_refresh_token' };
             }
-            console.log('Не удалось обновить токен');
-            return { success: false, error: 'refresh_failed' };
+            console.log('Не удалось обновить токен:', data);
+            return { success: false, error: 'refresh_failed', details: data };
         }
 
-        const data = await response.json();
         console.log('Токен успешно обновлен');
         console.groupEnd();
-        return { success: true, ...data };
+        return { success: true, user: data.user };
     } catch (error) {
         console.error('Token refresh error:', error);
         console.groupEnd();
@@ -210,16 +211,50 @@ async function logout() {
 async function checkAuth() {
     try {
         console.log('Отправляем запрос на проверку авторизации...');
-        // Пробуем обновить токен для проверки авторизации
-        const refreshResult = await refreshToken();
-        console.log('Результат проверки авторизации:', refreshResult);
         
+        // Проверяем наличие access_token
+        const cookies = document.cookie.split(';');
+        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        
+        if (!accessTokenCookie) {
+            console.log('Access token не найден, пробуем обновить...');
+            // Пробуем обновить токен для проверки авторизации
+            const refreshResult = await refreshToken();
+            console.log('Результат обновления токена:', refreshResult);
+            
+            if (!refreshResult.success) {
+                console.log('Не удалось подтвердить авторизацию:', refreshResult.error);
+                return null;
+            }
+
+            return refreshResult.user;
+        }
+
+        // Если есть access_token, пробуем использовать его
+        const response = await fetch(`${config.API_URL}/auth/me`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${accessTokenCookie.split('=')[1].trim()}`
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Авторизация подтверждена');
+            return data.user;
+        }
+
+        // Если access_token недействителен, пробуем обновить
+        console.log('Access token недействителен, пробуем обновить...');
+        const refreshResult = await refreshToken();
         if (!refreshResult.success) {
-            console.log('Не удалось подтвердить авторизацию');
+            console.log('Не удалось подтвердить авторизацию после обновления');
             return null;
         }
 
-        console.log('Авторизация подтверждена');
+        console.log('Авторизация подтверждена после обновления токена');
         return refreshResult.user;
     } catch (error) {
         console.error('Auth check error:', error);
@@ -247,22 +282,24 @@ async function getRuns(startDate, endDate, limit = 50, offset = 0) {
         const cookies = document.cookie.split(';');
         const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
         if (!accessTokenCookie) {
-            console.log('Access token не найден в куки');
-            throw new Error('Access token не найден');
+            console.log('Access token не найден, пробуем обновить...');
+            const refreshResult = await refreshToken();
+            if (!refreshResult.success) {
+                throw new Error('Не удалось обновить токен');
+            }
+            // Повторяем запрос после обновления токена
+            return getRuns(startDate, endDate, limit, offset);
         }
-        const accessToken = accessTokenCookie.split('=')[1].trim();
 
         const response = await fetch(url, {
             method: 'GET',
             credentials: 'include',
             headers: {
                 'Accept': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${accessTokenCookie.split('=')[1].trim()}`
             }
         });
 
-        console.log('Статус ответа:', response.status, response.statusText);
-        
         if (response.status === 401) {
             console.log('Требуется обновление токена');
             const refreshResult = await refreshToken();
