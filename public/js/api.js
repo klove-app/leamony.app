@@ -581,23 +581,20 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
 
     const params = new URLSearchParams();
     if (startDate) {
-        // Форматируем дату в ISO формат
         const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
         params.append('start_date', formattedStartDate);
     }
     if (endDate) {
-        // Форматируем дату в ISO формат
         const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
         params.append('end_date', formattedEndDate);
     }
     params.append('limit', limit.toString());
     params.append('offset', offset.toString());
 
-    const url = `${config.API_URL}/runs?${params}`;
+    const url = `${config.API_URL}/api/v1/runs?${params}`;
     console.log('URL запроса:', url);
 
     try {
-        // Получаем access_token из куки
         const cookies = document.cookie.split(';');
         const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
         
@@ -610,21 +607,19 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-                'Origin': window.location.origin
+                'Authorization': `Bearer ${accessToken}`
             },
-            credentials: 'include'
+            credentials: 'include',
+            redirect: 'follow'
         });
 
         if (!response.ok) {
             if (response.status === 401) {
-                // Если токен истек, пробуем обновить
                 const refreshResult = await refreshToken();
                 if (!refreshResult.success) {
                     throw new Error('Не удалось обновить токен');
                 }
 
-                // Получаем новый access token
                 const newAccessTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('access_token='));
                 if (!newAccessTokenCookie) {
                     throw new Error('Новый access token не найден после обновления');
@@ -632,14 +627,14 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
 
                 const newAccessToken = newAccessTokenCookie.split('=')[1].trim();
                 
-                // Повторяем запрос с новым токеном
                 const retryResponse = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'Authorization': `Bearer ${newAccessToken}`
                     },
-                    credentials: 'include'
+                    credentials: 'include',
+                    redirect: 'follow'
                 });
 
                 if (!retryResponse.ok) {
