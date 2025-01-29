@@ -764,6 +764,25 @@ async function testDirectApiCall(startDate = null, endDate = null, limit = 50, o
 
         const accessToken = accessTokenCookie.split('=')[1].trim();
         
+        // Сначала делаем OPTIONS запрос
+        const optionsResponse = await fetch(directUrl, {
+            method: 'OPTIONS',
+            headers: {
+                'Accept': 'application/json',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'authorization,content-type',
+                'Origin': window.location.origin
+            },
+            mode: 'cors'
+        });
+
+        console.log('OPTIONS ответ:', {
+            status: optionsResponse.status,
+            statusText: optionsResponse.statusText,
+            headers: Object.fromEntries(optionsResponse.headers.entries())
+        });
+
+        // Затем делаем основной запрос
         const response = await fetch(directUrl, {
             method: 'GET',
             headers: {
@@ -771,7 +790,6 @@ async function testDirectApiCall(startDate = null, endDate = null, limit = 50, o
                 'Authorization': `Bearer ${accessToken}`,
                 'Origin': window.location.origin
             },
-            credentials: 'include',
             mode: 'cors'
         });
 
@@ -783,7 +801,9 @@ async function testDirectApiCall(startDate = null, endDate = null, limit = 50, o
         });
 
         if (!response.ok) {
-            throw new Error(`Ошибка прямого запроса: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Ошибка ответа:', errorText);
+            throw new Error(`Ошибка прямого запроса: ${response.status}. ${errorText}`);
         }
 
         const data = await response.json();
@@ -821,14 +841,31 @@ async function testNetlifyProxy(startDate = null, endDate = null, limit = 50, of
 
         const accessToken = accessTokenCookie.split('=')[1].trim();
         
+        // Сначала делаем OPTIONS запрос
+        const optionsResponse = await fetch(proxyUrl, {
+            method: 'OPTIONS',
+            headers: {
+                'Accept': 'application/json',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'authorization,content-type,x-test-mode',
+                'Origin': window.location.origin
+            }
+        });
+
+        console.log('OPTIONS ответ через прокси:', {
+            status: optionsResponse.status,
+            statusText: optionsResponse.statusText,
+            headers: Object.fromEntries(optionsResponse.headers.entries())
+        });
+
+        // Затем делаем основной запрос
         const response = await fetch(proxyUrl, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${accessToken}`,
                 'X-Test-Mode': 'true'
-            },
-            credentials: 'include'
+            }
         });
 
         console.log('Ответ через прокси:', {
@@ -839,7 +876,9 @@ async function testNetlifyProxy(startDate = null, endDate = null, limit = 50, of
         });
 
         if (!response.ok) {
-            throw new Error(`Ошибка запроса через прокси: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Ошибка ответа через прокси:', errorText);
+            throw new Error(`Ошибка запроса через прокси: ${response.status}. ${errorText}`);
         }
 
         const data = await response.json();
