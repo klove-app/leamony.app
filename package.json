@@ -1,19 +1,21 @@
 {
-  "name": "website",
+  "name": "runconnect-app",
   "version": "1.0.0",
+  "description": "RunConnect - AI-Powered Running Assistant",
   "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
   "scripts": {
-    "start": "live-server public --port=8000",
+    "build": "cp -r public/* dist/",
+    "start": "serve public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
   "devDependencies": {
-    "live-server": "^1.2.2"
+    "copyfiles": "^2.4.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

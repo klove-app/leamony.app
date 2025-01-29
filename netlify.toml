@@ -1,6 +1,6 @@
 [build]
-publish = "public"
-command = "npm run build"
+publish = "dist"
+command = "mkdir -p dist && npm run build"
 
 [[headers]]
 for = "/*"
