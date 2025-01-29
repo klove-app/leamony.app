@@ -30,9 +30,9 @@ force = true
 [[redirects]]
 from = "/api/*"
 to = "https://api.runconnect.app/api/:splat"
-status = 200
+status = 307
 force = true
-headers = {X-From = "Netlify"}
+headers = {X-From = "Netlify", Access-Control-Allow-Origin = "*"}
 
 # Обработка SPA роутинга
 [[redirects]]
