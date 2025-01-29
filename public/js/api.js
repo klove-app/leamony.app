@@ -740,6 +740,119 @@ async function getTelegramBotLink() {
     }
 }
 
+// Тестовая функция для прямого запроса к API
+async function testDirectApiCall(startDate = null, endDate = null, limit = 50, offset = 0) {
+    console.group('Тестовый прямой запрос к API');
+    
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+
+    // Прямой запрос к API
+    const directUrl = `https://api.runconnect.app/api/v1/runs?${params}`;
+    console.log('Прямой URL запроса:', directUrl);
+
+    try {
+        const cookies = document.cookie.split(';');
+        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        
+        if (!accessTokenCookie) {
+            throw new Error('Access token не найден');
+        }
+
+        const accessToken = accessTokenCookie.split('=')[1].trim();
+        
+        const response = await fetch(directUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'Origin': window.location.origin
+            },
+            credentials: 'include',
+            mode: 'cors'
+        });
+
+        console.log('Прямой ответ API:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            url: response.url
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ошибка прямого запроса: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Данные от прямого запроса:', data);
+        console.groupEnd();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при прямом запросе:', error);
+        console.groupEnd();
+        throw error;
+    }
+}
+
+// Функция для тестирования через прокси Netlify
+async function testNetlifyProxy(startDate = null, endDate = null, limit = 50, offset = 0) {
+    console.group('Тестовый запрос через Netlify');
+    
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+
+    // Запрос через прокси Netlify
+    const proxyUrl = `/api/v1/runs?${params}`;
+    console.log('URL запроса через прокси:', proxyUrl);
+
+    try {
+        const cookies = document.cookie.split(';');
+        const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
+        
+        if (!accessTokenCookie) {
+            throw new Error('Access token не найден');
+        }
+
+        const accessToken = accessTokenCookie.split('=')[1].trim();
+        
+        const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'X-Test-Mode': 'true'
+            },
+            credentials: 'include'
+        });
+
+        console.log('Ответ через прокси:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            url: response.url
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ошибка запроса через прокси: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Данные через прокси:', data);
+        console.groupEnd();
+        return data;
+    } catch (error) {
+        console.error('Ошибка при запросе через прокси:', error);
+        console.groupEnd();
+        throw error;
+    }
+}
+
 export {
     register,
     login,
@@ -750,5 +863,7 @@ export {
     clearLogs,
     viewLogs,
     delay,
-    getTelegramBotLink
+    getTelegramBotLink,
+    testDirectApiCall,
+    testNetlifyProxy
 };
