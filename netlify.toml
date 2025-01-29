@@ -12,25 +12,34 @@ X-Content-Type-Options = "nosniff"
 Referrer-Policy = "strict-origin-when-cross-origin"
 Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
+# Обработка статических файлов
 [[redirects]]
-from = "/*"
-to = "/index.html"
+from = "/static/*"
+to = "/static/:splat"
 status = 200
-force = false
-conditions = {Role = ["admin", "user"]}
+force = true
 
+# Редирект с HTTP на HTTPS
 [[redirects]]
 from = "http://*"
 to = "https://:splat"
 status = 301
 force = true
 
+# Проксирование API запросов
 [[redirects]]
 from = "/api/*"
 to = "https://api.runconnect.app/api/:splat"
 status = 200
 force = true
 headers = {X-From = "Netlify"}
+
+# Обработка SPA роутинга
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+force = false
 
 [build.environment]
 NODE_VERSION = "18"

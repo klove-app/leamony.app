@@ -4,7 +4,8 @@
   "description": "RunConnect - AI-Powered Running Assistant",
   "main": "index.js",
   "scripts": {
-    "build": "cp -r public/* dist/",
+    "prebuild": "rm -rf dist",
+    "build": "mkdir -p dist && cp -r public/* dist/ && cp -r public/.* dist/ 2>/dev/null || true",
     "start": "serve public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
