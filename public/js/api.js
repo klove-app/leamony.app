@@ -652,8 +652,8 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            credentials: 'include',
-            redirect: 'follow'
+            mode: 'cors',
+            credentials: 'same-origin'
         });
 
         console.log('Получен ответ:', {
@@ -684,8 +684,8 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                         'Accept': 'application/json',
                         'Authorization': `Bearer ${newAccessToken}`
                     },
-                    credentials: 'include',
-                    redirect: 'follow'
+                    mode: 'cors',
+                    credentials: 'same-origin'
                 });
 
                 console.log('Получен ответ после повторного запроса:', {
@@ -695,7 +695,9 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                 });
 
                 if (!retryResponse.ok) {
-                    throw new Error(`Ошибка получения пробежек после обновления токена: ${retryResponse.status}`);
+                    const errorText = await retryResponse.text();
+                    console.error('Ошибка ответа:', errorText);
+                    throw new Error(`Ошибка получения пробежек после обновления токена: ${retryResponse.status}. ${errorText}`);
                 }
 
                 const data = await retryResponse.json();
@@ -703,7 +705,9 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                 console.groupEnd();
                 return data;
             }
-            throw new Error(`Ошибка получения пробежек: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Ошибка ответа:', errorText);
+            throw new Error(`Ошибка получения пробежек: ${response.status}. ${errorText}`);
         }
 
         const data = await response.json();
