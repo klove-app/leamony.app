@@ -577,23 +577,60 @@ async function checkAuth(forceCheck = false) {
 // Получение списка пробежек
 async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0) {
     console.group('Запрос пробежек');
-    console.log('Параметры запроса:', { startDate, endDate, limit, offset });
+    
+    // Валидация параметров
+    if (limit > 100) {
+        console.warn('Limit не может быть больше 100, устанавливаем значение 100');
+        limit = 100;
+    }
+    
+    if (offset < 0) {
+        console.warn('Offset не может быть отрицательным, устанавливаем значение 0');
+        offset = 0;
+    }
 
     const params = new URLSearchParams();
     if (startDate) {
-        const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
-        params.append('start_date', formattedStartDate);
+        try {
+            const date = new Date(startDate);
+            if (isNaN(date.getTime())) {
+                throw new Error('Неверный формат даты');
+            }
+            const formattedStartDate = date.toISOString().split('T')[0];
+            params.append('start_date', formattedStartDate);
+            console.log('Форматированная start_date:', formattedStartDate);
+        } catch (error) {
+            console.error('Ошибка при форматировании start_date:', error);
+            throw new Error('Неверный формат start_date');
+        }
     }
+
     if (endDate) {
-        const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
-        params.append('end_date', formattedEndDate);
+        try {
+            const date = new Date(endDate);
+            if (isNaN(date.getTime())) {
+                throw new Error('Неверный формат даты');
+            }
+            const formattedEndDate = date.toISOString().split('T')[0];
+            params.append('end_date', formattedEndDate);
+            console.log('Форматированная end_date:', formattedEndDate);
+        } catch (error) {
+            console.error('Ошибка при форматировании end_date:', error);
+            throw new Error('Неверный формат end_date');
+        }
     }
+
     params.append('limit', limit.toString());
     params.append('offset', offset.toString());
 
-    // Используем относительный URL для работы через прокси Netlify
     const url = `/api/v1/runs?${params}`;
     console.log('URL запроса:', url);
+    console.log('Параметры запроса:', {
+        startDate: params.get('start_date'),
+        endDate: params.get('end_date'),
+        limit: params.get('limit'),
+        offset: params.get('offset')
+    });
 
     try {
         const cookies = document.cookie.split(';');
@@ -604,6 +641,11 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
         }
 
         const accessToken = accessTokenCookie.split('=')[1].trim();
+        console.log('Отправка запроса с заголовками:', {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + accessToken.substring(0, 10) + '...'
+        });
+
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -614,8 +656,15 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             redirect: 'follow'
         });
 
+        console.log('Получен ответ:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+
         if (!response.ok) {
             if (response.status === 401) {
+                console.log('Требуется обновление токена');
                 const refreshResult = await refreshToken();
                 if (!refreshResult.success) {
                     throw new Error('Не удалось обновить токен');
@@ -627,6 +676,7 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                 }
 
                 const newAccessToken = newAccessTokenCookie.split('=')[1].trim();
+                console.log('Повторная отправка запроса с новым токеном');
                 
                 const retryResponse = await fetch(url, {
                     method: 'GET',
@@ -636,6 +686,12 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
                     },
                     credentials: 'include',
                     redirect: 'follow'
+                });
+
+                console.log('Получен ответ после повторного запроса:', {
+                    status: retryResponse.status,
+                    statusText: retryResponse.statusText,
+                    headers: Object.fromEntries(retryResponse.headers.entries())
                 });
 
                 if (!retryResponse.ok) {
