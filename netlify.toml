@@ -34,6 +34,13 @@ status = 200
 force = true
 headers = {X-From = "Netlify", Access-Control-Allow-Origin = "*", Access-Control-Allow-Methods = "GET, POST, OPTIONS", Access-Control-Allow-Headers = "Authorization, Content-Type"}
 
+# Редирект для API с HTTP на HTTPS
+[[redirects]]
+from = "http://api.runconnect.app/api/*"
+to = "https://api.runconnect.app/api/:splat"
+status = 301
+force = true
+
 # Обработка SPA роутинга
 [[redirects]]
 from = "/*"

@@ -650,16 +650,19 @@ async function getRuns(startDate = null, endDate = null, limit = 50, offset = 0)
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${accessToken}`,
+                'X-Requested-Protocol': 'https'
             },
             mode: 'cors',
-            credentials: 'same-origin'
+            credentials: 'same-origin',
+            redirect: 'follow'
         });
 
         console.log('Получен ответ:', {
             status: response.status,
             statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
+            headers: Object.fromEntries(response.headers.entries()),
+            url: response.url
         });
 
         if (!response.ok) {
