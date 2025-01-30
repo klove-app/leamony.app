@@ -154,8 +154,12 @@ async function loadUserData(forceCheck = false) {
         const response = await getRuns(startDate, endDate);
         console.log('Получен ответ:', response);
         
-        const runs = response.runs || [];
-        console.log('Извлечены пробежки:', runs);
+        // Преобразуем данные в нужный формат
+        const runs = Array.isArray(response) ? response.map(run => ({
+            ...run,
+            km: run.id // используем id как километры
+        })) : [];
+        console.log('Преобразованные пробежки:', runs);
         
         // Подготавливаем все данные
         const data = {
