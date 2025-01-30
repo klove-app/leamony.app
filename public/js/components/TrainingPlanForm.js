@@ -131,7 +131,7 @@ class TrainingPlanForm {
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
-                    throw new Error('Ошибка при генерации плана');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const plan = await response.json();
@@ -191,10 +191,27 @@ class TrainingPlanForm {
                     this.showError('Не удалось сгенерировать план тренировок. Пожалуйста, попробуйте позже.');
                     return;
                 }
+
+                // Определяем тип ошибки и устанавливаем задержку
+                let delay;
+                if (error.name === 'AbortError') {
+                    // Если это таймаут, пробуем сразу же
+                    this.updateLoadingText(`Превышено время ожидания. Пробуем снова...`);
+                    delay = 0;
+                } else if (response && response.status === 429) {
+                    // Если сервер сообщает о превышении лимита запросов
+                    delay = 10000; // 10 секунд
+                    this.updateLoadingText(`Слишком много запросов. Следующая попытка через ${delay/1000} секунд...`);
+                } else if (response && response.status >= 500) {
+                    // Если ошибка на стороне сервера
+                    delay = attempt * 5000; // 5, 10, 15 секунд
+                    this.updateLoadingText(`Ошибка сервера. Следующая попытка через ${delay/1000} секунд...`);
+                } else {
+                    // Для остальных ошибок используем экспоненциальную задержку
+                    delay = Math.min(1000 * Math.pow(2, attempt), 30000); // Максимум 30 секунд
+                    this.updateLoadingText(`Ошибка запроса. Следующая попытка через ${delay/1000} секунд...`);
+                }
                 
-                // Ждем перед следующей попыткой (увеличиваем время ожидания с каждой попыткой)
-                const delay = attempt * 2000; // 2 сек, 4 сек, 6 сек
-                this.updateLoadingText(`Повторная попытка через ${delay/1000} секунд...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
