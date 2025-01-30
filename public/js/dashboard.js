@@ -517,156 +517,199 @@ async function loadDetailedAnalytics() {
             return;
         }
 
-        // Создаем контейнер для графиков
+        // Создаем контейнер для аналитики
         const analyticsTab = document.getElementById('analyticsTab');
         analyticsTab.innerHTML = `
             <div class="analytics-container">
-                <div class="charts-section">
-                    <div class="chart-row">
-                        <div class="chart-container main-chart">
-                            <div id="progressChart" style="width: 100%;"></div>
+                <div class="runs-history-section">
+                    <div class="history-header">
+                        <h2>История пробежек</h2>
+                        <div class="history-legend">
+                            <span class="legend-item">
+                                <span class="intensity-dot light"></span>
+                                <span>Легкая (до 5 км)</span>
+                            </span>
+                            <span class="legend-item">
+                                <span class="intensity-dot medium"></span>
+                                <span>Средняя (5-10 км)</span>
+                            </span>
+                            <span class="legend-item">
+                                <span class="intensity-dot hard"></span>
+                                <span>Тяжелая (>10 км)</span>
+                            </span>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-container">
-                            <div id="weeklyActivityChart"></div>
-                        </div>
-                        <div class="chart-container">
-                            <div id="distanceDistributionChart"></div>
-                        </div>
+                    <div class="runs-list">
+                        ${createTimelineItems(allRuns)}
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-container">
-                            <div id="monthlyTrendsChart"></div>
-                        </div>
-                        <div class="chart-container">
-                            <div id="timeOfDayChart"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="stats-container">
-                    ${createDetailedStatsHTML(allRuns)}
                 </div>
             </div>
         `;
 
-        // Обновляем стили для лучшей адаптивности
+        // Обновляем стили
         const style = document.createElement('style');
         style.textContent = `
             .analytics-container {
-                padding: 10px;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-            .charts-section {
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-                width: 100%;
-            }
-            .chart-row {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 15px;
-                width: 100%;
-            }
-            .chart-container {
-                background: white;
-                border-radius: 15px;
-                padding: 15px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                min-height: 250px;
-                width: 100%;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-            }
-            .main-chart {
-                grid-column: 1 / -1;
-                min-height: 350px;
-            }
-            .chart-container > div {
-                flex: 1;
-                width: 100%;
-                min-height: 0;
-            }
-            .stats-container {
-                margin-top: 20px;
-                background: white;
-                border-radius: 15px;
+                max-width: 800px;
+                margin: 0 auto;
                 padding: 20px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             }
-            .detailed-stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
-                margin-top: 15px;
+
+            .runs-history-section {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
-            .stat-card {
-                text-align: center;
-                padding: 15px;
-                background: #f8f9fa;
-                border-radius: 10px;
-                transition: transform 0.2s;
+
+            .history-header {
+                padding: 20px;
+                border-bottom: 1px solid #eee;
             }
-            .stat-card:hover {
-                transform: translateY(-3px);
+
+            .history-header h2 {
+                margin: 0 0 15px 0;
+                color: #333;
+                font-size: 24px;
             }
-            .stat-value {
-                font-size: 20px;
-                font-weight: bold;
-                margin: 8px 0;
-                color: #2c3e50;
+
+            .history-legend {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
             }
-            .stat-subtitle {
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
                 color: #666;
-                font-size: 12px;
             }
+
+            .intensity-dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .intensity-dot.light { background-color: #36B9CC; }
+            .intensity-dot.medium { background-color: #1cc88a; }
+            .intensity-dot.hard { background-color: #e74a3b; }
+
+            .runs-list {
+                padding: 20px;
+            }
+
+            .timeline-item {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                border-radius: 10px;
+                background: #f8f9fa;
+                margin-bottom: 10px;
+                transition: transform 0.2s, box-shadow 0.2s;
+                gap: 20px;
+            }
+
+            .timeline-item:hover {
+                transform: translateX(5px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                background: #f1f3f5;
+            }
+
+            .timeline-date {
+                min-width: 120px;
+                color: #666;
+                font-size: 16px;
+            }
+
+            .timeline-indicator {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .timeline-distance {
+                font-weight: bold;
+                color: #333;
+                font-size: 18px;
+                min-width: 100px;
+            }
+
+            .timeline-streak {
+                font-size: 14px;
+                color: #666;
+                margin-left: auto;
+                padding: 4px 8px;
+                background: #fff;
+                border-radius: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+
+            .timeline-notes {
+                color: #666;
+                font-size: 15px;
+                margin-left: 15px;
+                flex-grow: 1;
+            }
+
             @media (max-width: 768px) {
                 .analytics-container {
-                    padding: 5px;
-                }
-                .chart-row {
-                    grid-template-columns: 1fr;
-                }
-                .chart-container {
-                    min-height: 300px;
                     padding: 10px;
-                    margin-bottom: 10px;
                 }
-                .main-chart {
-                    min-height: 350px;
+
+                .history-header {
+                    padding: 15px;
                 }
-                .apexcharts-legend {
-                    position: relative !important;
-                    padding: 5px !important;
-                    margin: 0 !important;
-                    text-align: center !important;
+
+                .history-header h2 {
+                    font-size: 20px;
                 }
-                .apexcharts-legend-series {
-                    margin: 2px 5px !important;
+
+                .legend-item {
+                    font-size: 12px;
                 }
-                .apexcharts-toolbar {
-                    top: 0 !important;
-                    right: 0 !important;
+
+                .runs-list {
+                    padding: 10px;
                 }
-                .apexcharts-menu {
-                    min-width: 110px !important;
+
+                .timeline-item {
+                    flex-wrap: wrap;
+                    padding: 12px;
+                    gap: 10px;
                 }
-                .apexcharts-tooltip {
-                    max-width: 200px !important;
+
+                .timeline-date {
+                    min-width: auto;
+                    font-size: 14px;
+                    width: 100%;
+                }
+
+                .timeline-indicator {
+                    width: 100%;
+                }
+
+                .timeline-distance {
+                    font-size: 16px;
+                    min-width: 80px;
+                }
+
+                .timeline-notes {
+                    width: 100%;
+                    margin-left: 0;
+                    margin-top: 5px;
+                    font-size: 14px;
+                }
+
+                .timeline-streak {
+                    font-size: 12px;
+                    margin-left: auto;
                 }
             }
         `;
         document.head.appendChild(style);
-
-        // Создаем графики
-        createProgressChart(allRuns);
-        createWeeklyActivityChart(allRuns);
-        createDistributionChart(allRuns);
-        createMonthlyTrendsChart(allRuns);
-        createTimeOfDayChart(allRuns);
 
     } catch (error) {
         console.error('Ошибка при загрузке аналитики:', error);
@@ -674,186 +717,11 @@ async function loadDetailedAnalytics() {
     }
 }
 
-function createProgressChart(runs) {
-    const sortedRuns = [...runs].sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
-    
-    // Создаем контейнер для списка
-    const container = document.querySelector("#progressChart");
-    container.innerHTML = `
-        <div class="runs-timeline">
-            <div class="timeline-header">
-                <h3>История пробежек</h3>
-                <div class="timeline-legend">
-                    <span class="legend-item">
-                        <span class="intensity-dot light"></span>
-                        <span>Легкая (до 5 км)</span>
-                    </span>
-                    <span class="legend-item">
-                        <span class="intensity-dot medium"></span>
-                        <span>Средняя (5-10 км)</span>
-                    </span>
-                    <span class="legend-item">
-                        <span class="intensity-dot hard"></span>
-                        <span>Тяжелая (>10 км)</span>
-                    </span>
-                </div>
-            </div>
-            <div class="timeline-list">
-                ${createTimelineItems(sortedRuns)}
-            </div>
-        </div>
-    `;
-
-    // Добавляем стили
-    const style = document.createElement('style');
-    style.textContent = `
-        .runs-timeline {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            height: 100%;
-            overflow-y: auto;
-        }
-
-        .timeline-header {
-            margin-bottom: 20px;
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 1;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .timeline-header h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        .timeline-legend {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .intensity-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .intensity-dot.light { background-color: #36B9CC; }
-        .intensity-dot.medium { background-color: #1cc88a; }
-        .intensity-dot.hard { background-color: #e74a3b; }
-
-        .timeline-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .timeline-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 8px;
-            background: #f8f9fa;
-            transition: transform 0.2s;
-            gap: 15px;
-        }
-
-        .timeline-item:hover {
-            transform: translateX(5px);
-            background: #f1f3f5;
-        }
-
-        .timeline-date {
-            min-width: 100px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .timeline-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .timeline-distance {
-            font-weight: bold;
-            color: #333;
-            min-width: 80px;
-        }
-
-        .timeline-streak {
-            font-size: 12px;
-            color: #666;
-            margin-left: auto;
-        }
-
-        .timeline-notes {
-            color: #666;
-            font-size: 13px;
-            margin-left: 10px;
-            flex-grow: 1;
-        }
-
-        @media (max-width: 768px) {
-            .runs-timeline {
-                padding: 10px;
-            }
-
-            .timeline-header {
-                padding: 5px 0;
-            }
-
-            .timeline-item {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .timeline-date {
-                min-width: auto;
-                font-size: 12px;
-            }
-
-            .timeline-distance {
-                min-width: 60px;
-                font-size: 13px;
-            }
-
-            .timeline-notes {
-                width: 100%;
-                margin-left: 0;
-                margin-top: 5px;
-            }
-
-            .timeline-streak {
-                font-size: 11px;
-            }
-
-            .legend-item {
-                font-size: 11px;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
 function createTimelineItems(runs) {
-    // Вычисляем серии пробежек
-    let streaks = calculateStreaks(runs);
+    const sortedRuns = [...runs].sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
+    const streaks = calculateStreaks(sortedRuns);
     
-    return runs.map((run, index) => {
+    return sortedRuns.map((run, index) => {
         const date = new Date(run.date_added);
         const intensity = getIntensityClass(run.km);
         const streak = streaks[run.date_added] || '';
@@ -863,7 +731,8 @@ function createTimelineItems(runs) {
                 <div class="timeline-date">
                     ${date.toLocaleDateString('ru-RU', {
                         day: 'numeric',
-                        month: 'short'
+                        month: 'long',
+                        year: 'numeric'
                     })}
                 </div>
                 <div class="timeline-indicator">
@@ -905,419 +774,6 @@ function calculateStreaks(runs) {
     }
     
     return streaks;
-}
-
-function createWeeklyActivityChart(runs) {
-    const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    const activityByDay = new Array(7).fill(0);
-    const distanceByDay = new Array(7).fill(0);
-
-    runs.forEach(run => {
-        const date = new Date(run.date_added);
-        const dayIndex = (date.getDay() + 6) % 7;
-        activityByDay[dayIndex]++;
-        distanceByDay[dayIndex] += run.km;
-    });
-
-    const options = {
-        series: [{
-            name: 'Количество пробежек',
-            type: 'column',
-            data: activityByDay
-        }, {
-            name: 'Средняя дистанция',
-            type: 'line',
-            data: distanceByDay.map(d => activityByDay[d] ? (d / activityByDay[d]).toFixed(1) : 0)
-        }],
-        chart: {
-            height: '100%',
-            type: 'line',
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800
-            },
-            redrawOnWindowResize: true
-        },
-        stroke: {
-            width: [0, 4]
-        },
-        title: {
-            text: 'Активность по дням недели',
-            align: 'left'
-        },
-        dataLabels: {
-            enabled: true,
-            formatter: function(value) {
-                return formatNumber(value);
-            }
-        },
-        labels: daysOfWeek,
-        xaxis: {
-            type: 'category'
-        },
-        yaxis: [{
-            title: {
-                text: 'Количество пробежек'
-            }
-        }, {
-            opposite: true,
-            title: {
-                text: 'Средняя дистанция (км)'
-            }
-        }],
-        responsive: [{
-            breakpoint: 768,
-            options: {
-                chart: {
-                    height: 300
-                },
-                legend: {
-                    position: 'bottom',
-                    horizontalAlign: 'center',
-                    offsetY: 5,
-                    itemMargin: {
-                        horizontal: 5,
-                        vertical: 3
-                    }
-                },
-                plotOptions: {
-                    bar: {
-                        columnWidth: '70%'
-                    }
-                },
-                xaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '10px'
-                        }
-                    }
-                }
-            }
-        }]
-    };
-
-    const chart = new ApexCharts(document.querySelector("#weeklyActivityChart"), options);
-    chart.render();
-}
-
-function createDistributionChart(runs) {
-    const ranges = [
-        { min: 0, max: 3, label: '0-3 км' },
-        { min: 3, max: 5, label: '3-5 км' },
-        { min: 5, max: 10, label: '5-10 км' },
-        { min: 10, max: 15, label: '10-15 км' },
-        { min: 15, max: Infinity, label: '15+ км' }
-    ];
-
-    const distribution = ranges.map(range => ({
-        ...range,
-        count: runs.filter(run => run.km >= range.min && run.km < range.max).length
-    }));
-
-    const options = {
-        series: distribution.map(d => d.count),
-        chart: {
-            height: '100%',
-            type: 'donut'
-        },
-        labels: distribution.map(d => d.label),
-        responsive: [{
-            breakpoint: 768,
-            options: {
-                chart: {
-                    height: 300
-                },
-                legend: {
-                    position: 'bottom',
-                    offsetY: 5,
-                    itemMargin: {
-                        horizontal: 5,
-                        vertical: 3
-                    }
-                },
-                plotOptions: {
-                    pie: {
-                        donut: {
-                            size: '65%',
-                            labels: {
-                                show: true,
-                                name: {
-                                    fontSize: '12px'
-                                },
-                                value: {
-                                    fontSize: '11px'
-                                },
-                                total: {
-                                    fontSize: '14px'
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }],
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '70%',
-                    labels: {
-                        show: true,
-                        total: {
-                            show: true,
-                            label: 'Всего пробежек',
-                            formatter: function(w) {
-                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                            }
-                        },
-                        value: {
-                            formatter: function(value) {
-                                return formatNumber(value);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    const chart = new ApexCharts(document.querySelector("#distanceDistributionChart"), options);
-    chart.render();
-}
-
-function createMonthlyTrendsChart(runs) {
-    const monthlyData = {};
-    runs.forEach(run => {
-        const date = new Date(run.date_added);
-        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
-        if (!monthlyData[monthKey]) {
-            monthlyData[monthKey] = {
-                totalDistance: 0,
-                count: 0
-            };
-        }
-        monthlyData[monthKey].totalDistance += run.km;
-        monthlyData[monthKey].count++;
-    });
-
-    const sortedMonths = Object.keys(monthlyData).sort();
-    const data = sortedMonths.map(month => ({
-        x: month,
-        distance: monthlyData[month].totalDistance,
-        count: monthlyData[month].count
-    }));
-
-    const options = {
-        series: [{
-            name: 'Общая дистанция',
-            type: 'column',
-            data: data.map(d => d.distance)
-        }, {
-            name: 'Количество пробежек',
-            type: 'line',
-            data: data.map(d => d.count)
-        }],
-        chart: {
-            height: '100%',
-            type: 'line'
-        },
-        stroke: {
-            width: [0, 4]
-        },
-        title: {
-            text: 'Месячная статистика',
-            align: 'left'
-        },
-        dataLabels: {
-            enabled: true,
-            formatter: function(value) {
-                return formatNumber(value);
-            }
-        },
-        labels: data.map(d => {
-            const [year, month] = d.x.split('-');
-            return new Date(year, month - 1).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-        }),
-        xaxis: {
-            type: 'category'
-        },
-        yaxis: [{
-            title: {
-                text: 'Общая дистанция (км)'
-            }
-        }, {
-            opposite: true,
-            title: {
-                text: 'Количество пробежек'
-            }
-        }],
-        responsive: [{
-            breakpoint: 768,
-            options: {
-                chart: {
-                    height: 300
-                },
-                legend: {
-                    position: 'bottom',
-                    offsetY: 5,
-                    itemMargin: {
-                        horizontal: 5,
-                        vertical: 3
-                    }
-                },
-                xaxis: {
-                    labels: {
-                        rotate: -45,
-                        style: {
-                            fontSize: '10px'
-                        }
-                    }
-                }
-            }
-        }]
-    };
-
-    const chart = new ApexCharts(document.querySelector("#monthlyTrendsChart"), options);
-    chart.render();
-}
-
-function createTimeOfDayChart(runs) {
-    const timeSlots = Array(24).fill(0);
-    runs.forEach(run => {
-        const date = new Date(run.date_added);
-        const hour = date.getHours();
-        timeSlots[hour]++;
-    });
-
-    const options = {
-        series: [{
-            name: 'Пробежки',
-            data: timeSlots
-        }],
-        chart: {
-            height: '100%',
-            type: 'radar'
-        },
-        title: {
-            text: 'Распределение по времени суток',
-            align: 'left'
-        },
-        xaxis: {
-            categories: Array(24).fill(0).map((_, i) => `${i}:00`)
-        },
-        fill: {
-            opacity: 0.5
-        },
-        plotOptions: {
-            radar: {
-                size: 140,
-                polygons: {
-                    strokeColors: '#e9e9e9',
-                    fill: {
-                        colors: ['#f8f8f8', '#fff']
-                    }
-                }
-            }
-        },
-        dataLabels: {
-            formatter: function(value) {
-                return formatNumber(value);
-            }
-        },
-        responsive: [{
-            breakpoint: 768,
-            options: {
-                chart: {
-                    height: 300
-                },
-                plotOptions: {
-                    radar: {
-                        size: 120,
-                        offsetY: 10
-                    }
-                },
-                xaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '9px'
-                        }
-                    }
-                },
-                markers: {
-                    size: 3
-                }
-            }
-        }]
-    };
-
-    const chart = new ApexCharts(document.querySelector("#timeOfDayChart"), options);
-    chart.render();
-}
-
-function createDetailedStatsHTML(runs) {
-    const stats = calculateDetailedStats(runs);
-    
-    return `
-        <h2>Детальная статистика</h2>
-        <div class="detailed-stats-grid">
-            <div class="stat-card">
-                <h3>Лучшая пробежка</h3>
-                <p class="stat-value">${formatNumber(stats.bestRun.distance)} км</p>
-                <p class="stat-date">${new Date(stats.bestRun.date).toLocaleDateString()}</p>
-            </div>
-            <div class="stat-card">
-                <h3>Средняя дистанция</h3>
-                <p class="stat-value">${formatNumber(stats.averageDistance)} км</p>
-            </div>
-            <div class="stat-card">
-                <h3>Регулярность</h3>
-                <p class="stat-value">${formatNumber(stats.consistency)}%</p>
-                <p class="stat-subtitle">пробежек по плану</p>
-            </div>
-        </div>
-    `;
-}
-
-function calculateDetailedStats(runs) {
-    // Находим лучшую пробежку
-    const bestRun = runs.reduce((best, run) => 
-        run.km > (best?.km || 0) ? run : best, null);
-
-    // Считаем среднюю дистанцию
-    const averageDistance = runs.reduce((sum, run) => sum + run.km, 0) / runs.length;
-
-    // Рассчитываем регулярность (пример: процент недель с хотя бы одной пробежкой)
-    const weekMap = new Map();
-    runs.forEach(run => {
-        const date = new Date(run.date_added);
-        const weekKey = `${date.getFullYear()}-${getWeekNumber(date)}`;
-        weekMap.set(weekKey, true);
-    });
-    
-    const totalWeeks = Math.ceil(
-        (new Date(runs[0].date_added) - new Date(runs[runs.length - 1].date_added)) 
-        / (7 * 24 * 60 * 60 * 1000)
-    );
-    
-    const consistency = Math.round((weekMap.size / totalWeeks) * 100);
-
-    return {
-        bestRun: {
-            distance: bestRun.km,
-            date: bestRun.date_added
-        },
-        averageDistance,
-        consistency
-    };
-}
-
-// Вспомогательная функция для получения номера недели
-function getWeekNumber(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 // Добавляем функцию для отображения пустого состояния
