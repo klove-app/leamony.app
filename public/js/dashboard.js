@@ -545,65 +545,87 @@ async function loadDetailedAnalytics() {
             </div>
         `;
 
-        // Добавляем стили
+        // Обновляем стили для лучшей адаптивности
         const style = document.createElement('style');
         style.textContent = `
             .analytics-container {
-                padding: 20px;
+                padding: 10px;
+                max-width: 100%;
+                overflow-x: hidden;
             }
             .charts-section {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 15px;
             }
             .chart-row {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-                gap: 20px;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 15px;
             }
             .chart-container {
                 background: white;
                 border-radius: 15px;
-                padding: 20px;
+                padding: 15px;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                min-height: 300px;
+                min-height: 250px;
+                width: 100%;
+                overflow: hidden;
             }
             .main-chart {
                 grid-column: 1 / -1;
-                min-height: 400px;
+                min-height: 350px;
             }
             .stats-container {
-                margin-top: 30px;
+                margin-top: 20px;
                 background: white;
                 border-radius: 15px;
-                padding: 25px;
+                padding: 20px;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             }
             .detailed-stats-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 20px;
-                margin-top: 20px;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
             }
             .stat-card {
                 text-align: center;
-                padding: 20px;
+                padding: 15px;
                 background: #f8f9fa;
                 border-radius: 10px;
                 transition: transform 0.2s;
             }
             .stat-card:hover {
-                transform: translateY(-5px);
+                transform: translateY(-3px);
             }
             .stat-value {
-                font-size: 24px;
+                font-size: 20px;
                 font-weight: bold;
-                margin: 10px 0;
+                margin: 8px 0;
                 color: #2c3e50;
             }
             .stat-subtitle {
                 color: #666;
-                font-size: 14px;
+                font-size: 12px;
+            }
+            @media (max-width: 768px) {
+                .analytics-container {
+                    padding: 5px;
+                }
+                .chart-row {
+                    grid-template-columns: 1fr;
+                }
+                .chart-container {
+                    min-height: 200px;
+                    padding: 10px;
+                }
+                .main-chart {
+                    min-height: 300px;
+                }
+                .detailed-stats-grid {
+                    grid-template-columns: 1fr;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -664,7 +686,7 @@ function createProgressChart(runs) {
             dashArray: 5
         }],
         chart: {
-            height: 400,
+            height: '100%',
             type: 'line',
             animations: {
                 enabled: true,
@@ -687,7 +709,8 @@ function createProgressChart(runs) {
             zoom: {
                 enabled: true,
                 type: 'x'
-            }
+            },
+            redrawOnWindowResize: true
         },
         markers: {
             size: [4, 0, 0],
@@ -763,7 +786,25 @@ function createProgressChart(runs) {
         theme: {
             mode: 'light',
             palette: 'palette1'
-        }
+        },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: {
+                    height: 300
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetY: 7
+                },
+                yaxis: {
+                    labels: {
+                        formatter: (value) => value.toFixed(0)
+                    }
+                }
+            }
+        }]
     };
 
     const chart = new ApexCharts(document.querySelector("#progressChart"), options);
@@ -825,13 +866,14 @@ function createWeeklyActivityChart(runs) {
             data: distanceByDay.map(d => activityByDay[d] ? (d / activityByDay[d]).toFixed(1) : 0)
         }],
         chart: {
-            height: 300,
+            height: '100%',
             type: 'line',
             animations: {
                 enabled: true,
                 easing: 'easeinout',
                 speed: 800
-            }
+            },
+            redrawOnWindowResize: true
         },
         stroke: {
             width: [0, 4]
@@ -857,6 +899,28 @@ function createWeeklyActivityChart(runs) {
             title: {
                 text: 'Средняя дистанция (км)'
             }
+        }],
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: {
+                    height: 250
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetY: 0
+                },
+                yaxis: [{
+                    labels: {
+                        formatter: (value) => value.toFixed(0)
+                    }
+                }, {
+                    labels: {
+                        formatter: (value) => value.toFixed(1)
+                    }
+                }]
+            }
         }]
     };
 
@@ -881,31 +945,27 @@ function createDistributionChart(runs) {
     const options = {
         series: distribution.map(d => d.count),
         chart: {
-            type: 'donut',
-            height: 300,
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800,
-                animateGradually: {
-                    enabled: true,
-                    delay: 150
-                },
-                dynamicAnimation: {
-                    enabled: true,
-                    speed: 350
-                }
-            }
+            height: '100%',
+            type: 'donut'
         },
         labels: distribution.map(d => d.label),
         responsive: [{
-            breakpoint: 480,
+            breakpoint: 768,
             options: {
                 chart: {
-                    width: 200
+                    height: 250
                 },
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetY: 0
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '60%'
+                        }
+                    }
                 }
             }
         }],
@@ -965,13 +1025,8 @@ function createMonthlyTrendsChart(runs) {
             data: data.map(d => d.count)
         }],
         chart: {
-            height: 300,
-            type: 'line',
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800
-            }
+            height: '100%',
+            type: 'line'
         },
         stroke: {
             width: [0, 4]
@@ -1000,6 +1055,25 @@ function createMonthlyTrendsChart(runs) {
             title: {
                 text: 'Количество пробежек'
             }
+        }],
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: {
+                    height: 250
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetY: 0
+                },
+                xaxis: {
+                    labels: {
+                        rotate: -45,
+                        maxHeight: 50
+                    }
+                }
+            }
         }]
     };
 
@@ -1021,13 +1095,8 @@ function createTimeOfDayChart(runs) {
             data: timeSlots
         }],
         chart: {
-            height: 300,
-            type: 'radar',
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800
-            }
+            height: '100%',
+            type: 'radar'
         },
         title: {
             text: 'Распределение по времени суток',
@@ -1049,7 +1118,27 @@ function createTimeOfDayChart(runs) {
                     }
                 }
             }
-        }
+        },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: {
+                    height: 250
+                },
+                plotOptions: {
+                    radar: {
+                        size: 100
+                    }
+                },
+                xaxis: {
+                    labels: {
+                        style: {
+                            fontSize: '10px'
+                        }
+                    }
+                }
+            }
+        }]
     };
 
     const chart = new ApexCharts(document.querySelector("#timeOfDayChart"), options);
