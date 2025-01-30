@@ -1,5 +1,5 @@
 window._env_ = {
-    API_URL: 'https://api.runconnect.app/api/v1',
+    API_URL: 'https://api.runconnect.app',
     NODE_ENV: 'production',
     IS_SECURE: true,
     FORCE_HTTPS: true,
