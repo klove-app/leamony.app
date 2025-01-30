@@ -350,7 +350,7 @@ async function handleLogout() {
 }
 
 // Функция для переключения вкладок
-function switchTab(tabName) {
+async function switchTab(tabName) {
     const tabs = document.querySelectorAll('.tab-content');
     const buttons = document.querySelectorAll('.tab-button');
     
@@ -363,7 +363,7 @@ function switchTab(tabName) {
     });
 
     if (tabName === 'analytics') {
-        loadDetailedAnalytics();
+        await loadDetailedAnalytics();
     }
 }
 
@@ -505,11 +505,11 @@ function createDistanceDistributionChart(runs) {
 }
 
 // Обновляем функцию loadDetailedAnalytics
-function loadDetailedAnalytics() {
+async function loadDetailedAnalytics() {
     try {
         console.group('Загрузка детальной аналитики');
         
-        const allRuns = getRuns(null, null);
+        const allRuns = await getRuns(null, null);
         console.log('Получены пробежки:', allRuns);
 
         if (!allRuns || allRuns.length === 0) {
