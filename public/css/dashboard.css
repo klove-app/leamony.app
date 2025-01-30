@@ -930,291 +930,103 @@ body {
     }
 }
 
-/* Стили для формы генерации плана тренировок */
+/* Обновленные стили для формы генерации плана тренировок */
 .training-plan-form-container {
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
     padding: 20px;
 }
 
+.training-plan-form-container h2 {
+    font-size: 24px;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
 .training-plan-form {
     background: white;
-    border-radius: var(--border-radius);
+    border-radius: 12px;
     padding: 24px;
-    box-shadow: var(--shadow-sm);
-}
-
-.form-section {
-    margin-bottom: 32px;
-}
-
-.form-section h3 {
-    font-size: 1.2rem;
-    color: var(--text-primary);
-    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
+    font-size: 14px;
+    color: var(--text-primary);
     margin-bottom: 8px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form-control {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 12px;
+    font-size: 14px;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 1rem;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: border-color 0.2s;
 }
 
-.days-selector {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 8px;
-    margin-top: 8px;
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
-.days-selector label {
-    display: flex;
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    padding-right: 40px;
+}
+
+textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.btn {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.form-actions {
-    margin-top: 24px;
-    text-align: right;
-}
-
-/* Стили для отображения плана тренировок */
-.training-plan {
-    margin-top: 40px;
-}
-
-.plan-header {
-    margin-bottom: 32px;
-    text-align: center;
-}
-
-.plan-summary {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    max-width: 600px;
-    margin: 16px auto;
-}
-
-.plan-stats {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 24px;
-    margin-bottom: 32px;
-    box-shadow: var(--shadow-sm);
-}
-
-.stat-item {
-    margin-bottom: 16px;
-}
-
-.stat-label {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-}
-
-.weekly-mileage {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 16px;
-}
-
-.week-stat {
-    background: #f8fafc;
-    padding: 12px;
-    border-radius: 6px;
-    text-align: center;
-}
-
-.week-stat span:first-child {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-}
-
-.week-stat span:last-child {
-    font-size: 1.1rem;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 14px;
     font-weight: 500;
-    color: var(--primary-color);
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.plan-recommendations {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 24px;
-    margin-bottom: 32px;
-    box-shadow: var(--shadow-sm);
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    width: 100%;
 }
 
-.plan-recommendations h3 {
-    margin-bottom: 16px;
-    font-size: 1.2rem;
+.btn-primary:hover {
+    background-color: var(--primary-dark);
 }
 
-.plan-recommendations ul {
-    list-style-type: none;
-    padding: 0;
+.btn-primary:active {
+    transform: translateY(1px);
 }
 
-.plan-recommendations li {
-    position: relative;
-    padding-left: 24px;
-    margin-bottom: 12px;
-    color: var(--text-secondary);
-}
-
-.plan-recommendations li:before {
-    content: "•";
-    position: absolute;
-    left: 8px;
-    color: var(--primary-color);
-}
-
-.workouts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
-}
-
-.workout-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-    border-top: 4px solid #e2e8f0;
-}
-
-.workout-card.key-workout {
-    border-top-color: var(--primary-color);
-}
-
-.workout-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.workout-date {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.workout-type {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--primary-color);
-    background: #f0f5ff;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.workout-body {
-    margin-bottom: 16px;
-}
-
-.workout-distance,
-.workout-duration,
-.workout-pace {
-    display: inline-block;
-    margin-right: 16px;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.workout-description {
-    margin: 16px 0;
-    color: var(--text-primary);
-    line-height: 1.5;
-}
-
-.workout-intervals {
-    background: #f8fafc;
-    padding: 16px;
-    border-radius: 6px;
-    margin: 16px 0;
-}
-
-.workout-intervals h4 {
-    font-size: 0.9rem;
-    margin-bottom: 12px;
-}
-
-.interval-item {
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-.interval-item .recovery {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    margin-left: 8px;
-}
-
-.workout-nutrition,
-.workout-recovery {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e2e8f0;
-}
-
-.workout-nutrition h4,
-.workout-recovery h4 {
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-}
-
-.workout-nutrition p,
-.workout-recovery p {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    line-height: 1.5;
-}
-
-.error-message {
-    background: #fee2e2;
-    color: #dc2626;
-    padding: 16px;
-    border-radius: var(--border-radius);
-    margin-top: 24px;
-    text-align: center;
-}
-
-@media (max-width: 768px) {
+/* Медиа-запросы */
+@media (max-width: 640px) {
     .training-plan-form-container {
         padding: 16px;
     }
 
-    .workouts-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .weekly-mileage {
-        grid-template-columns: repeat(2, 1fr);
+    .training-plan-form {
+        padding: 16px;
     }
 }
 

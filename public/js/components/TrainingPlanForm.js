@@ -8,87 +8,45 @@ class TrainingPlanForm {
     render() {
         this.container.innerHTML = `
             <div class="training-plan-form-container">
-                <h2>Генерация плана тренировок</h2>
+                <h2>Получить план тренировок</h2>
                 <form id="trainingPlanForm" class="training-plan-form">
-                    <div class="form-section">
-                        <h3>Основная информация</h3>
-                        <div class="form-group">
-                            <label>Уровень подготовки</label>
-                            <select name="current_level" required>
-                                <option value="beginner">Начинающий</option>
-                                <option value="intermediate">Средний</option>
-                                <option value="advanced">Продвинутый</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Недельный километраж</label>
-                            <input type="number" name="weekly_mileage" min="0" step="1" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Тип цели</label>
-                            <select name="goal_type" required>
-                                <option value="5k">5 км</option>
-                                <option value="10k">10 км</option>
-                                <option value="half_marathon">Полумарафон</option>
-                                <option value="marathon">Марафон</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Дата цели</label>
-                            <input type="date" name="goal_date" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Целевое время</label>
-                            <input type="time" name="goal_time" step="1" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Основная цель</label>
+                        <select name="goal_type" class="form-control" required>
+                            <option value="improve_endurance">Улучшить выносливость</option>
+                            <option value="increase_distance">Увеличить дистанцию</option>
+                            <option value="improve_speed">Улучшить скорость</option>
+                            <option value="weight_loss">Снижение веса</option>
+                            <option value="marathon_prep">Подготовка к марафону</option>
+                        </select>
                     </div>
 
-                    <div class="form-section">
-                        <h3>Предпочтения</h3>
-                        <div class="form-group">
-                            <label>Предпочитаемые дни тренировок</label>
-                            <div class="days-selector">
-                                <label><input type="checkbox" name="preferred_days" value="1"> Пн</label>
-                                <label><input type="checkbox" name="preferred_days" value="2"> Вт</label>
-                                <label><input type="checkbox" name="preferred_days" value="3"> Ср</label>
-                                <label><input type="checkbox" name="preferred_days" value="4"> Чт</label>
-                                <label><input type="checkbox" name="preferred_days" value="5"> Пт</label>
-                                <label><input type="checkbox" name="preferred_days" value="6"> Сб</label>
-                                <label><input type="checkbox" name="preferred_days" value="0"> Вс</label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Предпочитаемое время тренировок</label>
-                            <input type="time" name="preferred_workout_time">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Травмы/ограничения</label>
-                            <textarea name="injuries"></textarea>
-                        </div>
+                    <div class="form-group">
+                        <label>Количество тренировок в неделю</label>
+                        <select name="training_days" class="form-control" required>
+                            <option value="2">2 дня</option>
+                            <option value="3" selected>3 дня</option>
+                            <option value="4">4 дня</option>
+                            <option value="5">5 дней</option>
+                        </select>
                     </div>
 
-                    <div class="form-section">
-                        <h3>Период планирования</h3>
-                        <div class="form-group">
-                            <label>Дата начала</label>
-                            <input type="date" name="start_date" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Дата окончания</label>
-                            <input type="date" name="end_date" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Текущий уровень</label>
+                        <select name="current_level" class="form-control" required>
+                            <option value="beginner">Начинающий (до 5 км)</option>
+                            <option value="intermediate">Средний (5-10 км)</option>
+                            <option value="advanced">Продвинутый (более 10 км)</option>
+                        </select>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Сгенерировать план</button>
+                    <div class="form-group">
+                        <label>Дополнительные пожелания</label>
+                        <textarea name="notes" class="form-control" rows="3" 
+                            placeholder="Например: предпочитаемое время тренировок, ограничения по здоровью, специфические цели"></textarea>
                     </div>
+
+                    <button type="submit" class="btn btn-primary">Сгенерировать план</button>
                 </form>
                 <div id="planResult" class="plan-result"></div>
             </div>
@@ -114,17 +72,13 @@ class TrainingPlanForm {
         const request = {
             athlete_context: {
                 current_level: formData.get('current_level'),
-                weekly_mileage: parseInt(formData.get('weekly_mileage')),
-                preferred_days: Array.from(form.querySelectorAll('input[name="preferred_days"]:checked'))
-                    .map(input => parseInt(input.value)),
+                training_days: parseInt(formData.get('training_days')),
                 goal_type: formData.get('goal_type'),
-                goal_date: formData.get('goal_date'),
-                goal_time: formData.get('goal_time'),
-                injuries: formData.get('injuries') || undefined,
-                preferred_workout_time: formData.get('preferred_workout_time') || undefined
+                notes: formData.get('notes') || undefined
             },
-            start_date: formData.get('start_date'),
-            end_date: formData.get('end_date'),
+            // Используем текущую дату как начало и +30 дней как конец
+            start_date: new Date().toISOString().split('T')[0],
+            end_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
             workout_history: [] // Пока оставим пустым, потом добавим реальные данные
         };
 
