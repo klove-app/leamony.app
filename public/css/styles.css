@@ -1060,3 +1060,64 @@ p {
 .raw-data pre:last-child {
     margin-bottom: 0;
 }
+
+.loading-text {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin: 1rem 0;
+    text-align: center;
+    position: relative;
+}
+
+.loading-dots:after {
+    content: '';
+    animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80% { content: '...'; }
+    100% { content: ''; }
+}
+
+.loading-progress {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    margin: 1rem 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-progress-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--primary-color);
+    width: 0;
+    animation: progress 3s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+.loading-subtext {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.loading-retry {
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-top: 1rem;
+    text-align: center;
+}

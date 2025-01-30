@@ -98,75 +98,112 @@ class TrainingPlanForm {
                 preferred_workout_time: formData.get('preferred_workout_time') || undefined,
                 injuries: formData.get('injuries') || undefined
             },
-            // Используем текущую дату как начало и +30 дней как конец
             start_date: new Date().toISOString().split('T')[0],
             end_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-            workout_history: [] // Пока оставим пустым, потом добавим реальные данные
+            workout_history: []
         };
 
-        try {
-            const response = await fetch('/api/v1/ai/training-plan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getToken()}`
-                },
-                body: JSON.stringify(request)
-            });
-
-            if (!response.ok) {
-                throw new Error('Ошибка при генерации плана');
-            }
-
-            const plan = await response.json();
-            
-            // Проверяем структуру полученных данных
-            if (!this.validatePlanData(plan)) {
-                throw new Error('Некорректный формат данных плана тренировок');
-            }
-
-            // Создаем контейнер для плана, если его еще нет
-            let planContainer = this.container.querySelector('.plan-result');
-            if (!planContainer) {
-                planContainer = document.createElement('div');
-                planContainer.className = 'plan-result';
-                this.container.appendChild(planContainer);
-            }
-
-            // Отображаем план
-            this.renderPlan(plan, planContainer);
-
-            // Добавляем сырой запрос и ответ от API
-            const rawContainer = document.createElement('div');
-            rawContainer.className = 'raw-data';
-            
-            const rawRequest = document.createElement('pre');
-            rawRequest.className = 'raw-response';
-            rawRequest.innerHTML = '<h4>Отправленный запрос:</h4>' + JSON.stringify(request, null, 2);
-            
-            const rawResponse = document.createElement('pre');
-            rawResponse.className = 'raw-response';
-            rawResponse.innerHTML = '<h4>Полученный ответ:</h4>' + JSON.stringify(plan, null, 2);
-            
-            rawContainer.appendChild(rawRequest);
-            rawContainer.appendChild(rawResponse);
-            planContainer.appendChild(rawContainer);
-
-            // Добавляем обработчики для разворачивания/сворачивания тренировок
-            planContainer.querySelectorAll('.workout-card').forEach(card => {
-                const header = card.querySelector('.workout-header');
-                const body = card.querySelector('.workout-details');
-                body.style.display = 'none';
+        // Максимальное количество попыток
+        const maxRetries = 3;
+        // Таймаут для каждой попытки (3 минуты)
+        const timeout = 180000;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Обновляем текст загрузки с номером попытки
+                this.updateLoadingText(`Попытка ${attempt}/${maxRetries}: Генерируем ваш персональный план тренировок...`);
                 
-                header.addEventListener('click', () => {
-                    const isExpanded = body.style.display !== 'none';
-                    body.style.display = isExpanded ? 'none' : 'block';
-                    header.classList.toggle('expanded', !isExpanded);
+                // Создаем AbortController для таймаута
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                const response = await fetch('/api/v1/ai/training-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.getToken()}`
+                    },
+                    body: JSON.stringify(request),
+                    signal: controller.signal
                 });
-            });
-        } catch (error) {
-            console.error('Ошибка:', error);
-            this.showError('Произошла ошибка при генерации плана тренировок');
+
+                // Очищаем таймаут
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error('Ошибка при генерации плана');
+                }
+
+                const plan = await response.json();
+                
+                // Проверяем структуру полученных данных
+                if (!this.validatePlanData(plan)) {
+                    throw new Error('Некорректный формат данных плана тренировок');
+                }
+
+                // Создаем контейнер для плана, если его еще нет
+                let planContainer = this.container.querySelector('.plan-result');
+                if (!planContainer) {
+                    planContainer = document.createElement('div');
+                    planContainer.className = 'plan-result';
+                    this.container.appendChild(planContainer);
+                }
+
+                // Отображаем план
+                this.renderPlan(plan, planContainer);
+
+                // Добавляем сырой запрос и ответ от API
+                const rawContainer = document.createElement('div');
+                rawContainer.className = 'raw-data';
+                
+                const rawRequest = document.createElement('pre');
+                rawRequest.className = 'raw-response';
+                rawRequest.innerHTML = '<h4>Отправленный запрос:</h4>' + JSON.stringify(request, null, 2);
+                
+                const rawResponse = document.createElement('pre');
+                rawResponse.className = 'raw-response';
+                rawResponse.innerHTML = '<h4>Полученный ответ:</h4>' + JSON.stringify(plan, null, 2);
+                
+                rawContainer.appendChild(rawRequest);
+                rawContainer.appendChild(rawResponse);
+                planContainer.appendChild(rawContainer);
+
+                // Добавляем обработчики для разворачивания/сворачивания тренировок
+                planContainer.querySelectorAll('.workout-card').forEach(card => {
+                    const header = card.querySelector('.workout-header');
+                    const body = card.querySelector('.workout-details');
+                    body.style.display = 'none';
+                    
+                    header.addEventListener('click', () => {
+                        const isExpanded = body.style.display !== 'none';
+                        body.style.display = isExpanded ? 'none' : 'block';
+                        header.classList.toggle('expanded', !isExpanded);
+                    });
+                });
+
+                // Если успешно, выходим из цикла
+                break;
+            } catch (error) {
+                console.error(`Попытка ${attempt} не удалась:`, error);
+                
+                // Если это была последняя попытка
+                if (attempt === maxRetries) {
+                    this.showError('Не удалось сгенерировать план тренировок. Пожалуйста, попробуйте позже.');
+                    return;
+                }
+                
+                // Ждем перед следующей попыткой (увеличиваем время ожидания с каждой попыткой)
+                const delay = attempt * 2000; // 2 сек, 4 сек, 6 сек
+                this.updateLoadingText(`Повторная попытка через ${delay/1000} секунд...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    updateLoadingText(text) {
+        const loadingText = this.container.querySelector('.loading-text');
+        if (loadingText) {
+            loadingText.innerHTML = text + '<span class="loading-dots"></span>';
         }
     }
 
