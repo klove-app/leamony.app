@@ -110,12 +110,12 @@ class TrainingPlanForm {
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                // Обновляем текст загрузки с номером попытки
-                this.updateLoadingText(`Попытка ${attempt}/${maxRetries}: Генерируем ваш персональный план тренировок...`);
-                
                 // Создаем AbortController для таймаута
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                // Обновляем текст с информацией о том, что запрос может занять время
+                this.updateLoadingText(`Попытка ${attempt}/${maxRetries}: Генерируем ваш персональный план тренировок... Это может занять 1-2 минуты`);
 
                 const response = await fetch('/api/v1/ai/training-plan', {
                     method: 'POST',
@@ -195,21 +195,21 @@ class TrainingPlanForm {
                 // Определяем тип ошибки и устанавливаем задержку
                 let delay;
                 if (error.name === 'AbortError') {
-                    // Если это таймаут, пробуем сразу же
-                    this.updateLoadingText(`Превышено время ожидания. Пробуем снова...`);
-                    delay = 0;
+                    // Если это таймаут, ждем 30 секунд перед следующей попыткой
+                    delay = 30000;
+                    this.updateLoadingText(`Превышено время ожидания (5 минут). Следующая попытка через 30 секунд...`);
                 } else if (response && response.status === 429) {
-                    // Если сервер сообщает о превышении лимита запросов
-                    delay = 10000; // 10 секунд
-                    this.updateLoadingText(`Слишком много запросов. Следующая попытка через ${delay/1000} секунд...`);
+                    // Если сервер сообщает о превышении лимита запросов, ждем 3 минуты
+                    delay = 180000;
+                    this.updateLoadingText(`Слишком много запросов. Следующая попытка через 3 минуты...`);
                 } else if (response && response.status >= 500) {
-                    // Если ошибка на стороне сервера
-                    delay = attempt * 5000; // 5, 10, 15 секунд
-                    this.updateLoadingText(`Ошибка сервера. Следующая попытка через ${delay/1000} секунд...`);
+                    // Если ошибка на стороне сервера, ждем 2 минуты
+                    delay = 120000;
+                    this.updateLoadingText(`Ошибка сервера. Следующая попытка через 2 минуты...`);
                 } else {
-                    // Для остальных ошибок используем экспоненциальную задержку
-                    delay = Math.min(1000 * Math.pow(2, attempt), 30000); // Максимум 30 секунд
-                    this.updateLoadingText(`Ошибка запроса. Следующая попытка через ${delay/1000} секунд...`);
+                    // Для остальных ошибок используем задержку 1 минута
+                    delay = 60000;
+                    this.updateLoadingText(`Ошибка запроса. Следующая попытка через 1 минуту...`);
                 }
                 
                 await new Promise(resolve => setTimeout(resolve, delay));
