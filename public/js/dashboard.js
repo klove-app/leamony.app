@@ -147,6 +147,121 @@ async function handleTelegramSync() {
     }
 }
 
+// Функция для инициализации вкладок
+function initializeTabs() {
+    console.group('Инициализация вкладок');
+    
+    // Удаляем существующую навигацию, если она есть
+    const existingNavigation = document.querySelector('.tab-navigation');
+    if (existingNavigation) {
+        existingNavigation.remove();
+    }
+    const existingTabContainers = document.querySelector('.tab-containers');
+    if (existingTabContainers) {
+        existingTabContainers.remove();
+    }
+
+    const mainContent = document.querySelector('.dashboard-content');
+    if (!mainContent) {
+        console.error('Не найден контейнер для контента');
+        console.groupEnd();
+        return;
+    }
+
+    // Сохраняем существующий контент
+    const existingContent = Array.from(mainContent.children);
+
+    // Создаем навигацию
+    const tabNavigation = document.createElement('div');
+    tabNavigation.className = 'tab-navigation';
+    tabNavigation.innerHTML = `
+        <button class="tab-button active" data-tab="current">Текущие данные</button>
+        <button class="tab-button" data-tab="analytics">Аналитика</button>
+        <button class="tab-button" data-tab="training">План тренировок</button>
+    `;
+
+    // Создаем контейнеры для контента вкладок
+    const tabContainers = document.createElement('div');
+    tabContainers.className = 'tab-containers';
+    tabContainers.innerHTML = `
+        <div id="currentTab" class="tab-content active"></div>
+        <div id="analyticsTab" class="tab-content"></div>
+        <div id="trainingTab" class="tab-content"></div>
+    `;
+
+    // Очищаем основной контейнер
+    mainContent.innerHTML = '';
+
+    // Добавляем новую структуру
+    mainContent.appendChild(tabNavigation);
+    mainContent.appendChild(tabContainers);
+
+    // Перемещаем существующий контент в currentTab
+    const currentTab = document.getElementById('currentTab');
+    existingContent.forEach(element => {
+        if (!element.classList.contains('tab-navigation') && 
+            !element.classList.contains('tab-containers')) {
+            // Перемещаем элемент вместо клонирования
+            currentTab.appendChild(element);
+        }
+    });
+
+    // Добавляем стили для вкладок
+    const existingStyle = document.querySelector('style[data-tabs-style]');
+    if (!existingStyle) {
+        const style = document.createElement('style');
+        style.setAttribute('data-tabs-style', 'true');
+        style.textContent = `
+            .tab-navigation {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+            }
+
+            .tab-button {
+                padding: 8px 16px;
+                border: none;
+                background: none;
+                cursor: pointer;
+                font-size: 16px;
+                color: #666;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+            }
+
+            .tab-button:hover {
+                background: #f0f0f0;
+            }
+
+            .tab-button.active {
+                color: #4a69bd;
+                font-weight: bold;
+                background: #e8f0fe;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Добавляем обработчики для кнопок
+    const buttons = tabNavigation.querySelectorAll('.tab-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+
+    console.log('Инициализация вкладок завершена');
+    console.groupEnd();
+}
+
 // Обновляем функцию loadUserData
 async function loadUserData(forceCheck = false) {
     try {
@@ -195,120 +310,37 @@ async function loadUserData(forceCheck = false) {
             data.recentRuns = runs.slice(0, 5);
         }
 
-        // Обновляем DOM только после подготовки всех данных
-        const elements = {
-            dashboardContent: document.querySelector('.dashboard-content'),
-            welcomeMessage: document.getElementById('welcomeMessage'),
-            progressSection: document.getElementById('progressSection'),
-            metricsGrid: document.querySelector('.metrics-grid'),
-            recentRuns: document.querySelector('.recent-runs'),
-            actionButtons: document.querySelector('.action-buttons'),
-            lastRunInfo: document.getElementById('lastRunInfo'),
-            periodButtons: document.querySelectorAll('.period-button')
-        };
+        // Обновляем DOM
+        const currentTab = document.getElementById('currentTab');
+        if (currentTab) {
+            // Обновляем приветствие
+            const welcomeMessage = currentTab.querySelector('#welcomeMessage');
+            if (welcomeMessage) welcomeMessage.textContent = data.welcomeMessage;
 
-        // Удаляем старое пустое состояние
-        const existingEmptyState = document.querySelector('.empty-state');
-        if (existingEmptyState) {
-            existingEmptyState.remove();
-        }
+            // Обновляем информацию о последней пробежке
+            const lastRunInfo = currentTab.querySelector('#lastRunInfo');
+            if (lastRunInfo && data.stats) lastRunInfo.textContent = data.stats.lastRunInfo;
 
-        // Обновляем приветствие
-        if (elements.welcomeMessage) {
-            elements.welcomeMessage.textContent = data.welcomeMessage;
-        }
-
-        if (elements.lastRunInfo && data.stats) {
-            elements.lastRunInfo.textContent = data.stats.lastRunInfo;
-        }
-
-        // Обновляем контент в зависимости от наличия данных
-        if (!data.hasRuns) {
-            // Показываем пустое состояние
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.innerHTML = `
-                <h2>Нет пробежек за ${currentPeriod === 'year' ? 'год' : currentPeriod === 'month' ? 'месяц' : 'неделю'}</h2>
-                <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
-                <button id="syncButton" class="sync-button">
-                    <span class="button-icon">🔄</span>
-                    Синхронизировать с Telegram
-                </button>
-            `;
-            elements.dashboardContent.appendChild(emptyState);
-
-            // Добавляем обработчик для кнопки синхронизации
-            const syncButton = document.getElementById('syncButton');
-            if (syncButton) {
-                syncButton.addEventListener('click', handleTelegramSync);
-            }
-
-            // Скрываем секции с данными
-            if (elements.progressSection) elements.progressSection.style.display = 'none';
-            if (elements.metricsGrid) elements.metricsGrid.style.display = 'none';
-            if (elements.recentRuns) elements.recentRuns.style.display = 'none';
-            if (elements.actionButtons) elements.actionButtons.style.display = 'none';
-        } else {
-            // Обновляем прогресс
-            if (elements.progressSection && data.yearlyGoal > 0) {
-                const percentage = Math.min((data.stats.totalDistance / data.yearlyGoal) * 100, 100);
-                elements.progressSection.innerHTML = `
-                    <div class="progress-info">
-                        <span class="progress-label">Цель на год: ${data.yearlyGoal} км</span>
-                        <span class="progress-value">${percentage.toFixed(1)}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percentage}%"></div>
-                    </div>
-                `;
-                elements.progressSection.style.display = 'block';
-            }
-
-            // Обновляем метрики
-            if (elements.metricsGrid) {
-                const metrics = {
-                    totalDistance: document.querySelector('#totalDistanceCard .metric-value'),
-                    avgDistance: document.querySelector('#avgDistanceCard .metric-value'),
-                    totalRuns: document.querySelector('#totalRunsCard .metric-value')
-                };
-
-                if (metrics.totalDistance) metrics.totalDistance.textContent = `${data.stats.totalDistance.toFixed(1)} км`;
-                if (metrics.avgDistance) metrics.avgDistance.textContent = `${data.stats.avgDistance.toFixed(1)} км`;
-                if (metrics.totalRuns) metrics.totalRuns.textContent = data.stats.totalRuns;
-                elements.metricsGrid.style.display = 'grid';
-            }
-
-            // Обновляем таблицу пробежек
-            if (elements.recentRuns) {
-                const tbody = document.getElementById('runsTableBody');
-                if (tbody) {
-                    tbody.innerHTML = data.recentRuns.map(run => `
-                        <tr>
-                            <td>${new Date(run.date_added).toLocaleDateString()}</td>
-                            <td class="distance">${run.km.toFixed(1)}</td>
-                            <td class="time">${run.duration || '-'}</td>
-                            <td class="notes">${run.notes || ''}</td>
-                        </tr>
-                    `).join('');
-                    elements.recentRuns.style.display = 'block';
-                }
-            }
-
-            // Показываем кнопки действий
-            if (elements.actionButtons) {
-                elements.actionButtons.style.display = 'flex';
+            if (data.hasRuns) {
+                // Обновляем прогресс
+                updateProgressSection(data.stats.totalDistance, data.yearlyGoal);
+                
+                // Обновляем метрики
+                updateMetrics(
+                    data.stats.totalDistance,
+                    data.stats.avgDistance,
+                    data.stats.totalRuns
+                );
+                
+                // Обновляем таблицу пробежек
+                updateRunsTable(data.recentRuns);
             }
         }
-
-        // Обновляем активную кнопку периода
-        elements.periodButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.period === currentPeriod);
-        });
 
         console.groupEnd();
     } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
-        showError('Произошла ошибка при загрузке данных');
+        console.error('Ошибка при загрузке данных:', error);
+        showError('Не удалось загрузить данные');
         console.groupEnd();
     }
 }
@@ -1105,114 +1137,6 @@ async function generateTrainingPlan() {
         }
     `;
     document.head.appendChild(style);
-}
-
-// Функция для инициализации вкладок
-function initializeTabs() {
-    console.group('Инициализация вкладок');
-    
-    // Проверяем, не существует ли уже навигация
-    const existingNavigation = document.querySelector('.tab-navigation');
-    if (existingNavigation) {
-        console.log('Навигация уже существует, пропускаем создание');
-        console.groupEnd();
-        return;
-    }
-
-    const mainContent = document.querySelector('.dashboard-content');
-    if (!mainContent) {
-        console.error('Не найден контейнер для контента');
-        console.groupEnd();
-        return;
-    }
-
-    // Сохраняем существующий контент
-    const existingContent = Array.from(mainContent.children);
-
-    // Создаем навигацию
-    const tabNavigation = document.createElement('div');
-    tabNavigation.className = 'tab-navigation';
-    tabNavigation.innerHTML = `
-        <button class="tab-button active" data-tab="current">Текущие данные</button>
-        <button class="tab-button" data-tab="analytics">Аналитика</button>
-        <button class="tab-button" data-tab="training">План тренировок</button>
-    `;
-
-    // Создаем контейнеры для контента вкладок
-    const tabContainers = document.createElement('div');
-    tabContainers.className = 'tab-containers';
-    tabContainers.innerHTML = `
-        <div id="currentTab" class="tab-content active"></div>
-        <div id="analyticsTab" class="tab-content"></div>
-        <div id="trainingTab" class="tab-content"></div>
-    `;
-
-    // Очищаем основной контейнер
-    mainContent.innerHTML = '';
-
-    // Добавляем новую структуру
-    mainContent.appendChild(tabNavigation);
-    mainContent.appendChild(tabContainers);
-
-    // Перемещаем существующий контент в currentTab
-    const currentTab = document.getElementById('currentTab');
-    existingContent.forEach(element => {
-        if (!element.classList.contains('tab-navigation') && 
-            !element.classList.contains('tab-containers')) {
-            currentTab.appendChild(element.cloneNode(true));
-        }
-    });
-
-    // Добавляем стили для вкладок
-    const style = document.createElement('style');
-    style.textContent = `
-        .tab-navigation {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .tab-button {
-            padding: 8px 16px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 16px;
-            color: #666;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .tab-button:hover {
-            background: #f0f0f0;
-        }
-
-        .tab-button.active {
-            color: #4a69bd;
-            font-weight: bold;
-            background: #e8f0fe;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Добавляем обработчики для кнопок
-    const buttons = tabNavigation.querySelectorAll('.tab-button');
-    buttons.forEach(button => {
-        button.addEventListener('click', () => switchTab(button.dataset.tab));
-    });
-
-    console.log('Инициализация вкладок завершена');
-    console.groupEnd();
 }
 
 // Инициализация страницы
