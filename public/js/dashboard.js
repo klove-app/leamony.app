@@ -511,10 +511,13 @@ async function loadDetailedAnalytics() {
     try {
         console.group('Загрузка детальной аналитики');
         
-        const allRuns = await getRuns(null, null);
-        console.log('Получены пробежки:', allRuns);
+        const response = await getRuns(null, null);
+        console.log('Получены пробежки:', response);
 
-        if (!allRuns || allRuns.length === 0) {
+        // Убедимся, что у нас есть массив пробежек
+        const allRuns = Array.isArray(response) ? response : [];
+
+        if (allRuns.length === 0) {
             showEmptyState();
             return;
         }
