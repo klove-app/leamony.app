@@ -147,6 +147,67 @@ async function handleTelegramSync() {
     }
 }
 
+// Функция для создания базовой структуры контента
+function createBaseStructure() {
+    return `
+        <h2 id="welcomeMessage"></h2>
+        <p id="lastRunInfo"></p>
+        
+        <div class="period-selector">
+            <button class="period-button" data-period="week">Неделя</button>
+            <button class="period-button" data-period="month">Месяц</button>
+            <button class="period-button active" data-period="year">Год</button>
+        </div>
+
+        <div id="progressSection" class="progress-section"></div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card" id="totalDistanceCard">
+                <div class="metric-title">Общая дистанция</div>
+                <div class="metric-value">0 км</div>
+            </div>
+            <div class="metric-card" id="avgDistanceCard">
+                <div class="metric-title">Средняя дистанция</div>
+                <div class="metric-value">0 км</div>
+            </div>
+            <div class="metric-card" id="totalRunsCard">
+                <div class="metric-title">Всего пробежек</div>
+                <div class="metric-value">0</div>
+            </div>
+        </div>
+
+        <div class="recent-runs">
+            <h3>Недавние пробежки</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Дистанция (км)</th>
+                        <th>Время</th>
+                        <th>Заметки</th>
+                    </tr>
+                </thead>
+                <tbody id="runsTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="action-buttons">
+            <button id="refreshButton" class="action-button">
+                <span class="button-icon">🔄</span>
+                Обновить данные
+            </button>
+            <button id="viewLogsButton" class="action-button">
+                <span class="button-icon">📋</span>
+                Просмотр логов
+            </button>
+            <button id="exportButton" class="action-button">
+                <span class="button-icon">📊</span>
+                Экспорт данных
+            </button>
+        </div>
+    `;
+}
+
 // Функция для инициализации вкладок
 function initializeTabs() {
     console.group('Инициализация вкладок');
@@ -167,9 +228,6 @@ function initializeTabs() {
         console.groupEnd();
         return;
     }
-
-    // Сохраняем существующий контент
-    const existingContent = Array.from(mainContent.children);
 
     // Создаем навигацию
     const tabNavigation = document.createElement('div');
@@ -196,15 +254,9 @@ function initializeTabs() {
     mainContent.appendChild(tabNavigation);
     mainContent.appendChild(tabContainers);
 
-    // Перемещаем существующий контент в currentTab
+    // Создаем базовую структуру для первой вкладки
     const currentTab = document.getElementById('currentTab');
-    existingContent.forEach(element => {
-        if (!element.classList.contains('tab-navigation') && 
-            !element.classList.contains('tab-containers')) {
-            // Перемещаем элемент вместо клонирования
-            currentTab.appendChild(element);
-        }
-    });
+    currentTab.innerHTML = createBaseStructure();
 
     // Добавляем стили для вкладок
     const existingStyle = document.querySelector('style[data-tabs-style]');
@@ -248,6 +300,77 @@ function initializeTabs() {
             .tab-content.active {
                 display: block;
             }
+
+            .period-selector {
+                margin: 20px 0;
+            }
+
+            .period-button {
+                padding: 8px 16px;
+                margin-right: 10px;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .period-button.active {
+                background: #4a69bd;
+                color: white;
+                border-color: #4a69bd;
+            }
+
+            .metrics-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .metric-card {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .recent-runs {
+                margin-top: 20px;
+            }
+
+            .recent-runs table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+
+            .recent-runs th,
+            .recent-runs td {
+                padding: 10px;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            .action-button {
+                padding: 8px 16px;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .button-icon {
+                font-size: 16px;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -257,6 +380,30 @@ function initializeTabs() {
     buttons.forEach(button => {
         button.addEventListener('click', () => switchTab(button.dataset.tab));
     });
+
+    // Добавляем обработчики для кнопок периода
+    const periodButtons = currentTab.querySelectorAll('.period-button');
+    periodButtons.forEach(button => {
+        button.addEventListener('click', () => updatePeriod(button.dataset.period));
+    });
+
+    // Добавляем обработчики для кнопок действий
+    const refreshButton = currentTab.querySelector('#refreshButton');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => loadUserData(true));
+    }
+
+    const viewLogsButton = currentTab.querySelector('#viewLogsButton');
+    if (viewLogsButton) {
+        viewLogsButton.addEventListener('click', viewLogs);
+    }
+
+    const exportButton = currentTab.querySelector('#exportButton');
+    if (exportButton) {
+        exportButton.addEventListener('click', () => {
+            showError('Функция экспорта данных находится в разработке');
+        });
+    }
 
     console.log('Инициализация вкладок завершена');
     console.groupEnd();
