@@ -1,5 +1,8 @@
 import { checkAuth, logout, getRuns, viewLogs, getTelegramBotLink } from './api.js';
-import { Chart } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/+esm';
+import { Chart, registerables } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/+esm';
+
+// Регистрируем все компоненты
+Chart.register(...registerables);
 
 // Функция для показа ошибки
 function showError(message) {
@@ -630,6 +633,27 @@ function getWeekNumber(date) {
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+// Добавляем функцию для отображения пустого состояния
+function showEmptyState() {
+    console.log('Показываем пустое состояние');
+    document.getElementById('analyticsTab').innerHTML = `
+        <div class="empty-state">
+            <h2>Нет данных о пробежках</h2>
+            <p>Подключите Telegram бота для синхронизации данных о ваших пробежках</p>
+            <button id="syncButtonAnalytics" class="sync-button">
+                <span class="button-icon">🔄</span>
+                Синхронизировать с Telegram
+            </button>
+        </div>
+    `;
+    
+    const syncButton = document.getElementById('syncButtonAnalytics');
+    if (syncButton) {
+        syncButton.addEventListener('click', handleTelegramSync);
+    }
+    console.groupEnd();
 }
 
 // Инициализация страницы
