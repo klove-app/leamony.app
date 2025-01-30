@@ -105,8 +105,8 @@ class TrainingPlanForm {
 
         // Максимальное количество попыток
         const maxRetries = 3;
-        // Таймаут для каждой попытки (3 минуты)
-        const timeout = 180000;
+        // Таймаут для каждой попытки (5 минут)
+        const timeout = 300000;
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
