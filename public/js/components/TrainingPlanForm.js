@@ -121,10 +121,13 @@ class TrainingPlanForm {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.getToken()}`
+                        'Authorization': `Bearer ${this.getToken()}`,
+                        'Keep-Alive': 'timeout=300',
+                        'Connection': 'keep-alive'
                     },
                     body: JSON.stringify(request),
-                    signal: controller.signal
+                    signal: controller.signal,
+                    keepalive: true
                 });
 
                 // Очищаем таймаут
