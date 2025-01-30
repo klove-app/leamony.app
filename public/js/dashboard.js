@@ -623,69 +623,183 @@ async function loadDetailedAnalytics() {
 
 function createProgressChart(runs) {
     const sortedRuns = [...runs].sort((a, b) => new Date(a.date_added) - new Date(b.date_added));
+    
+    // Добавляем расчет скользящего среднего за 7 дней
+    const movingAverage = [];
+    const windowSize = 7;
+    
+    for (let i = 0; i < sortedRuns.length; i++) {
+        const window = sortedRuns.slice(Math.max(0, i - windowSize + 1), i + 1);
+        const average = window.reduce((sum, run) => sum + run.km, 0) / window.length;
+        movingAverage.push({
+            x: new Date(sortedRuns[i].date_added).getTime(),
+            y: average
+        });
+    }
+
+    // Подготавливаем основные данные
     const data = sortedRuns.map(run => ({
         x: new Date(run.date_added).getTime(),
         y: run.km
     }));
 
+    // Рассчитываем тренд
+    const trend = calculateTrend(data);
+
     const options = {
         series: [{
             name: 'Дистанция',
+            type: 'scatter',
             data: data
+        }, {
+            name: 'Среднее за 7 дней',
+            type: 'line',
+            data: movingAverage,
+            color: '#2E93fA'
+        }, {
+            name: 'Тренд',
+            type: 'line',
+            data: trend,
+            color: '#FF4560',
+            dashArray: 5
         }],
         chart: {
-            type: 'area',
-            height: 350,
+            height: 400,
+            type: 'line',
             animations: {
                 enabled: true,
                 easing: 'easeinout',
                 speed: 800
             },
             toolbar: {
-                show: true
+                show: true,
+                tools: {
+                    download: true,
+                    selection: true,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: true,
+                    reset: true
+                },
+                autoSelected: 'zoom'
             },
             zoom: {
-                enabled: true
+                enabled: true,
+                type: 'x'
             }
         },
-        dataLabels: {
-            enabled: false
+        markers: {
+            size: [4, 0, 0],
+            hover: {
+                size: 6
+            }
         },
         stroke: {
-            curve: 'smooth',
-            width: 2
+            curve: ['straight', 'smooth', 'straight'],
+            width: [0, 2, 2]
         },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.3
+        grid: {
+            borderColor: '#f1f1f1',
+            xaxis: {
+                lines: {
+                    show: true
+                }
             }
         },
         xaxis: {
             type: 'datetime',
             title: {
-                text: 'Дата'
+                text: 'Дата',
+                style: {
+                    fontSize: '14px',
+                    fontWeight: 500
+                }
+            },
+            labels: {
+                datetimeFormatter: {
+                    year: 'yyyy',
+                    month: 'MMM yyyy',
+                    day: 'dd MMM',
+                    hour: 'HH:mm'
+                }
             }
         },
         yaxis: {
             title: {
-                text: 'Километры'
+                text: 'Километры',
+                style: {
+                    fontSize: '14px',
+                    fontWeight: 500
+                }
+            },
+            min: 0,
+            forceNiceScale: true,
+            labels: {
+                formatter: (value) => value.toFixed(1)
             }
         },
         tooltip: {
-            x: {
-                format: 'dd MMM yyyy'
-            }
+            shared: true,
+            intersect: false,
+            y: [{
+                formatter: function(value) {
+                    return value.toFixed(1) + ' км';
+                }
+            }, {
+                formatter: function(value) {
+                    return value.toFixed(1) + ' км (среднее)';
+                }
+            }, {
+                formatter: function(value) {
+                    return value.toFixed(1) + ' км (тренд)';
+                }
+            }]
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'right'
         },
         theme: {
+            mode: 'light',
             palette: 'palette1'
         }
     };
 
     const chart = new ApexCharts(document.querySelector("#progressChart"), options);
     chart.render();
+}
+
+// Функция для расчета линии тренда
+function calculateTrend(data) {
+    if (data.length < 2) return [];
+
+    // Преобразуем временные метки в дни от начала для линейной регрессии
+    const firstDay = data[0].x;
+    const xValues = data.map(point => (point.x - firstDay) / (24 * 60 * 60 * 1000));
+    const yValues = data.map(point => point.y);
+
+    // Рассчитываем коэффициенты линейной регрессии
+    const n = data.length;
+    const sumX = xValues.reduce((a, b) => a + b, 0);
+    const sumY = yValues.reduce((a, b) => a + b, 0);
+    const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
+    const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    // Создаем точки для линии тренда
+    return [
+        {
+            x: data[0].x,
+            y: intercept
+        },
+        {
+            x: data[data.length - 1].x,
+            y: intercept + slope * xValues[xValues.length - 1]
+        }
+    ];
 }
 
 function createWeeklyActivityChart(runs) {
