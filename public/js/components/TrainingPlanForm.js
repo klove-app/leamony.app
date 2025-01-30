@@ -198,14 +198,14 @@ class TrainingPlanForm {
                     // Если это таймаут, ждем 30 секунд перед следующей попыткой
                     delay = 30000;
                     this.updateLoadingText(`Превышено время ожидания (5 минут). Следующая попытка через 30 секунд...`);
-                } else if (response && response.status === 429) {
+                } else if (error.message.includes('status: 429')) {
                     // Если сервер сообщает о превышении лимита запросов, ждем 3 минуты
                     delay = 180000;
                     this.updateLoadingText(`Слишком много запросов. Следующая попытка через 3 минуты...`);
-                } else if (response && response.status >= 500) {
+                } else if (error.message.includes('status: 500')) {
                     // Если ошибка на стороне сервера, ждем 2 минуты
                     delay = 120000;
-                    this.updateLoadingText(`Ошибка сервера. Следующая попытка через 2 минуты...`);
+                    this.updateLoadingText(`Сервер обрабатывает запрос. Следующая попытка через 2 минуты...`);
                 } else {
                     // Для остальных ошибок используем задержку 1 минута
                     delay = 60000;
