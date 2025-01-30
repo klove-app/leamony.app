@@ -33,7 +33,7 @@ class TrainingPlanForm {
                     <div class="form-group">
                         <label>Недельный километраж</label>
                         <input type="number" name="weekly_mileage" class="form-control" min="0" step="1" 
-                            placeholder="Например: 20" />
+                            placeholder="Например: 20" required />
                     </div>
 
                     <div class="form-group">
@@ -62,7 +62,6 @@ class TrainingPlanForm {
 
                     <button type="submit" class="btn btn-primary">Сгенерировать план</button>
                 </form>
-                <div id="planResult" class="plan-result"></div>
             </div>
         `;
     }
@@ -76,7 +75,6 @@ class TrainingPlanForm {
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
-        const planResult = this.container.querySelector('#planResult');
 
         // Проверяем, что выбран хотя бы один день тренировок
         const selectedDays = Array.from(form.querySelectorAll('input[name="preferred_days"]:checked'))
@@ -88,8 +86,7 @@ class TrainingPlanForm {
         }
 
         // Показываем анимацию загрузки
-        planResult.innerHTML = this.renderLoading();
-        planResult.style.display = 'block';
+        this.showLoading();
 
         // Собираем данные из формы
         const request = {
@@ -122,22 +119,60 @@ class TrainingPlanForm {
             }
 
             const plan = await response.json();
-            this.renderPlan(plan);
+            
+            // Проверяем структуру полученных данных
+            if (!this.validatePlanData(plan)) {
+                throw new Error('Некорректный формат данных плана тренировок');
+            }
+
+            // Создаем контейнер для плана, если его еще нет
+            let planContainer = this.container.querySelector('.plan-result');
+            if (!planContainer) {
+                planContainer = document.createElement('div');
+                planContainer.className = 'plan-result';
+                this.container.appendChild(planContainer);
+            }
+
+            // Отображаем план
+            this.renderPlan(plan, planContainer);
         } catch (error) {
             console.error('Ошибка:', error);
             this.showError('Произошла ошибка при генерации плана тренировок');
         }
     }
 
-    getToken() {
-        return document.cookie
-            .split('; ')
-            .find(row => row.startsWith('access_token='))
-            ?.split('=')[1];
+    validatePlanData(plan) {
+        // Проверяем наличие необходимых полей
+        if (!plan || typeof plan !== 'object') return false;
+        if (!Array.isArray(plan.weekly_mileage)) return false;
+        if (!Array.isArray(plan.recommendations)) return false;
+        if (!Array.isArray(plan.plan)) return false;
+        if (typeof plan.summary !== 'string') return false;
+
+        // Проверяем структуру каждой тренировки
+        return plan.plan.every(workout => {
+            return (
+                workout &&
+                typeof workout.date === 'string' &&
+                typeof workout.type === 'string' &&
+                typeof workout.description === 'string' &&
+                (workout.distance === undefined || typeof workout.distance === 'number') &&
+                (workout.duration_min === undefined || typeof workout.duration_min === 'number') &&
+                (workout.target_pace === undefined || typeof workout.target_pace === 'string')
+            );
+        });
     }
 
-    renderPlan(plan) {
-        const container = this.container.querySelector('#planResult');
+    showLoading() {
+        const planResult = this.container.querySelector('.plan-result') || document.createElement('div');
+        planResult.className = 'plan-result';
+        planResult.innerHTML = this.renderLoading();
+        if (!this.container.contains(planResult)) {
+            this.container.appendChild(planResult);
+        }
+    }
+
+    renderPlan(plan, container) {
         container.innerHTML = `
             <div class="training-plan">
                 <div class="plan-header">
@@ -167,53 +202,74 @@ class TrainingPlanForm {
                 </div>
 
                 <div class="workouts-grid">
-                    ${plan.plan.map(workout => `
-                        <div class="workout-card ${workout.key_workout ? 'key-workout' : ''}">
-                            <div class="workout-header">
-                                <div class="workout-date">${new Date(workout.date).toLocaleDateString('ru-RU', {
-                                    weekday: 'short',
-                                    day: 'numeric',
-                                    month: 'short'
-                                })}</div>
-                                <div class="workout-type">${workout.type}</div>
-                            </div>
-                            
-                            <div class="workout-body">
-                                ${workout.distance ? `<div class="workout-distance">${workout.distance} км</div>` : ''}
-                                ${workout.duration_min ? `<div class="workout-duration">${workout.duration_min} мин</div>` : ''}
-                                ${workout.target_pace ? `<div class="workout-pace">Темп: ${workout.target_pace}</div>` : ''}
-                                
-                                <div class="workout-description">${workout.description}</div>
-                                
-                                ${workout.intervals ? `
-                                    <div class="workout-intervals">
-                                        <h4>Интервалы:</h4>
-                                        ${workout.intervals.map(interval => `
-                                            <div class="interval-item">
-                                                ${interval.repetitions}x ${interval.distance} @ ${interval.pace}
-                                                ${interval.recovery ? `<span class="recovery">Отдых: ${interval.recovery}</span>` : ''}
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                ` : ''}
-                            </div>
-                            
-                            ${workout.nutrition ? `
-                                <div class="workout-nutrition">
-                                    <h4>Питание:</h4>
-                                    <p>${workout.nutrition.description}</p>
-                                </div>
-                            ` : ''}
-                            
-                            ${workout.recovery ? `
-                                <div class="workout-recovery">
-                                    <h4>Восстановление:</h4>
-                                    <p>${workout.recovery.recommendations.join(', ')}</p>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
+                    ${plan.plan.map(workout => this.renderWorkout(workout)).join('')}
                 </div>
+            </div>
+        `;
+    }
+
+    renderWorkout(workout) {
+        return `
+            <div class="workout-card ${workout.key_workout ? 'key-workout' : ''}">
+                <div class="workout-header">
+                    <div class="workout-date">${new Date(workout.date).toLocaleDateString('ru-RU', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short'
+                    })}</div>
+                    <div class="workout-type">${workout.type}</div>
+                </div>
+                
+                <div class="workout-body">
+                    ${workout.distance ? `<div class="workout-distance">${workout.distance} км</div>` : ''}
+                    ${workout.duration_min ? `<div class="workout-duration">${workout.duration_min} мин</div>` : ''}
+                    ${workout.target_pace ? `<div class="workout-pace">Темп: ${workout.target_pace}</div>` : ''}
+                    
+                    <div class="workout-description">${workout.description}</div>
+                    
+                    ${this.renderIntervals(workout)}
+                </div>
+                
+                ${this.renderNutrition(workout)}
+                ${this.renderRecovery(workout)}
+            </div>
+        `;
+    }
+
+    renderIntervals(workout) {
+        if (!workout.intervals) return '';
+        
+        return `
+            <div class="workout-intervals">
+                <h4>Интервалы:</h4>
+                ${workout.intervals.map(interval => `
+                    <div class="interval-item">
+                        ${interval.repetitions}x ${interval.distance} @ ${interval.pace}
+                        ${interval.recovery ? `<span class="recovery">Отдых: ${interval.recovery}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    renderNutrition(workout) {
+        if (!workout.nutrition) return '';
+        
+        return `
+            <div class="workout-nutrition">
+                <h4>Питание:</h4>
+                <p>${workout.nutrition.description}</p>
+            </div>
+        `;
+    }
+
+    renderRecovery(workout) {
+        if (!workout.recovery) return '';
+        
+        return `
+            <div class="workout-recovery">
+                <h4>Восстановление:</h4>
+                <p>${workout.recovery.recommendations.join(', ')}</p>
             </div>
         `;
     }
@@ -250,13 +306,24 @@ class TrainingPlanForm {
     }
 
     showError(message) {
-        const container = this.container.querySelector('#planResult');
+        const container = this.container.querySelector('.plan-result') || document.createElement('div');
+        container.className = 'plan-result';
         container.innerHTML = `
             <div class="error-message">
                 <p>${message}</p>
             </div>
         `;
+        if (!this.container.contains(container)) {
+            this.container.appendChild(container);
+        }
+    }
+
+    getToken() {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith('access_token='))
+            ?.split('=')[1];
     }
 }
 
-export default TrainingPlanForm; 
+export { TrainingPlanForm }; 

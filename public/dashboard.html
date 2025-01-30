@@ -16,8 +16,6 @@
                 RunConnect
             </a>
             <div class="nav-links">
-                <button id="refreshButton" class="nav-link">Обновить данные</button>
-                <button id="viewLogsButton" class="nav-link">Просмотр логов</button>
                 <button id="logoutButton" class="nav-link">Выйти</button>
             </div>
         </div>
@@ -26,104 +24,8 @@
     <main class="dashboard-container">
         <div class="container">
             <div id="errorLog" class="error" style="display: none;"></div>
-            
             <div class="dashboard-content">
-                <div class="user-welcome">
-                    <h2 id="welcomeMessage">Загрузка...</h2>
-                    <p id="lastRunInfo"></p>
-                </div>
-
-                <div class="tab-switcher">
-                    <button class="tab-button active" data-tab="current">Текущие данные</button>
-                    <button class="tab-button" data-tab="analytics">Аналитика</button>
-                </div>
-
-                <div class="tab-content" id="currentTab">
-                    <div class="period-selector">
-                        <button class="period-button" data-period="week">Неделя</button>
-                        <button class="period-button" data-period="month">Месяц</button>
-                        <button class="period-button active" data-period="year">Год</button>
-                    </div>
-
-                    <div id="progressSection" class="progress-section"></div>
-
-                    <div class="metrics-grid">
-                        <div class="metric-card" id="totalDistanceCard">
-                            <h3>Общая дистанция</h3>
-                            <div class="metric-value">-</div>
-                        </div>
-                        <div class="metric-card" id="avgDistanceCard">
-                            <h3>Средняя дистанция</h3>
-                            <div class="metric-value">-</div>
-                        </div>
-                        <div class="metric-card" id="totalRunsCard">
-                            <h3>Всего пробежек</h3>
-                            <div class="metric-value">-</div>
-                        </div>
-                    </div>
-
-                    <div class="recent-runs">
-                        <h3>Недавние пробежки</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Дата</th>
-                                    <th>Дистанция (км)</th>
-                                    <th>Время</th>
-                                    <th>Заметки</th>
-                                </tr>
-                            </thead>
-                            <tbody id="runsTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button id="refreshButton">
-                            <span class="button-icon">🔄</span>
-                            Обновить данные
-                        </button>
-                        <button id="viewLogsButton">
-                            <span class="button-icon">📋</span>
-                            Просмотреть логи
-                        </button>
-                        <button id="exportButton">
-                            <span class="button-icon">📊</span>
-                            Экспорт данных
-                        </button>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="analyticsTab" style="display: none;">
-                    <div class="analytics-grid">
-                        <div class="analytics-card" id="yearComparisonCard">
-                            <h3>Сравнение с прошлым годом</h3>
-                            <div class="comparison-value">-</div>
-                        </div>
-                        <div class="analytics-card" id="bestMonthCard">
-                            <h3>Лучший месяц</h3>
-                            <div class="comparison-value">-</div>
-                        </div>
-                        <div class="analytics-card" id="avgMonthlyCard">
-                            <h3>Среднее за месяц</h3>
-                            <div class="comparison-value">-</div>
-                        </div>
-                    </div>
-
-                    <div class="monthly-stats">
-                        <h3>Статистика по месяцам</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Месяц</th>
-                                    <th>Дистанция (км)</th>
-                                    <th>Кол-во пробежек</th>
-                                    <th>Средняя дистанция</th>
-                                </tr>
-                            </thead>
-                            <tbody id="monthlyStatsBody"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <!-- Навигация и контент будут добавлены через JavaScript -->
             </div>
         </div>
     </main>

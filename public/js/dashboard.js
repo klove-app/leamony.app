@@ -1,7 +1,7 @@
 import { checkAuth, logout, getRuns, viewLogs, getTelegramBotLink } from './api.js';
 import { Chart, registerables } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/+esm';
 import ApexCharts from 'https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/+esm';
-import TrainingPlanForm from './components/TrainingPlanForm.js';
+import { TrainingPlanForm } from './components/TrainingPlanForm.js';
 
 // Функция для форматирования чисел
 function formatNumber(value) {
@@ -586,42 +586,45 @@ async function handleLogout() {
 
 // Функция для переключения вкладок
 async function switchTab(tabName) {
-    console.group('Переключение вкладки:', tabName);
+    console.group('Переключение на вкладку:', tabName);
     
-    // Находим все вкладки и кнопки
-    const tabs = document.querySelectorAll('.tab-content');
-    const buttons = document.querySelectorAll('.tab-button');
-    
-    // Скрываем все вкладки и убираем активный класс
-    tabs.forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    buttons.forEach(button => {
-        button.classList.remove('active');
-    });
-    
-    // Активируем нужную вкладку и кнопку
-    const activeTab = document.getElementById(`${tabName}Tab`);
-    const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
-    
-    if (activeTab && activeButton) {
-        activeTab.classList.add('active');
-        activeButton.classList.add('active');
-        
-        // Загружаем контент в зависимости от вкладки
-        try {
-            if (tabName === 'analytics') {
-                await loadDetailedAnalytics();
-            } else if (tabName === 'training') {
-                loadTrainingPlan();
+    try {
+        // Обновляем активную кнопку
+        const buttons = document.querySelectorAll('.tab-button');
+        buttons.forEach(button => {
+            button.classList.toggle('active', button.dataset.tab === tabName);
+        });
+
+        // Обновляем активный контент
+        const tabs = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+        });
+
+        // Инициализируем контент для каждой вкладки
+        if (tabName === 'training') {
+            const trainingTab = document.getElementById('trainingTab');
+            if (trainingTab && !trainingTab.querySelector('.training-plan-form-container')) {
+                console.log('Инициализация формы плана тренировок');
+                new TrainingPlanForm(trainingTab);
             }
-        } catch (error) {
-            console.error('Ошибка при загрузке контента вкладки:', error);
-            showError('Не удалось загрузить содержимое вкладки');
+        } else if (tabName === 'analytics') {
+            const analyticsTab = document.getElementById('analyticsTab');
+            if (analyticsTab) {
+                console.log('Инициализация аналитики');
+                // Здесь будет инициализация аналитики
+            }
+        } else if (tabName === 'current') {
+            console.log('Загрузка текущих данных');
+            await loadUserData();
         }
+
+        console.log('Вкладка успешно переключена');
+    } catch (error) {
+        console.error('Ошибка при переключении вкладки:', error);
+        showError('Произошла ошибка при переключении вкладки');
     }
-    
+
     console.groupEnd();
 }
 
@@ -1342,38 +1345,54 @@ async function generateTrainingPlan() {
     document.head.appendChild(style);
 }
 
-// Инициализация страницы
-let isInitialized = false;
-let isLoading = false;
-
-document.addEventListener('DOMContentLoaded', async function() {
-    console.group('Инициализация страницы');
+// Функция инициализации дашборда
+async function initDashboard() {
+    console.group('Инициализация дашборда');
     
-    if (isInitialized || isLoading) {
-        console.warn('Страница уже инициализирована или загружается');
-        console.groupEnd();
-        return;
-    }
-    
-    isLoading = true;
-
     try {
+        // Проверяем авторизацию
+        const user = await checkAuth();
+        if (!user) {
+            console.log('Пользователь не авторизован, перенаправляем на страницу входа');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        console.log('Пользователь авторизован:', user);
+
         // Инициализируем вкладки
         initializeTabs();
-        
-        // Загружаем данные
-        await loadUserData(false);
-        
-        isInitialized = true;
-        console.log('Инициализация завершена');
+        console.log('Вкладки инициализированы');
+
+        // Загружаем данные для текущей вкладки
+        await loadUserData();
+        console.log('Данные пользователя загружены');
+
+        // Настраиваем обработчики событий
+        setupEventListeners();
+        console.log('Обработчики событий настроены');
+
+        // Инициализируем форму плана тренировок, если мы на соответствующей вкладке
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab && activeTab.dataset.tab === 'training') {
+            const trainingTab = document.getElementById('trainingTab');
+            if (trainingTab && !trainingTab.querySelector('.training-plan-form-container')) {
+                new TrainingPlanForm(trainingTab);
+                console.log('Форма плана тренировок инициализирована');
+            }
+        }
+
+        console.log('Дашборд успешно инициализирован');
     } catch (error) {
-        console.error('Ошибка при инициализации:', error);
-        showError('Произошла ошибка при загрузке страницы');
-    } finally {
-        isLoading = false;
-        console.groupEnd();
+        console.error('Ошибка при инициализации дашборда:', error);
+        showError('Не удалось загрузить данные. Попробуйте обновить страницу.');
     }
-});
+    
+    console.groupEnd();
+}
+
+// Запускаем инициализацию при загрузке страницы
+document.addEventListener('DOMContentLoaded', initDashboard);
 
 function initializeDashboard() {
     // ... existing code ...
@@ -1395,4 +1414,42 @@ function initializeDashboard() {
     
     // Инициализируем форму
     new TrainingPlanForm(trainingPlanTab);
+}
+
+// Функция для настройки обработчиков событий
+function setupEventListeners() {
+    console.group('Настройка обработчиков событий');
+
+    // Обработчик для кнопки выхода
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', handleLogout);
+    }
+
+    // Обработчики для кнопок вкладок
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+
+    // Обработчики для кнопок периода
+    const periodButtons = document.querySelectorAll('.period-button');
+    periodButtons.forEach(button => {
+        button.addEventListener('click', () => updatePeriod(button.dataset.period));
+    });
+
+    // Обработчик для кнопки обновления данных
+    const refreshButton = document.getElementById('refreshButton');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => loadUserData(true));
+    }
+
+    // Обработчик для кнопки просмотра логов
+    const viewLogsButton = document.getElementById('viewLogsButton');
+    if (viewLogsButton) {
+        viewLogsButton.addEventListener('click', viewLogs);
+    }
+
+    console.log('Обработчики событий настроены');
+    console.groupEnd();
 } 
