@@ -1,6 +1,7 @@
 import { checkAuth, logout, getRuns, viewLogs, getTelegramBotLink } from './api.js';
 import { Chart, registerables } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/+esm';
 import ApexCharts from 'https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/+esm';
+import TrainingPlanForm from './components/TrainingPlanForm.js';
 
 // Функция для форматирования чисел
 function formatNumber(value) {
@@ -1372,4 +1373,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         isLoading = false;
         console.groupEnd();
     }
-}); 
+});
+
+function initializeDashboard() {
+    // ... existing code ...
+    
+    // Добавляем вкладку плана тренировок
+    const tabContent = document.querySelector('.tab-content');
+    const trainingPlanTab = document.createElement('div');
+    trainingPlanTab.id = 'trainingPlanTab';
+    trainingPlanTab.className = 'tab-pane';
+    tabContent.appendChild(trainingPlanTab);
+    
+    // Добавляем кнопку вкладки
+    const tabSwitcher = document.querySelector('.tab-switcher');
+    const trainingPlanButton = document.createElement('button');
+    trainingPlanButton.className = 'tab-button';
+    trainingPlanButton.textContent = 'План тренировок';
+    trainingPlanButton.onclick = () => switchTab('trainingPlanTab');
+    tabSwitcher.appendChild(trainingPlanButton);
+    
+    // Инициализируем форму
+    new TrainingPlanForm(trainingPlanTab);
+} 
