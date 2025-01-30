@@ -1,5 +1,6 @@
 import { checkAuth, logout, getRuns, viewLogs, getTelegramBotLink } from './api.js';
 import { Chart, registerables } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/+esm';
+import ApexCharts from 'https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/+esm';
 
 // Регистрируем все компоненты
 Chart.register(...registerables);
@@ -515,15 +516,27 @@ async function loadDetailedAnalytics() {
         const analyticsTab = document.getElementById('analyticsTab');
         analyticsTab.innerHTML = `
             <div class="analytics-container">
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <canvas id="runningTrendsChart"></canvas>
+                <div class="charts-section">
+                    <div class="chart-row">
+                        <div class="chart-container main-chart">
+                            <div id="progressChart"></div>
+                        </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="activityHeatmap"></canvas>
+                    <div class="chart-row">
+                        <div class="chart-container">
+                            <div id="weeklyActivityChart"></div>
+                        </div>
+                        <div class="chart-container">
+                            <div id="distanceDistributionChart"></div>
+                        </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="distanceDistribution"></canvas>
+                    <div class="chart-row">
+                        <div class="chart-container">
+                            <div id="monthlyTrendsChart"></div>
+                        </div>
+                        <div class="chart-container">
+                            <div id="timeOfDayChart"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="stats-container">
@@ -532,40 +545,401 @@ async function loadDetailedAnalytics() {
             </div>
         `;
 
-        // Создаем графики
-        createRunningTrendsChart(allRuns);
-        createActivityHeatmap(allRuns);
-        createDistanceDistributionChart(allRuns);
-
-        // Добавляем стили для графиков
+        // Добавляем стили
         const style = document.createElement('style');
         style.textContent = `
-            .charts-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            .analytics-container {
+                padding: 20px;
+            }
+            .charts-section {
+                display: flex;
+                flex-direction: column;
                 gap: 20px;
-                margin-bottom: 30px;
+            }
+            .chart-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                gap: 20px;
             }
             .chart-container {
                 background: white;
-                border-radius: 10px;
-                padding: 15px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-radius: 15px;
+                padding: 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                min-height: 300px;
+            }
+            .main-chart {
+                grid-column: 1 / -1;
+                min-height: 400px;
             }
             .stats-container {
+                margin-top: 30px;
                 background: white;
-                border-radius: 10px;
-                padding: 20px;
+                border-radius: 15px;
+                padding: 25px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .detailed-stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
                 margin-top: 20px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .stat-card {
+                text-align: center;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                transition: transform 0.2s;
+            }
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+            .stat-value {
+                font-size: 24px;
+                font-weight: bold;
+                margin: 10px 0;
+                color: #2c3e50;
+            }
+            .stat-subtitle {
+                color: #666;
+                font-size: 14px;
             }
         `;
         document.head.appendChild(style);
+
+        // Создаем графики
+        createProgressChart(allRuns);
+        createWeeklyActivityChart(allRuns);
+        createDistributionChart(allRuns);
+        createMonthlyTrendsChart(allRuns);
+        createTimeOfDayChart(allRuns);
 
     } catch (error) {
         console.error('Ошибка при загрузке аналитики:', error);
         showError('Не удалось загрузить аналитику');
     }
+}
+
+function createProgressChart(runs) {
+    const sortedRuns = [...runs].sort((a, b) => new Date(a.date_added) - new Date(b.date_added));
+    const data = sortedRuns.map(run => ({
+        x: new Date(run.date_added).getTime(),
+        y: run.km
+    }));
+
+    const options = {
+        series: [{
+            name: 'Дистанция',
+            data: data
+        }],
+        chart: {
+            type: 'area',
+            height: 350,
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            },
+            toolbar: {
+                show: true
+            },
+            zoom: {
+                enabled: true
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.3
+            }
+        },
+        xaxis: {
+            type: 'datetime',
+            title: {
+                text: 'Дата'
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Километры'
+            }
+        },
+        tooltip: {
+            x: {
+                format: 'dd MMM yyyy'
+            }
+        },
+        theme: {
+            palette: 'palette1'
+        }
+    };
+
+    const chart = new ApexCharts(document.querySelector("#progressChart"), options);
+    chart.render();
+}
+
+function createWeeklyActivityChart(runs) {
+    const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    const activityByDay = new Array(7).fill(0);
+    const distanceByDay = new Array(7).fill(0);
+
+    runs.forEach(run => {
+        const date = new Date(run.date_added);
+        const dayIndex = (date.getDay() + 6) % 7;
+        activityByDay[dayIndex]++;
+        distanceByDay[dayIndex] += run.km;
+    });
+
+    const options = {
+        series: [{
+            name: 'Количество пробежек',
+            type: 'column',
+            data: activityByDay
+        }, {
+            name: 'Средняя дистанция',
+            type: 'line',
+            data: distanceByDay.map(d => activityByDay[d] ? (d / activityByDay[d]).toFixed(1) : 0)
+        }],
+        chart: {
+            height: 300,
+            type: 'line',
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
+        },
+        stroke: {
+            width: [0, 4]
+        },
+        title: {
+            text: 'Активность по дням недели',
+            align: 'left'
+        },
+        dataLabels: {
+            enabled: true,
+            enabledOnSeries: [1]
+        },
+        labels: daysOfWeek,
+        xaxis: {
+            type: 'category'
+        },
+        yaxis: [{
+            title: {
+                text: 'Количество пробежек'
+            }
+        }, {
+            opposite: true,
+            title: {
+                text: 'Средняя дистанция (км)'
+            }
+        }]
+    };
+
+    const chart = new ApexCharts(document.querySelector("#weeklyActivityChart"), options);
+    chart.render();
+}
+
+function createDistributionChart(runs) {
+    const ranges = [
+        { min: 0, max: 3, label: '0-3 км' },
+        { min: 3, max: 5, label: '3-5 км' },
+        { min: 5, max: 10, label: '5-10 км' },
+        { min: 10, max: 15, label: '10-15 км' },
+        { min: 15, max: Infinity, label: '15+ км' }
+    ];
+
+    const distribution = ranges.map(range => ({
+        ...range,
+        count: runs.filter(run => run.km >= range.min && run.km < range.max).length
+    }));
+
+    const options = {
+        series: distribution.map(d => d.count),
+        chart: {
+            type: 'donut',
+            height: 300,
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                },
+                dynamicAnimation: {
+                    enabled: true,
+                    speed: 350
+                }
+            }
+        },
+        labels: distribution.map(d => d.label),
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 200
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }],
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '70%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Всего пробежек',
+                            formatter: function (w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    const chart = new ApexCharts(document.querySelector("#distanceDistributionChart"), options);
+    chart.render();
+}
+
+function createMonthlyTrendsChart(runs) {
+    const monthlyData = {};
+    runs.forEach(run => {
+        const date = new Date(run.date_added);
+        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = {
+                totalDistance: 0,
+                count: 0
+            };
+        }
+        monthlyData[monthKey].totalDistance += run.km;
+        monthlyData[monthKey].count++;
+    });
+
+    const sortedMonths = Object.keys(monthlyData).sort();
+    const data = sortedMonths.map(month => ({
+        x: month,
+        distance: monthlyData[month].totalDistance,
+        count: monthlyData[month].count
+    }));
+
+    const options = {
+        series: [{
+            name: 'Общая дистанция',
+            type: 'column',
+            data: data.map(d => d.distance)
+        }, {
+            name: 'Количество пробежек',
+            type: 'line',
+            data: data.map(d => d.count)
+        }],
+        chart: {
+            height: 300,
+            type: 'line',
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
+        },
+        stroke: {
+            width: [0, 4]
+        },
+        title: {
+            text: 'Месячная статистика',
+            align: 'left'
+        },
+        dataLabels: {
+            enabled: true,
+            enabledOnSeries: [1]
+        },
+        labels: data.map(d => {
+            const [year, month] = d.x.split('-');
+            return new Date(year, month - 1).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+        }),
+        xaxis: {
+            type: 'category'
+        },
+        yaxis: [{
+            title: {
+                text: 'Общая дистанция (км)'
+            }
+        }, {
+            opposite: true,
+            title: {
+                text: 'Количество пробежек'
+            }
+        }]
+    };
+
+    const chart = new ApexCharts(document.querySelector("#monthlyTrendsChart"), options);
+    chart.render();
+}
+
+function createTimeOfDayChart(runs) {
+    const timeSlots = Array(24).fill(0);
+    runs.forEach(run => {
+        const date = new Date(run.date_added);
+        const hour = date.getHours();
+        timeSlots[hour]++;
+    });
+
+    const options = {
+        series: [{
+            name: 'Пробежки',
+            data: timeSlots
+        }],
+        chart: {
+            height: 300,
+            type: 'radar',
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
+        },
+        title: {
+            text: 'Распределение по времени суток',
+            align: 'left'
+        },
+        xaxis: {
+            categories: Array(24).fill(0).map((_, i) => `${i}:00`)
+        },
+        fill: {
+            opacity: 0.5
+        },
+        plotOptions: {
+            radar: {
+                size: 140,
+                polygons: {
+                    strokeColors: '#e9e9e9',
+                    fill: {
+                        colors: ['#f8f8f8', '#fff']
+                    }
+                }
+            }
+        }
+    };
+
+    const chart = new ApexCharts(document.querySelector("#timeOfDayChart"), options);
+    chart.render();
 }
 
 function createDetailedStatsHTML(runs) {
