@@ -68,7 +68,7 @@ function updateMetrics(totalDistance, avgDistance, totalRuns) {
 
 // Обновление таблицы пробежек
 function updateRunsTable(runs) {
-    console.log('Обновляем таблицу пробежек:', runs.length);
+    console.log('Обновляем таблицу пробежек:', runs);
     const runsSection = document.querySelector('.recent-runs');
     const tbody = document.getElementById('runsTableBody');
     
@@ -77,7 +77,7 @@ function updateRunsTable(runs) {
         return;
     }
 
-    tbody.innerHTML = runs.slice(0, 5).map(run => `
+    tbody.innerHTML = runs.map(run => `
         <tr class="animate-fade-in">
             <td>${new Date(run.date_added).toLocaleDateString()}</td>
             <td class="distance">${run.km.toFixed(1)}</td>
@@ -155,10 +155,7 @@ async function loadUserData(forceCheck = false) {
         console.log('Получен ответ:', response);
         
         // Преобразуем данные в нужный формат
-        const runs = Array.isArray(response) ? response.map(run => ({
-            ...run,
-            km: run.id // используем id как километры
-        })) : [];
+        const runs = Array.isArray(response) ? response : [];
         console.log('Преобразованные пробежки:', runs);
         
         // Подготавливаем все данные
@@ -367,11 +364,8 @@ async function loadDetailedAnalytics() {
         console.log('Запрашиваем все пробежки без ограничений по датам...');
         
         // Получаем все пробежки без параметров дат
-        const response = await getRuns(null, null);
-        console.log('Получен ответ:', response);
-        
-        const allRuns = response.runs || [];
-        console.log('Извлечены пробежки:', allRuns);
+        const allRuns = await getRuns(null, null);
+        console.log('Получены пробежки:', allRuns);
 
         if (!allRuns || allRuns.length === 0) {
             console.log('Пробежки не найдены, показываем пустое состояние');
