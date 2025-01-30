@@ -626,14 +626,31 @@ async function loadDetailedAnalytics() {
                     grid-template-columns: 1fr;
                 }
                 .chart-container {
-                    min-height: 200px;
+                    min-height: 300px;
                     padding: 10px;
+                    margin-bottom: 10px;
                 }
                 .main-chart {
-                    min-height: 300px;
+                    min-height: 350px;
                 }
-                .detailed-stats-grid {
-                    grid-template-columns: 1fr;
+                .apexcharts-legend {
+                    position: relative !important;
+                    padding: 5px !important;
+                    margin: 0 !important;
+                    text-align: center !important;
+                }
+                .apexcharts-legend-series {
+                    margin: 2px 5px !important;
+                }
+                .apexcharts-toolbar {
+                    top: 0 !important;
+                    right: 0 !important;
+                }
+                .apexcharts-menu {
+                    min-width: 110px !important;
+                }
+                .apexcharts-tooltip {
+                    max-width: 200px !important;
                 }
             }
         `;
@@ -767,7 +784,7 @@ function createProgressChart(runs) {
             min: 0,
             forceNiceScale: true,
             labels: {
-                formatter: (value) => value.toFixed(1)
+                formatter: (value) => formatNumber(value)
             }
         },
         tooltip: {
@@ -775,15 +792,15 @@ function createProgressChart(runs) {
             intersect: false,
             y: [{
                 formatter: function(value) {
-                    return value.toFixed(1) + ' км';
+                    return formatNumber(value) + ' км';
                 }
             }, {
                 formatter: function(value) {
-                    return value.toFixed(1) + ' км (среднее)';
+                    return formatNumber(value) + ' км (среднее)';
                 }
             }, {
                 formatter: function(value) {
-                    return value.toFixed(1) + ' км (тренд)';
+                    return formatNumber(value) + ' км (тренд)';
                 }
             }]
         },
@@ -799,16 +816,48 @@ function createProgressChart(runs) {
             breakpoint: 768,
             options: {
                 chart: {
-                    height: 300
+                    height: 350,
+                    toolbar: {
+                        show: true,
+                        offsetX: -5,
+                        offsetY: 5,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true
+                        }
+                    }
                 },
                 legend: {
                     position: 'bottom',
                     horizontalAlign: 'center',
-                    offsetY: 7
+                    offsetY: 5,
+                    itemMargin: {
+                        horizontal: 5,
+                        vertical: 3
+                    }
+                },
+                xaxis: {
+                    labels: {
+                        style: {
+                            fontSize: '10px'
+                        },
+                        datetimeFormatter: {
+                            year: 'yyyy',
+                            month: 'MMM',
+                            day: 'dd MMM'
+                        }
+                    }
                 },
                 yaxis: {
                     labels: {
-                        formatter: (value) => value.toFixed(0)
+                        style: {
+                            fontSize: '10px'
+                        }
                     }
                 }
             }
@@ -892,7 +941,9 @@ function createWeeklyActivityChart(runs) {
         },
         dataLabels: {
             enabled: true,
-            enabledOnSeries: [1]
+            formatter: function(value) {
+                return formatNumber(value);
+            }
         },
         labels: daysOfWeek,
         xaxis: {
@@ -912,22 +963,29 @@ function createWeeklyActivityChart(runs) {
             breakpoint: 768,
             options: {
                 chart: {
-                    height: 250
+                    height: 300
                 },
                 legend: {
                     position: 'bottom',
                     horizontalAlign: 'center',
-                    offsetY: 0
+                    offsetY: 5,
+                    itemMargin: {
+                        horizontal: 5,
+                        vertical: 3
+                    }
                 },
-                yaxis: [{
-                    labels: {
-                        formatter: (value) => value.toFixed(0)
+                plotOptions: {
+                    bar: {
+                        columnWidth: '70%'
                     }
-                }, {
+                },
+                xaxis: {
                     labels: {
-                        formatter: (value) => value.toFixed(1)
+                        style: {
+                            fontSize: '10px'
+                        }
                     }
-                }]
+                }
             }
         }]
     };
@@ -961,17 +1019,32 @@ function createDistributionChart(runs) {
             breakpoint: 768,
             options: {
                 chart: {
-                    height: 250
+                    height: 300
                 },
                 legend: {
                     position: 'bottom',
-                    horizontalAlign: 'center',
-                    offsetY: 0
+                    offsetY: 5,
+                    itemMargin: {
+                        horizontal: 5,
+                        vertical: 3
+                    }
                 },
                 plotOptions: {
                     pie: {
                         donut: {
-                            size: '60%'
+                            size: '65%',
+                            labels: {
+                                show: true,
+                                name: {
+                                    fontSize: '12px'
+                                },
+                                value: {
+                                    fontSize: '11px'
+                                },
+                                total: {
+                                    fontSize: '14px'
+                                }
+                            }
                         }
                     }
                 }
@@ -986,8 +1059,13 @@ function createDistributionChart(runs) {
                         total: {
                             show: true,
                             label: 'Всего пробежек',
-                            formatter: function (w) {
+                            formatter: function(w) {
                                 return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                            }
+                        },
+                        value: {
+                            formatter: function(value) {
+                                return formatNumber(value);
                             }
                         }
                     }
@@ -1045,7 +1123,9 @@ function createMonthlyTrendsChart(runs) {
         },
         dataLabels: {
             enabled: true,
-            enabledOnSeries: [1]
+            formatter: function(value) {
+                return formatNumber(value);
+            }
         },
         labels: data.map(d => {
             const [year, month] = d.x.split('-');
@@ -1068,17 +1148,22 @@ function createMonthlyTrendsChart(runs) {
             breakpoint: 768,
             options: {
                 chart: {
-                    height: 250
+                    height: 300
                 },
                 legend: {
                     position: 'bottom',
-                    horizontalAlign: 'center',
-                    offsetY: 0
+                    offsetY: 5,
+                    itemMargin: {
+                        horizontal: 5,
+                        vertical: 3
+                    }
                 },
                 xaxis: {
                     labels: {
                         rotate: -45,
-                        maxHeight: 50
+                        style: {
+                            fontSize: '10px'
+                        }
                     }
                 }
             }
@@ -1127,23 +1212,32 @@ function createTimeOfDayChart(runs) {
                 }
             }
         },
+        dataLabels: {
+            formatter: function(value) {
+                return formatNumber(value);
+            }
+        },
         responsive: [{
             breakpoint: 768,
             options: {
                 chart: {
-                    height: 250
+                    height: 300
                 },
                 plotOptions: {
                     radar: {
-                        size: 100
+                        size: 120,
+                        offsetY: 10
                     }
                 },
                 xaxis: {
                     labels: {
                         style: {
-                            fontSize: '10px'
+                            fontSize: '9px'
                         }
                     }
+                },
+                markers: {
+                    size: 3
                 }
             }
         }]
@@ -1154,7 +1248,6 @@ function createTimeOfDayChart(runs) {
 }
 
 function createDetailedStatsHTML(runs) {
-    // Рассчитываем дополнительную статистику
     const stats = calculateDetailedStats(runs);
     
     return `
@@ -1162,16 +1255,16 @@ function createDetailedStatsHTML(runs) {
         <div class="detailed-stats-grid">
             <div class="stat-card">
                 <h3>Лучшая пробежка</h3>
-                <p class="stat-value">${stats.bestRun.distance.toFixed(1)} км</p>
+                <p class="stat-value">${formatNumber(stats.bestRun.distance)} км</p>
                 <p class="stat-date">${new Date(stats.bestRun.date).toLocaleDateString()}</p>
             </div>
             <div class="stat-card">
                 <h3>Средняя дистанция</h3>
-                <p class="stat-value">${stats.averageDistance.toFixed(1)} км</p>
+                <p class="stat-value">${formatNumber(stats.averageDistance)} км</p>
             </div>
             <div class="stat-card">
                 <h3>Регулярность</h3>
-                <p class="stat-value">${stats.consistency}%</p>
+                <p class="stat-value">${formatNumber(stats.consistency)}%</p>
                 <p class="stat-subtitle">пробежек по плану</p>
             </div>
         </div>
