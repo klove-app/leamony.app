@@ -505,7 +505,7 @@ function createDistanceDistributionChart(runs) {
 }
 
 // Обновляем функцию loadDetailedAnalytics
-async function loadDetailedAnalytics() {
+function loadDetailedAnalytics() {
     try {
         console.group('Загрузка детальной аналитики');
         
@@ -517,36 +517,26 @@ async function loadDetailedAnalytics() {
             return;
         }
 
+        // Группируем пробежки по месяцам
+        const monthlyRuns = allRuns.reduce((groups, run) => {
+            const date = new Date(run.date_added);
+            const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+            if (!groups[monthKey]) {
+                groups[monthKey] = [];
+            }
+            groups[monthKey].push(run);
+            return groups;
+        }, {});
+
         // Создаем контейнер для аналитики
         const analyticsTab = document.getElementById('analyticsTab');
         analyticsTab.innerHTML = `
             <div class="analytics-container">
-                <div class="runs-history-section">
-                    <div class="history-header">
-                        <h2>История пробежек</h2>
-                        <div class="history-legend">
-                            <span class="legend-item">
-                                <span class="intensity-dot light"></span>
-                                <span>Легкая (до 5 км)</span>
-                            </span>
-                            <span class="legend-item">
-                                <span class="intensity-dot medium"></span>
-                                <span>Средняя (5-10 км)</span>
-                            </span>
-                            <span class="legend-item">
-                                <span class="intensity-dot hard"></span>
-                                <span>Тяжелая (>10 км)</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="runs-list">
-                        ${createMonthlyGroups(allRuns)}
-                    </div>
-                </div>
+                ${createMonthlyStats(monthlyRuns)}
             </div>
         `;
 
-        // Обновляем стили
+        // Добавляем стили
         const style = document.createElement('style');
         style.textContent = `
             .analytics-container {
@@ -555,139 +545,74 @@ async function loadDetailedAnalytics() {
                 padding: 20px;
             }
 
-            .runs-history-section {
+            .month-section {
                 background: white;
                 border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
 
-            .history-header {
-                padding: 20px;
+            .month-title {
+                font-size: 20px;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
                 border-bottom: 1px solid #eee;
             }
 
-            .history-header h2 {
-                margin: 0 0 15px 0;
-                color: #333;
-                font-size: 24px;
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
             }
 
-            .history-legend {
-                display: flex;
-                gap: 20px;
-                flex-wrap: wrap;
+            .stat-item {
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 8px;
             }
 
-            .legend-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-size: 14px;
+            .stat-label {
                 color: #666;
+                font-size: 14px;
+                margin-bottom: 5px;
             }
 
-            .intensity-dot {
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                display: inline-block;
+            .stat-value {
+                color: #333;
+                font-size: 16px;
+                font-weight: bold;
             }
-
-            .intensity-dot.light { background-color: #36B9CC; }
-            .intensity-dot.medium { background-color: #1cc88a; }
-            .intensity-dot.hard { background-color: #e74a3b; }
 
             .runs-list {
-                padding: 20px;
+                border-top: 1px solid #eee;
+                padding-top: 15px;
             }
 
-            .month-group {
-                margin-bottom: 30px;
-            }
-
-            .month-header {
-                background: #f8f9fa;
-                padding: 15px;
-                border-radius: 10px;
-                margin-bottom: 15px;
+            .run-item {
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
             }
 
-            .month-title {
-                font-size: 18px;
-                font-weight: bold;
-                color: #333;
-            }
-
-            .month-stats {
-                display: flex;
-                gap: 20px;
+            .run-date {
                 color: #666;
-                font-size: 14px;
-            }
-
-            .month-stat {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-
-            .month-stat-icon {
-                font-size: 16px;
-            }
-
-            .timeline-item {
-                display: flex;
-                align-items: center;
-                padding: 15px;
-                border-radius: 10px;
-                background: #f8f9fa;
-                margin-bottom: 10px;
-                transition: transform 0.2s, box-shadow 0.2s;
-                gap: 20px;
-            }
-
-            .timeline-item:hover {
-                transform: translateX(5px);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                background: #f1f3f5;
-            }
-
-            .timeline-date {
                 min-width: 120px;
-                color: #666;
-                font-size: 16px;
             }
 
-            .timeline-indicator {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-            }
-
-            .timeline-distance {
+            .run-distance {
                 font-weight: bold;
                 color: #333;
-                font-size: 18px;
-                min-width: 100px;
             }
 
-            .timeline-streak {
-                font-size: 14px;
+            .run-notes {
                 color: #666;
-                margin-left: auto;
-                padding: 4px 8px;
-                background: #fff;
-                border-radius: 15px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-
-            .timeline-notes {
-                color: #666;
-                font-size: 15px;
-                margin-left: 15px;
+                font-style: italic;
+                margin-left: 20px;
                 flex-grow: 1;
             }
 
@@ -696,55 +621,22 @@ async function loadDetailedAnalytics() {
                     padding: 10px;
                 }
 
-                .history-header {
+                .month-section {
                     padding: 15px;
                 }
 
-                .month-header {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                }
+
+                .run-item {
                     flex-direction: column;
-                    gap: 10px;
+                    gap: 5px;
                 }
 
-                .month-stats {
-                    flex-wrap: wrap;
-                    gap: 10px;
-                }
-
-                .month-stat {
-                    font-size: 12px;
-                }
-
-                .timeline-item {
-                    flex-wrap: wrap;
-                    padding: 12px;
-                    gap: 10px;
-                }
-
-                .timeline-date {
-                    min-width: auto;
-                    font-size: 14px;
-                    width: 100%;
-                }
-
-                .timeline-indicator {
-                    width: 100%;
-                }
-
-                .timeline-distance {
-                    font-size: 16px;
-                    min-width: 80px;
-                }
-
-                .timeline-notes {
-                    width: 100%;
+                .run-notes {
                     margin-left: 0;
-                    margin-top: 5px;
-                    font-size: 14px;
-                }
-
-                .timeline-streak {
-                    font-size: 12px;
-                    margin-left: auto;
                 }
             }
         `;
@@ -756,119 +648,65 @@ async function loadDetailedAnalytics() {
     }
 }
 
-function createMonthlyGroups(runs) {
-    // Группируем пробежки по месяцам
-    const monthlyRuns = runs.reduce((groups, run) => {
-        const date = new Date(run.date_added);
-        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
-        if (!groups[monthKey]) {
-            groups[monthKey] = [];
-        }
-        groups[monthKey].push(run);
-        return groups;
-    }, {});
-
+function createMonthlyStats(monthlyRuns) {
     // Сортируем месяцы в обратном порядке
     const sortedMonths = Object.keys(monthlyRuns).sort().reverse();
 
     return sortedMonths.map(monthKey => {
-        const monthRuns = monthlyRuns[monthKey];
+        const runs = monthlyRuns[monthKey];
         const [year, month] = monthKey.split('-');
         const date = new Date(year, month - 1);
-        
+
         // Рассчитываем статистику за месяц
-        const totalDistance = monthRuns.reduce((sum, run) => sum + run.km, 0);
-        const avgDistance = totalDistance / monthRuns.length;
-        const maxDistance = Math.max(...monthRuns.map(run => run.km));
-        
+        const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
+        const avgDistance = totalDistance / runs.length;
+        const maxRun = Math.max(...runs.map(run => run.km));
+        const minRun = Math.min(...runs.map(run => run.km));
+        const totalRuns = runs.length;
+
+        // Сортируем пробежки по дате (новые сверху)
+        const sortedRuns = [...runs].sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
+
         return `
-            <div class="month-group">
-                <div class="month-header">
-                    <div class="month-title">
-                        ${date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}
+            <div class="month-section">
+                <div class="month-title">
+                    ${date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Всего пробежек</div>
+                        <div class="stat-value">${totalRuns}</div>
                     </div>
-                    <div class="month-stats">
-                        <div class="month-stat">
-                            <span class="month-stat-icon">📏</span>
-                            <span>Всего: ${formatNumber(totalDistance)} км</span>
-                        </div>
-                        <div class="month-stat">
-                            <span class="month-stat-icon">📊</span>
-                            <span>Среднее: ${formatNumber(avgDistance)} км</span>
-                        </div>
-                        <div class="month-stat">
-                            <span class="month-stat-icon">🏃</span>
-                            <span>Пробежек: ${monthRuns.length}</span>
-                        </div>
-                        <div class="month-stat">
-                            <span class="month-stat-icon">🎯</span>
-                            <span>Макс: ${formatNumber(maxDistance)} км</span>
-                        </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Общая дистанция</div>
+                        <div class="stat-value">${formatNumber(totalDistance)} км</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Средняя дистанция</div>
+                        <div class="stat-value">${formatNumber(avgDistance)} км</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Лучшая пробежка</div>
+                        <div class="stat-value">${formatNumber(maxRun)} км</div>
                     </div>
                 </div>
-                ${createTimelineItems(monthRuns)}
+                <div class="runs-list">
+                    ${sortedRuns.map(run => `
+                        <div class="run-item">
+                            <span class="run-date">
+                                ${new Date(run.date_added).toLocaleDateString('ru-RU', {
+                                    day: 'numeric',
+                                    month: 'short'
+                                })}
+                            </span>
+                            <span class="run-distance">${formatNumber(run.km)} км</span>
+                            ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
     }).join('');
-}
-
-function createTimelineItems(runs) {
-    const sortedRuns = [...runs].sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
-    const streaks = calculateStreaks(sortedRuns);
-    
-    return sortedRuns.map((run, index) => {
-        const date = new Date(run.date_added);
-        const intensity = getIntensityClass(run.km);
-        const streak = streaks[run.date_added] || '';
-        
-        return `
-            <div class="timeline-item">
-                <div class="timeline-date">
-                    ${date.toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    })}
-                </div>
-                <div class="timeline-indicator">
-                    <span class="intensity-dot ${intensity}"></span>
-                    <span class="timeline-distance">${formatNumber(run.km)} км</span>
-                </div>
-                ${run.notes ? `<div class="timeline-notes">${run.notes}</div>` : ''}
-                ${streak ? `<div class="timeline-streak">${streak}</div>` : ''}
-            </div>
-        `;
-    }).join('');
-}
-
-function getIntensityClass(distance) {
-    if (distance > 10) return 'hard';
-    if (distance > 5) return 'medium';
-    return 'light';
-}
-
-function calculateStreaks(runs) {
-    let streaks = {};
-    let currentStreak = 1;
-    let bestStreak = 1;
-    
-    for (let i = 0; i < runs.length - 1; i++) {
-        const currentDate = new Date(runs[i].date_added);
-        const nextDate = new Date(runs[i + 1].date_added);
-        const daysDiff = Math.floor((currentDate - nextDate) / (1000 * 60 * 60 * 24));
-        
-        if (daysDiff === 1) {
-            currentStreak++;
-            if (currentStreak > bestStreak) {
-                bestStreak = currentStreak;
-            }
-            streaks[runs[i].date_added] = `🔥 ${currentStreak} дней подряд`;
-        } else {
-            currentStreak = 1;
-        }
-    }
-    
-    return streaks;
 }
 
 // Добавляем функцию для отображения пустого состояния
