@@ -1083,6 +1083,108 @@ async function generateTrainingPlan() {
     document.head.appendChild(style);
 }
 
+// Функция для инициализации интерфейса с вкладками
+function initializeTabs() {
+    const dashboardContent = document.querySelector('.dashboard-content');
+    if (!dashboardContent) return;
+
+    // Добавляем навигацию по вкладкам
+    const tabsNav = document.createElement('div');
+    tabsNav.className = 'tabs-navigation';
+    tabsNav.innerHTML = `
+        <button class="tab-button active" data-tab="current">Текущие данные</button>
+        <button class="tab-button" data-tab="analytics">Аналитика</button>
+        <button class="tab-button" data-tab="training">План тренировок</button>
+    `;
+    dashboardContent.insertBefore(tabsNav, dashboardContent.firstChild);
+
+    // Создаем контейнеры для вкладок
+    const currentTab = document.createElement('div');
+    currentTab.id = 'currentTab';
+    currentTab.className = 'tab-content';
+    
+    // Перемещаем существующий контент в currentTab
+    while (dashboardContent.children.length > 1) {
+        currentTab.appendChild(dashboardContent.children[1]);
+    }
+    
+    const analyticsTab = document.createElement('div');
+    analyticsTab.id = 'analyticsTab';
+    analyticsTab.className = 'tab-content';
+    analyticsTab.style.display = 'none';
+
+    const trainingTab = document.createElement('div');
+    trainingTab.id = 'trainingTab';
+    trainingTab.className = 'tab-content';
+    trainingTab.style.display = 'none';
+
+    // Добавляем вкладки в контейнер
+    dashboardContent.appendChild(currentTab);
+    dashboardContent.appendChild(analyticsTab);
+    dashboardContent.appendChild(trainingTab);
+
+    // Добавляем стили для вкладок
+    const style = document.createElement('style');
+    style.textContent = `
+        .tabs-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #f8f9fa;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+        }
+
+        .tab-button.active {
+            background: #4e73df;
+            color: white;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .tabs-navigation {
+                padding: 0 10px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab-button {
+                padding: 8px 15px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Добавляем обработчики для кнопок вкладок
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+}
+
 // Инициализация страницы
 let isInitialized = false;
 let isLoading = false;
@@ -1099,6 +1201,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     isLoading = true;
 
     try {
+        // Инициализируем вкладки
+        initializeTabs();
+
         // Настраиваем обработчики событий
         const logoutButton = document.getElementById('logoutButton');
         if (logoutButton) {
