@@ -135,6 +135,25 @@ class TrainingPlanForm {
 
             // Отображаем план
             this.renderPlan(plan, planContainer);
+
+            // Добавляем сырой ответ от API
+            const rawResponse = document.createElement('pre');
+            rawResponse.className = 'raw-response';
+            rawResponse.textContent = JSON.stringify(plan, null, 2);
+            planContainer.appendChild(rawResponse);
+
+            // Добавляем обработчики для разворачивания/сворачивания тренировок
+            planContainer.querySelectorAll('.workout-card').forEach(card => {
+                const header = card.querySelector('.workout-header');
+                const body = card.querySelector('.workout-details');
+                body.style.display = 'none';
+                
+                header.addEventListener('click', () => {
+                    const isExpanded = body.style.display !== 'none';
+                    body.style.display = isExpanded ? 'none' : 'block';
+                    header.classList.toggle('expanded', !isExpanded);
+                });
+            });
         } catch (error) {
             console.error('Ошибка:', error);
             this.showError('Произошла ошибка при генерации плана тренировок');
@@ -247,52 +266,22 @@ class TrainingPlanForm {
             month: 'long'
         });
 
-        // Форматируем время тренировки
-        const formatDuration = (minutes) => {
-            if (!minutes) return '';
-            const hours = Math.floor(minutes / 60);
-            const mins = minutes % 60;
-            return hours > 0 ? `${hours} ч ${mins} мин` : `${mins} мин`;
-        };
-
         return `
             <div class="workout-card ${workout.key_workout ? 'key-workout' : ''}">
                 <div class="workout-header">
                     <div class="workout-date">${formattedDate}</div>
-                    <div class="workout-type">${this.translateWorkoutType(workout.type)}</div>
+                    <div class="workout-info">
+                        <div class="workout-type">${this.translateWorkoutType(workout.type)}</div>
+                        <div class="workout-main-stats">
+                            ${workout.distance ? `🏃 ${workout.distance} км` : ''}
+                            ${workout.duration_min ? `⏱️ ${workout.duration_min} мин` : ''}
+                            ${workout.target_pace ? `⚡ ${workout.target_pace}` : ''}
+                            ${workout.intensity ? `💪 ${this.translateIntensity(workout.intensity)}` : ''}
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="workout-body">
-                    <div class="workout-main-info">
-                        ${workout.distance ? `
-                            <div class="workout-stat">
-                                <span class="stat-icon">🏃</span>
-                                <span class="stat-value">${workout.distance} км</span>
-                            </div>
-                        ` : ''}
-                        
-                        ${workout.duration_min ? `
-                            <div class="workout-stat">
-                                <span class="stat-icon">⏱️</span>
-                                <span class="stat-value">${formatDuration(workout.duration_min)}</span>
-                            </div>
-                        ` : ''}
-                        
-                        ${workout.target_pace ? `
-                            <div class="workout-stat">
-                                <span class="stat-icon">⚡</span>
-                                <span class="stat-value">Темп: ${workout.target_pace}</span>
-                            </div>
-                        ` : ''}
-
-                        ${workout.intensity ? `
-                            <div class="workout-stat">
-                                <span class="stat-icon">💪</span>
-                                <span class="stat-value">${this.translateIntensity(workout.intensity)}</span>
-                            </div>
-                        ` : ''}
-                    </div>
-
+                <div class="workout-details">
                     <div class="workout-description">
                         <h4>Описание тренировки</h4>
                         <p>${workout.description}</p>
@@ -301,10 +290,9 @@ class TrainingPlanForm {
                     </div>
                     
                     ${this.renderIntervals(workout)}
+                    ${this.renderNutrition(workout)}
+                    ${this.renderRecovery(workout)}
                 </div>
-                
-                ${this.renderNutrition(workout)}
-                ${this.renderRecovery(workout)}
             </div>
         `;
     }
