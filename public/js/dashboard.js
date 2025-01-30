@@ -78,24 +78,39 @@ function updateMetrics(totalDistance, avgDistance, totalRuns) {
 
 // Обновление таблицы пробежек
 function updateRunsTable(runs) {
-    console.log('Обновляем таблицу пробежек:', runs);
+    console.group('Обновление таблицы пробежек');
+    console.log('Пробежки для таблицы:', runs);
+    
     const runsSection = document.querySelector('.recent-runs');
     const tbody = document.getElementById('runsTableBody');
     
     if (!runsSection || !tbody) {
         console.error('Секция пробежек или таблица не найдены');
+        console.groupEnd();
         return;
     }
 
-    tbody.innerHTML = runs.map(run => `
-        <tr class="animate-fade-in">
+    // Очищаем таблицу
+    tbody.innerHTML = '';
+
+    // Добавляем строки с пробежками
+    runs.forEach(run => {
+        const tr = document.createElement('tr');
+        tr.className = 'animate-fade-in';
+        tr.innerHTML = `
             <td>${new Date(run.date_added).toLocaleDateString()}</td>
             <td class="distance">${run.km.toFixed(1)}</td>
             <td class="time">${run.duration || '-'}</td>
             <td class="notes">${run.notes || ''}</td>
-        </tr>
-    `).join('');
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Показываем секцию с пробежками
     runsSection.style.display = 'block';
+    
+    console.log('Таблица обновлена');
+    console.groupEnd();
 }
 
 // Добавляем переменную для текущего периода
@@ -439,24 +454,6 @@ async function loadUserData(forceCheck = false) {
             recentRuns: null
         };
 
-        if (data.hasRuns) {
-            const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-            const avgDistance = totalDistance / runs.length;
-            const lastRun = new Date(runs[0].date_added);
-            const daysSinceLastRun = Math.floor((new Date() - lastRun) / (1000 * 60 * 60 * 24));
-
-            data.stats = {
-                totalDistance,
-                avgDistance,
-                totalRuns: runs.length,
-                lastRunInfo: daysSinceLastRun === 0 
-                    ? 'Отличная пробежка сегодня!'
-                    : `Последняя пробежка: ${daysSinceLastRun} дн. назад`
-            };
-
-            data.recentRuns = runs.slice(0, 5);
-        }
-
         // Обновляем DOM
         const currentTab = document.getElementById('currentTab');
         if (currentTab) {
@@ -464,23 +461,31 @@ async function loadUserData(forceCheck = false) {
             const welcomeMessage = currentTab.querySelector('#welcomeMessage');
             if (welcomeMessage) welcomeMessage.textContent = data.welcomeMessage;
 
-            // Обновляем информацию о последней пробежке
-            const lastRunInfo = currentTab.querySelector('#lastRunInfo');
-            if (lastRunInfo && data.stats) lastRunInfo.textContent = data.stats.lastRunInfo;
-
             if (data.hasRuns) {
+                const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
+                const avgDistance = totalDistance / runs.length;
+                const lastRun = new Date(runs[0].date_added);
+                const daysSinceLastRun = Math.floor((new Date() - lastRun) / (1000 * 60 * 60 * 24));
+
+                // Обновляем информацию о последней пробежке
+                const lastRunInfo = currentTab.querySelector('#lastRunInfo');
+                if (lastRunInfo) {
+                    lastRunInfo.textContent = daysSinceLastRun === 0 
+                        ? 'Отличная пробежка сегодня!'
+                        : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
+                }
+
                 // Обновляем прогресс
-                updateProgressSection(data.stats.totalDistance, data.yearlyGoal);
+                updateProgressSection(totalDistance, data.yearlyGoal);
                 
                 // Обновляем метрики
-                updateMetrics(
-                    data.stats.totalDistance,
-                    data.stats.avgDistance,
-                    data.stats.totalRuns
-                );
+                updateMetrics(totalDistance, avgDistance, runs.length);
                 
                 // Обновляем таблицу пробежек
-                updateRunsTable(data.recentRuns);
+                updateRunsTable(runs.slice(0, 5));
+            } else {
+                // Показываем пустое состояние
+                showEmptyState();
             }
         }
 
