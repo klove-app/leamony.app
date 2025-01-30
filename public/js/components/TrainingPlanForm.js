@@ -136,11 +136,21 @@ class TrainingPlanForm {
             // Отображаем план
             this.renderPlan(plan, planContainer);
 
-            // Добавляем сырой ответ от API
+            // Добавляем сырой запрос и ответ от API
+            const rawContainer = document.createElement('div');
+            rawContainer.className = 'raw-data';
+            
+            const rawRequest = document.createElement('pre');
+            rawRequest.className = 'raw-response';
+            rawRequest.innerHTML = '<h4>Отправленный запрос:</h4>' + JSON.stringify(request, null, 2);
+            
             const rawResponse = document.createElement('pre');
             rawResponse.className = 'raw-response';
-            rawResponse.textContent = JSON.stringify(plan, null, 2);
-            planContainer.appendChild(rawResponse);
+            rawResponse.innerHTML = '<h4>Полученный ответ:</h4>' + JSON.stringify(plan, null, 2);
+            
+            rawContainer.appendChild(rawRequest);
+            rawContainer.appendChild(rawResponse);
+            planContainer.appendChild(rawContainer);
 
             // Добавляем обработчики для разворачивания/сворачивания тренировок
             planContainer.querySelectorAll('.workout-card').forEach(card => {
