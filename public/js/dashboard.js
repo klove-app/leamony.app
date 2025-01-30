@@ -675,325 +675,236 @@ async function loadDetailedAnalytics() {
 }
 
 function createProgressChart(runs) {
-    const sortedRuns = [...runs].sort((a, b) => new Date(a.date_added) - new Date(b.date_added));
+    const sortedRuns = [...runs].sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
     
-    // Добавляем расчет скользящего среднего за 7 дней
-    const movingAverage = [];
-    const windowSize = 7;
-    
-    for (let i = 0; i < sortedRuns.length; i++) {
-        const window = sortedRuns.slice(Math.max(0, i - windowSize + 1), i + 1);
-        const average = window.reduce((sum, run) => sum + run.km, 0) / window.length;
-        movingAverage.push({
-            x: new Date(sortedRuns[i].date_added).getTime(),
-            y: average
-        });
-    }
+    // Создаем контейнер для списка
+    const container = document.querySelector("#progressChart");
+    container.innerHTML = `
+        <div class="runs-timeline">
+            <div class="timeline-header">
+                <h3>История пробежек</h3>
+                <div class="timeline-legend">
+                    <span class="legend-item">
+                        <span class="intensity-dot light"></span>
+                        <span>Легкая (до 5 км)</span>
+                    </span>
+                    <span class="legend-item">
+                        <span class="intensity-dot medium"></span>
+                        <span>Средняя (5-10 км)</span>
+                    </span>
+                    <span class="legend-item">
+                        <span class="intensity-dot hard"></span>
+                        <span>Тяжелая (>10 км)</span>
+                    </span>
+                </div>
+            </div>
+            <div class="timeline-list">
+                ${createTimelineItems(sortedRuns)}
+            </div>
+        </div>
+    `;
 
-    // Подготавливаем основные данные
-    const data = sortedRuns.map(run => ({
-        x: new Date(run.date_added).getTime(),
-        y: run.km
-    }));
+    // Добавляем стили
+    const style = document.createElement('style');
+    style.textContent = `
+        .runs-timeline {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
 
-    // Рассчитываем тренд
-    const trend = calculateTrend(data);
+        .timeline-header {
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
 
-    const options = {
-        series: [{
-            name: 'Дистанция',
-            type: 'scatter',
-            data: data,
-            color: '#36B9CC'
-        }, {
-            name: 'Среднее за 7 дней',
-            type: 'line',
-            data: movingAverage,
-            color: '#1cc88a',
-            width: 2
-        }, {
-            name: 'Тренд',
-            type: 'line',
-            data: trend,
-            color: '#e74a3b',
-            width: 2,
-            dashArray: 5
-        }],
-        chart: {
-            type: 'line',
-            height: 350,
-            width: '100%',
-            parentHeightOffset: 0,
-            toolbar: {
-                show: true,
-                offsetX: 0,
-                offsetY: 0,
-                tools: {
-                    download: true,
-                    selection: true,
-                    zoom: true,
-                    zoomin: true,
-                    zoomout: true,
-                    pan: true,
-                    reset: true
-                },
-                export: {
-                    csv: {
-                        filename: 'Статистика_пробежек',
-                        columnDelimiter: ',',
-                        headerCategory: 'Дата',
-                        headerValue: 'Дистанция',
-                        dateFormatter(timestamp) {
-                            return new Date(timestamp).toLocaleDateString()
-                        }
-                    }
-                }
-            },
-            zoom: {
-                enabled: true,
-                type: 'x'
-            },
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 500,
-                animateGradually: {
-                    enabled: true,
-                    delay: 150
-                },
-                dynamicAnimation: {
-                    enabled: true,
-                    speed: 350
-                }
-            },
-            background: '#fff',
-            fontFamily: 'inherit'
-        },
-        markers: {
-            size: [5, 0, 0],
-            strokeWidth: 2,
-            strokeColors: '#fff',
-            hover: {
-                size: 7,
-                sizeOffset: 3
-            }
-        },
-        stroke: {
-            curve: ['straight', 'smooth', 'straight'],
-            width: [0, 2.5, 2],
-            dashArray: [0, 0, 5]
-        },
-        grid: {
-            borderColor: '#f1f1f1',
-            padding: {
-                top: 10,
-                right: 10,
-                bottom: 10,
-                left: 10
-            },
-            xaxis: {
-                lines: {
-                    show: false
-                }
-            }
-        },
-        xaxis: {
-            type: 'datetime',
-            title: {
-                text: 'Дата',
-                style: {
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: '#666'
-                }
-            },
-            labels: {
-                style: {
-                    fontSize: '12px',
-                    colors: '#666'
-                },
-                datetimeFormatter: {
-                    year: 'yyyy',
-                    month: 'MMM yyyy',
-                    day: 'dd MMM',
-                    hour: 'HH:mm'
-                },
-                datetimeUTC: false
-            },
-            tooltip: {
-                enabled: false
-            },
-            axisBorder: {
-                show: true,
-                color: '#e0e0e0'
-            },
-            axisTicks: {
-                show: true,
-                color: '#e0e0e0'
-            }
-        },
-        yaxis: {
-            title: {
-                text: 'Километры',
-                style: {
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: '#666'
-                }
-            },
-            min: 0,
-            max: Math.ceil(Math.max(...data.map(point => point.y)) * 1.1),
-            tickAmount: 5,
-            forceNiceScale: true,
-            labels: {
-                formatter: (value) => formatNumber(value),
-                style: {
-                    fontSize: '12px',
-                    colors: '#666'
-                }
-            },
-            axisBorder: {
-                show: true,
-                color: '#e0e0e0'
-            },
-            axisTicks: {
-                show: true,
-                color: '#e0e0e0'
-            }
-        },
-        tooltip: {
-            shared: true,
-            intersect: false,
-            theme: 'light',
-            style: {
-                fontSize: '12px'
-            },
-            x: {
-                format: 'dd MMM yyyy'
-            },
-            y: [{
-                formatter: function(value) {
-                    return formatNumber(value) + ' км';
-                }
-            }, {
-                formatter: function(value) {
-                    return formatNumber(value) + ' км (среднее)';
-                }
-            }, {
-                formatter: function(value) {
-                    return formatNumber(value) + ' км (тренд)';
-                }
-            }]
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'right',
-            offsetY: 0,
-            fontSize: '13px',
-            markers: {
-                width: 10,
-                height: 10,
-                strokeWidth: 0,
-                radius: 12
-            },
-            itemMargin: {
-                horizontal: 10,
-                vertical: 0
-            }
-        },
-        theme: {
-            mode: 'light',
-            palette: 'palette1'
-        },
-        responsive: [{
-            breakpoint: 768,
-            options: {
-                chart: {
-                    height: 350,
-                    toolbar: {
-                        show: true,
-                        offsetX: -5,
-                        offsetY: 5
-                    }
-                },
-                legend: {
-                    position: 'bottom',
-                    horizontalAlign: 'center',
-                    offsetY: 10,
-                    itemMargin: {
-                        horizontal: 8,
-                        vertical: 5
-                    }
-                },
-                markers: {
-                    size: [4, 0, 0],
-                    hover: {
-                        size: 6
-                    }
-                },
-                xaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '10px'
-                        },
-                        datetimeFormatter: {
-                            year: 'yyyy',
-                            month: 'MMM',
-                            day: 'dd MMM'
-                        }
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '10px'
-                        }
-                    }
-                },
-                padding: {
-                    top: 0,
-                    right: 5,
-                    bottom: 0,
-                    left: 5
-                }
-            }
-        }]
-    };
+        .timeline-header h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
 
-    const chart = new ApexCharts(document.querySelector("#progressChart"), options);
-    chart.render();
+        .timeline-legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .intensity-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .intensity-dot.light { background-color: #36B9CC; }
+        .intensity-dot.medium { background-color: #1cc88a; }
+        .intensity-dot.hard { background-color: #e74a3b; }
+
+        .timeline-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: transform 0.2s;
+            gap: 15px;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+            background: #f1f3f5;
+        }
+
+        .timeline-date {
+            min-width: 100px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .timeline-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline-distance {
+            font-weight: bold;
+            color: #333;
+            min-width: 80px;
+        }
+
+        .timeline-streak {
+            font-size: 12px;
+            color: #666;
+            margin-left: auto;
+        }
+
+        .timeline-notes {
+            color: #666;
+            font-size: 13px;
+            margin-left: 10px;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 768px) {
+            .runs-timeline {
+                padding: 10px;
+            }
+
+            .timeline-header {
+                padding: 5px 0;
+            }
+
+            .timeline-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .timeline-date {
+                min-width: auto;
+                font-size: 12px;
+            }
+
+            .timeline-distance {
+                min-width: 60px;
+                font-size: 13px;
+            }
+
+            .timeline-notes {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+
+            .timeline-streak {
+                font-size: 11px;
+            }
+
+            .legend-item {
+                font-size: 11px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
-// Функция для расчета линии тренда
-function calculateTrend(data) {
-    if (data.length < 2) return [];
+function createTimelineItems(runs) {
+    // Вычисляем серии пробежек
+    let streaks = calculateStreaks(runs);
+    
+    return runs.map((run, index) => {
+        const date = new Date(run.date_added);
+        const intensity = getIntensityClass(run.km);
+        const streak = streaks[run.date_added] || '';
+        
+        return `
+            <div class="timeline-item">
+                <div class="timeline-date">
+                    ${date.toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'short'
+                    })}
+                </div>
+                <div class="timeline-indicator">
+                    <span class="intensity-dot ${intensity}"></span>
+                    <span class="timeline-distance">${formatNumber(run.km)} км</span>
+                </div>
+                ${run.notes ? `<div class="timeline-notes">${run.notes}</div>` : ''}
+                ${streak ? `<div class="timeline-streak">${streak}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
 
-    // Преобразуем временные метки в дни от начала для линейной регрессии
-    const firstDay = data[0].x;
-    const xValues = data.map(point => (point.x - firstDay) / (24 * 60 * 60 * 1000));
-    const yValues = data.map(point => point.y);
+function getIntensityClass(distance) {
+    if (distance > 10) return 'hard';
+    if (distance > 5) return 'medium';
+    return 'light';
+}
 
-    // Рассчитываем коэффициенты линейной регрессии
-    const n = data.length;
-    const sumX = xValues.reduce((a, b) => a + b, 0);
-    const sumY = yValues.reduce((a, b) => a + b, 0);
-    const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
-    const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
-
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    const intercept = (sumY - slope * sumX) / n;
-
-    // Создаем точки для линии тренда
-    return [
-        {
-            x: data[0].x,
-            y: intercept
-        },
-        {
-            x: data[data.length - 1].x,
-            y: intercept + slope * xValues[xValues.length - 1]
+function calculateStreaks(runs) {
+    let streaks = {};
+    let currentStreak = 1;
+    let bestStreak = 1;
+    
+    for (let i = 0; i < runs.length - 1; i++) {
+        const currentDate = new Date(runs[i].date_added);
+        const nextDate = new Date(runs[i + 1].date_added);
+        const daysDiff = Math.floor((currentDate - nextDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === 1) {
+            currentStreak++;
+            if (currentStreak > bestStreak) {
+                bestStreak = currentStreak;
+            }
+            streaks[runs[i].date_added] = `🔥 ${currentStreak} дней подряд`;
+        } else {
+            currentStreak = 1;
         }
-    ];
+    }
+    
+    return streaks;
 }
 
 function createWeeklyActivityChart(runs) {
