@@ -1216,4 +1216,133 @@ body {
     .weekly-mileage {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* Стили для анимации загрузки плана тренировок */
+.loading-container {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-top: 20px;
+}
+
+.loading-animation {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+}
+
+.loading-animation:before,
+.loading-animation:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--primary-color);
+    opacity: 0.6;
+    animation: pulse 2s ease-out infinite;
+}
+
+.loading-animation:after {
+    animation-delay: 1s;
+}
+
+.loading-text {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.loading-subtext {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.loading-tips {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: var(--border-radius);
+}
+
+.loading-tips h4 {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.loading-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.loading-tips li {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.loading-tips li:before {
+    content: "💡";
+    position: absolute;
+    left: 0;
+}
+
+.loading-progress {
+    width: 100%;
+    max-width: 300px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    animation: progress 30s linear;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes progress {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+.loading-dots:after {
+    content: '';
+    animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60% { content: '...'; }
+    80% { content: '....'; }
+    100% { content: '.....'; }
 } 

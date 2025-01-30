@@ -104,6 +104,11 @@ class TrainingPlanForm {
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
+        const planResult = this.container.querySelector('#planResult');
+
+        // Показываем анимацию загрузки
+        planResult.innerHTML = this.renderLoading();
+        planResult.style.display = 'block';
 
         // Собираем данные из формы
         const request = {
@@ -229,6 +234,37 @@ class TrainingPlanForm {
                             ` : ''}
                         </div>
                     `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderLoading() {
+        const tips = [
+            "План тренировок учитывает ваш текущий уровень подготовки",
+            "Программа адаптируется под ваши предпочтения по дням недели",
+            "Интенсивность тренировок подбирается индивидуально",
+            "Учитываются периоды восстановления между тренировками",
+            "План включает рекомендации по питанию и восстановлению"
+        ];
+
+        return `
+            <div class="loading-container">
+                <div class="loading-animation"></div>
+                <div class="loading-text">
+                    Генерируем ваш персональный план тренировок<span class="loading-dots"></span>
+                </div>
+                <div class="loading-subtext">
+                    Это может занять около минуты. Мы учитываем множество факторов для создания оптимального плана.
+                </div>
+                <div class="loading-progress">
+                    <div class="loading-progress-bar"></div>
+                </div>
+                <div class="loading-tips">
+                    <h4>Знаете ли вы?</h4>
+                    <ul>
+                        ${tips.map(tip => `<li>${tip}</li>`).join('')}
+                    </ul>
                 </div>
             </div>
         `;
