@@ -2,8 +2,13 @@ import { checkAuth, logout, getRuns, viewLogs, getTelegramBotLink } from './api.
 import { Chart, registerables } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/+esm';
 import ApexCharts from 'https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/+esm';
 
-// Регистрируем все компоненты
-Chart.register(...registerables);
+// Функция для форматирования чисел
+function formatNumber(value) {
+    if (value === null || value === undefined || isNaN(value)) {
+        return '0.00';
+    }
+    return Number(value).toFixed(2);
+}
 
 // Функция для показа ошибки
 function showError(message) {
@@ -698,17 +703,20 @@ function createProgressChart(runs) {
         series: [{
             name: 'Дистанция',
             type: 'scatter',
-            data: data
+            data: data,
+            color: '#36B9CC'
         }, {
             name: 'Среднее за 7 дней',
             type: 'line',
             data: movingAverage,
-            color: '#2E93fA'
+            color: '#1cc88a',
+            width: 2
         }, {
             name: 'Тренд',
             type: 'line',
             data: trend,
-            color: '#FF4560',
+            color: '#e74a3b',
+            width: 2,
             dashArray: 5
         }],
         chart: {
@@ -718,6 +726,8 @@ function createProgressChart(runs) {
             parentHeightOffset: 0,
             toolbar: {
                 show: true,
+                offsetX: 0,
+                offsetY: 0,
                 tools: {
                     download: true,
                     selection: true,
@@ -727,7 +737,17 @@ function createProgressChart(runs) {
                     pan: true,
                     reset: true
                 },
-                autoSelected: 'zoom'
+                export: {
+                    csv: {
+                        filename: 'Статистика_пробежек',
+                        columnDelimiter: ',',
+                        headerCategory: 'Дата',
+                        headerValue: 'Дистанция',
+                        dateFormatter(timestamp) {
+                            return new Date(timestamp).toLocaleDateString()
+                        }
+                    }
+                }
             },
             zoom: {
                 enabled: true,
@@ -736,23 +756,45 @@ function createProgressChart(runs) {
             animations: {
                 enabled: true,
                 easing: 'easeinout',
-                speed: 800
-            }
+                speed: 500,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                },
+                dynamicAnimation: {
+                    enabled: true,
+                    speed: 350
+                }
+            },
+            background: '#fff',
+            fontFamily: 'inherit'
         },
         markers: {
-            size: [4, 0, 0],
+            size: [5, 0, 0],
+            strokeWidth: 2,
+            strokeColors: '#fff',
             hover: {
-                size: 6
+                size: 7,
+                sizeOffset: 3
             }
         },
         stroke: {
             curve: ['straight', 'smooth', 'straight'],
-            width: [0, 2, 2]
+            width: [0, 2.5, 2],
+            dashArray: [0, 0, 5]
         },
         grid: {
+            borderColor: '#f1f1f1',
             padding: {
-                right: 30,
-                left: 20
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 10
+            },
+            xaxis: {
+                lines: {
+                    show: false
+                }
             }
         },
         xaxis: {
@@ -761,16 +803,33 @@ function createProgressChart(runs) {
                 text: 'Дата',
                 style: {
                     fontSize: '14px',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    color: '#666'
                 }
             },
             labels: {
+                style: {
+                    fontSize: '12px',
+                    colors: '#666'
+                },
                 datetimeFormatter: {
                     year: 'yyyy',
                     month: 'MMM yyyy',
                     day: 'dd MMM',
                     hour: 'HH:mm'
-                }
+                },
+                datetimeUTC: false
+            },
+            tooltip: {
+                enabled: false
+            },
+            axisBorder: {
+                show: true,
+                color: '#e0e0e0'
+            },
+            axisTicks: {
+                show: true,
+                color: '#e0e0e0'
             }
         },
         yaxis: {
@@ -778,18 +837,40 @@ function createProgressChart(runs) {
                 text: 'Километры',
                 style: {
                     fontSize: '14px',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    color: '#666'
                 }
             },
             min: 0,
+            max: Math.ceil(Math.max(...data.map(point => point.y)) * 1.1),
+            tickAmount: 5,
             forceNiceScale: true,
             labels: {
-                formatter: (value) => formatNumber(value)
+                formatter: (value) => formatNumber(value),
+                style: {
+                    fontSize: '12px',
+                    colors: '#666'
+                }
+            },
+            axisBorder: {
+                show: true,
+                color: '#e0e0e0'
+            },
+            axisTicks: {
+                show: true,
+                color: '#e0e0e0'
             }
         },
         tooltip: {
             shared: true,
             intersect: false,
+            theme: 'light',
+            style: {
+                fontSize: '12px'
+            },
+            x: {
+                format: 'dd MMM yyyy'
+            },
             y: [{
                 formatter: function(value) {
                     return formatNumber(value) + ' км';
@@ -806,7 +887,19 @@ function createProgressChart(runs) {
         },
         legend: {
             position: 'top',
-            horizontalAlign: 'right'
+            horizontalAlign: 'right',
+            offsetY: 0,
+            fontSize: '13px',
+            markers: {
+                width: 10,
+                height: 10,
+                strokeWidth: 0,
+                radius: 12
+            },
+            itemMargin: {
+                horizontal: 10,
+                vertical: 0
+            }
         },
         theme: {
             mode: 'light',
@@ -820,25 +913,22 @@ function createProgressChart(runs) {
                     toolbar: {
                         show: true,
                         offsetX: -5,
-                        offsetY: 5,
-                        tools: {
-                            download: true,
-                            selection: true,
-                            zoom: true,
-                            zoomin: true,
-                            zoomout: true,
-                            pan: true,
-                            reset: true
-                        }
+                        offsetY: 5
                     }
                 },
                 legend: {
                     position: 'bottom',
                     horizontalAlign: 'center',
-                    offsetY: 5,
+                    offsetY: 10,
                     itemMargin: {
-                        horizontal: 5,
-                        vertical: 3
+                        horizontal: 8,
+                        vertical: 5
+                    }
+                },
+                markers: {
+                    size: [4, 0, 0],
+                    hover: {
+                        size: 6
                     }
                 },
                 xaxis: {
@@ -859,6 +949,12 @@ function createProgressChart(runs) {
                             fontSize: '10px'
                         }
                     }
+                },
+                padding: {
+                    top: 0,
+                    right: 5,
+                    bottom: 0,
+                    left: 5
                 }
             }
         }]
