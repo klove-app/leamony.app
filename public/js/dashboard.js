@@ -351,22 +351,61 @@ async function handleLogout() {
 
 // Функция для переключения вкладок
 async function switchTab(tabName) {
+    console.group('Переключение вкладки:', tabName);
+    
     const tabs = document.querySelectorAll('.tab-content');
     const buttons = document.querySelectorAll('.tab-button');
     
-    tabs.forEach(tab => {
-        tab.style.display = tab.id === `${tabName}Tab` ? 'block' : 'none';
-    });
+    console.log('Найдено вкладок:', tabs.length);
+    console.log('Найдено кнопок:', buttons.length);
     
-    buttons.forEach(button => {
-        button.classList.toggle('active', button.dataset.tab === tabName);
+    // Проверяем существование контейнеров
+    const currentTab = document.getElementById('currentTab');
+    const analyticsTab = document.getElementById('analyticsTab');
+    const trainingTab = document.getElementById('trainingTab');
+    
+    console.log('Контейнеры вкладок:', {
+        currentTab: !!currentTab,
+        analyticsTab: !!analyticsTab,
+        trainingTab: !!trainingTab
     });
 
-    if (tabName === 'analytics') {
-        await loadDetailedAnalytics();
-    } else if (tabName === 'training') {
-        loadTrainingPlan();
+    // Скрываем все вкладки
+    tabs.forEach(tab => {
+        tab.style.display = 'none';
+        console.log(`Скрываем вкладку ${tab.id}`);
+    });
+    
+    // Показываем нужную вкладку
+    const activeTab = document.getElementById(`${tabName}Tab`);
+    if (activeTab) {
+        activeTab.style.display = 'block';
+        console.log(`Показываем вкладку ${tabName}Tab`);
+    } else {
+        console.error(`Вкладка ${tabName}Tab не найдена`);
     }
+    
+    // Обновляем состояние кнопок
+    buttons.forEach(button => {
+        const isActive = button.dataset.tab === tabName;
+        button.classList.toggle('active', isActive);
+        console.log(`Кнопка ${button.dataset.tab}: ${isActive ? 'активна' : 'неактивна'}`);
+    });
+
+    try {
+        if (tabName === 'analytics') {
+            console.log('Загружаем аналитику...');
+            await loadDetailedAnalytics();
+        } else if (tabName === 'training') {
+            console.log('Загружаем план тренировок...');
+            loadTrainingPlan();
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке содержимого вкладки:', error);
+        showError('Не удалось загрузить содержимое вкладки');
+    }
+    
+    console.groupEnd();
 }
 
 // Добавляем функции для создания графиков после существующего кода
@@ -1086,104 +1125,56 @@ async function generateTrainingPlan() {
     document.head.appendChild(style);
 }
 
-// Функция для инициализации интерфейса с вкладками
+// Функция для инициализации вкладок
 function initializeTabs() {
-    const dashboardContent = document.querySelector('.dashboard-content');
-    if (!dashboardContent) return;
+    console.log('Инициализация вкладок');
+    
+    // Проверяем, не существует ли уже навигация
+    if (document.querySelector('.tab-navigation')) {
+        console.log('Навигация уже существует, пропускаем создание');
+        return;
+    }
 
-    // Добавляем навигацию по вкладкам
-    const tabsNav = document.createElement('div');
-    tabsNav.className = 'tabs-navigation';
-    tabsNav.innerHTML = `
+    const mainContent = document.querySelector('.dashboard-content');
+    if (!mainContent) {
+        console.error('Не найден контейнер для контента');
+        return;
+    }
+
+    // Создаем навигацию
+    const tabNavigation = document.createElement('div');
+    tabNavigation.className = 'tab-navigation';
+    tabNavigation.innerHTML = `
         <button class="tab-button active" data-tab="current">Текущие данные</button>
         <button class="tab-button" data-tab="analytics">Аналитика</button>
         <button class="tab-button" data-tab="training">План тренировок</button>
     `;
-    dashboardContent.insertBefore(tabsNav, dashboardContent.firstChild);
 
-    // Создаем контейнеры для вкладок
-    const currentTab = document.createElement('div');
-    currentTab.id = 'currentTab';
-    currentTab.className = 'tab-content';
-    
-    // Перемещаем существующий контент в currentTab
-    while (dashboardContent.children.length > 1) {
-        currentTab.appendChild(dashboardContent.children[1]);
-    }
-    
-    const analyticsTab = document.createElement('div');
-    analyticsTab.id = 'analyticsTab';
-    analyticsTab.className = 'tab-content';
-    analyticsTab.style.display = 'none';
-
-    const trainingTab = document.createElement('div');
-    trainingTab.id = 'trainingTab';
-    trainingTab.className = 'tab-content';
-    trainingTab.style.display = 'none';
-
-    // Добавляем вкладки в контейнер
-    dashboardContent.appendChild(currentTab);
-    dashboardContent.appendChild(analyticsTab);
-    dashboardContent.appendChild(trainingTab);
-
-    // Добавляем стили для вкладок
-    const style = document.createElement('style');
-    style.textContent = `
-        .tabs-navigation {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            padding: 0 20px;
-        }
-
-        .tab-button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            background: #f8f9fa;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .tab-button:hover {
-            background: #e9ecef;
-        }
-
-        .tab-button.active {
-            background: #4e73df;
-            color: white;
-        }
-
-        .tab-content {
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @media (max-width: 768px) {
-            .tabs-navigation {
-                padding: 0 10px;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .tab-button {
-                padding: 8px 15px;
-                font-size: 13px;
-                white-space: nowrap;
-            }
-        }
+    // Создаем контейнеры для контента вкладок
+    const tabContainers = document.createElement('div');
+    tabContainers.className = 'tab-containers';
+    tabContainers.innerHTML = `
+        <div id="currentTab" class="tab-content" style="display: block;"></div>
+        <div id="analyticsTab" class="tab-content" style="display: none;"></div>
+        <div id="trainingTab" class="tab-content" style="display: none;"></div>
     `;
-    document.head.appendChild(style);
 
-    // Добавляем обработчики для кнопок вкладок
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => {
+    // Добавляем навигацию в начало контента
+    mainContent.insertBefore(tabNavigation, mainContent.firstChild);
+    mainContent.appendChild(tabContainers);
+
+    // Перемещаем существующий контент в currentTab
+    const existingContent = Array.from(mainContent.children).filter(child => 
+        !child.classList.contains('tab-navigation') && 
+        !child.classList.contains('tab-containers')
+    );
+    
+    const currentTab = document.getElementById('currentTab');
+    existingContent.forEach(element => currentTab.appendChild(element));
+
+    // Добавляем обработчики для кнопок
+    const buttons = tabNavigation.querySelectorAll('.tab-button');
+    buttons.forEach(button => {
         button.addEventListener('click', () => switchTab(button.dataset.tab));
     });
 }
