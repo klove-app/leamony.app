@@ -509,7 +509,7 @@ async function loadDetailedAnalytics() {
     try {
         console.group('Загрузка детальной аналитики');
         
-        const allRuns = await getRuns(null, null);
+        const allRuns = getRuns(null, null);
         console.log('Получены пробежки:', allRuns);
 
         if (!allRuns || allRuns.length === 0) {
@@ -540,7 +540,7 @@ async function loadDetailedAnalytics() {
                         </div>
                     </div>
                     <div class="runs-list">
-                        ${createTimelineItems(allRuns)}
+                        ${createMonthlyGroups(allRuns)}
                     </div>
                 </div>
             </div>
@@ -599,6 +599,43 @@ async function loadDetailedAnalytics() {
 
             .runs-list {
                 padding: 20px;
+            }
+
+            .month-group {
+                margin-bottom: 30px;
+            }
+
+            .month-header {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .month-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: #333;
+            }
+
+            .month-stats {
+                display: flex;
+                gap: 20px;
+                color: #666;
+                font-size: 14px;
+            }
+
+            .month-stat {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .month-stat-icon {
+                font-size: 16px;
             }
 
             .timeline-item {
@@ -663,16 +700,18 @@ async function loadDetailedAnalytics() {
                     padding: 15px;
                 }
 
-                .history-header h2 {
-                    font-size: 20px;
+                .month-header {
+                    flex-direction: column;
+                    gap: 10px;
                 }
 
-                .legend-item {
+                .month-stats {
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+
+                .month-stat {
                     font-size: 12px;
-                }
-
-                .runs-list {
-                    padding: 10px;
                 }
 
                 .timeline-item {
@@ -715,6 +754,62 @@ async function loadDetailedAnalytics() {
         console.error('Ошибка при загрузке аналитики:', error);
         showError('Не удалось загрузить аналитику');
     }
+}
+
+function createMonthlyGroups(runs) {
+    // Группируем пробежки по месяцам
+    const monthlyRuns = runs.reduce((groups, run) => {
+        const date = new Date(run.date_added);
+        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        if (!groups[monthKey]) {
+            groups[monthKey] = [];
+        }
+        groups[monthKey].push(run);
+        return groups;
+    }, {});
+
+    // Сортируем месяцы в обратном порядке
+    const sortedMonths = Object.keys(monthlyRuns).sort().reverse();
+
+    return sortedMonths.map(monthKey => {
+        const monthRuns = monthlyRuns[monthKey];
+        const [year, month] = monthKey.split('-');
+        const date = new Date(year, month - 1);
+        
+        // Рассчитываем статистику за месяц
+        const totalDistance = monthRuns.reduce((sum, run) => sum + run.km, 0);
+        const avgDistance = totalDistance / monthRuns.length;
+        const maxDistance = Math.max(...monthRuns.map(run => run.km));
+        
+        return `
+            <div class="month-group">
+                <div class="month-header">
+                    <div class="month-title">
+                        ${date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}
+                    </div>
+                    <div class="month-stats">
+                        <div class="month-stat">
+                            <span class="month-stat-icon">📏</span>
+                            <span>Всего: ${formatNumber(totalDistance)} км</span>
+                        </div>
+                        <div class="month-stat">
+                            <span class="month-stat-icon">📊</span>
+                            <span>Среднее: ${formatNumber(avgDistance)} км</span>
+                        </div>
+                        <div class="month-stat">
+                            <span class="month-stat-icon">🏃</span>
+                            <span>Пробежек: ${monthRuns.length}</span>
+                        </div>
+                        <div class="month-stat">
+                            <span class="month-stat-icon">🎯</span>
+                            <span>Макс: ${formatNumber(maxDistance)} км</span>
+                        </div>
+                    </div>
+                </div>
+                ${createTimelineItems(monthRuns)}
+            </div>
+        `;
+    }).join('');
 }
 
 function createTimelineItems(runs) {
