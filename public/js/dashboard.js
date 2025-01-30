@@ -93,10 +93,17 @@ function updateRunsTable(runs) {
     // Очищаем таблицу
     tbody.innerHTML = '';
 
+    // Проверяем наличие данных
+    if (!runs || runs.length === 0) {
+        runsSection.style.display = 'none';
+        console.log('Нет данных для отображения');
+        console.groupEnd();
+        return;
+    }
+
     // Добавляем строки с пробежками
     runs.forEach(run => {
         const tr = document.createElement('tr');
-        tr.className = 'animate-fade-in';
         tr.innerHTML = `
             <td>${new Date(run.date_added).toLocaleDateString()}</td>
             <td class="distance">${run.km.toFixed(1)}</td>
@@ -191,19 +198,21 @@ function createBaseStructure() {
             </div>
         </div>
 
-        <div class="recent-runs">
+        <div class="recent-runs" style="display: none;">
             <h3>Недавние пробежки</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Дата</th>
-                        <th>Дистанция (км)</th>
-                        <th>Время</th>
-                        <th>Заметки</th>
-                    </tr>
-                </thead>
-                <tbody id="runsTableBody"></tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Дистанция (км)</th>
+                            <th>Время</th>
+                            <th>Заметки</th>
+                        </tr>
+                    </thead>
+                    <tbody id="runsTableBody"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="action-buttons">
@@ -351,6 +360,15 @@ function initializeTabs() {
 
             .recent-runs {
                 margin-top: 20px;
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .table-container {
+                overflow-x: auto;
+                margin-top: 10px;
             }
 
             .recent-runs table {
@@ -361,9 +379,29 @@ function initializeTabs() {
 
             .recent-runs th,
             .recent-runs td {
-                padding: 10px;
+                padding: 12px;
                 text-align: left;
                 border-bottom: 1px solid #eee;
+            }
+
+            .recent-runs th {
+                background-color: #f8f9fa;
+                font-weight: 600;
+                color: #333;
+            }
+
+            .recent-runs tr:hover {
+                background-color: #f8f9fa;
+            }
+
+            .recent-runs td.distance {
+                font-weight: 500;
+                color: #4a69bd;
+            }
+
+            .recent-runs td.notes {
+                color: #666;
+                font-style: italic;
             }
 
             .action-buttons {
@@ -385,6 +423,18 @@ function initializeTabs() {
 
             .button-icon {
                 font-size: 16px;
+            }
+
+            @media (max-width: 768px) {
+                .recent-runs {
+                    padding: 15px;
+                }
+
+                .recent-runs th,
+                .recent-runs td {
+                    padding: 8px;
+                    font-size: 14px;
+                }
             }
         `;
         document.head.appendChild(style);
