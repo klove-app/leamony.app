@@ -173,6 +173,29 @@ class TrainingPlanForm {
     }
 
     renderPlan(plan, container) {
+        // Форматируем дату для отображения
+        const formatDate = (dateStr) => {
+            return new Date(dateStr).toLocaleDateString('ru-RU', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            });
+        };
+
+        // Группируем тренировки по неделям
+        const workoutsByWeek = plan.plan.reduce((weeks, workout) => {
+            const date = new Date(workout.date);
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay() + 1);
+            const weekKey = weekStart.toISOString().split('T')[0];
+            
+            if (!weeks[weekKey]) {
+                weeks[weekKey] = [];
+            }
+            weeks[weekKey].push(workout);
+            return weeks;
+        }, {});
+
         container.innerHTML = `
             <div class="training-plan">
                 <div class="plan-header">
@@ -201,31 +224,81 @@ class TrainingPlanForm {
                     </ul>
                 </div>
 
-                <div class="workouts-grid">
-                    ${plan.plan.map(workout => this.renderWorkout(workout)).join('')}
+                <div class="weeks-container">
+                    ${Object.entries(workoutsByWeek).map(([weekStart, workouts], weekIndex) => `
+                        <div class="week-block">
+                            <h3>Неделя ${weekIndex + 1}</h3>
+                            <div class="workouts-grid">
+                                ${workouts.map(workout => this.renderWorkout(workout)).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;
     }
 
     renderWorkout(workout) {
+        // Форматируем дату
+        const date = new Date(workout.date);
+        const formattedDate = date.toLocaleDateString('ru-RU', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        });
+
+        // Форматируем время тренировки
+        const formatDuration = (minutes) => {
+            if (!minutes) return '';
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return hours > 0 ? `${hours} ч ${mins} мин` : `${mins} мин`;
+        };
+
         return `
             <div class="workout-card ${workout.key_workout ? 'key-workout' : ''}">
                 <div class="workout-header">
-                    <div class="workout-date">${new Date(workout.date).toLocaleDateString('ru-RU', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short'
-                    })}</div>
-                    <div class="workout-type">${workout.type}</div>
+                    <div class="workout-date">${formattedDate}</div>
+                    <div class="workout-type">${this.translateWorkoutType(workout.type)}</div>
                 </div>
                 
                 <div class="workout-body">
-                    ${workout.distance ? `<div class="workout-distance">${workout.distance} км</div>` : ''}
-                    ${workout.duration_min ? `<div class="workout-duration">${workout.duration_min} мин</div>` : ''}
-                    ${workout.target_pace ? `<div class="workout-pace">Темп: ${workout.target_pace}</div>` : ''}
-                    
-                    <div class="workout-description">${workout.description}</div>
+                    <div class="workout-main-info">
+                        ${workout.distance ? `
+                            <div class="workout-stat">
+                                <span class="stat-icon">🏃</span>
+                                <span class="stat-value">${workout.distance} км</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${workout.duration_min ? `
+                            <div class="workout-stat">
+                                <span class="stat-icon">⏱️</span>
+                                <span class="stat-value">${formatDuration(workout.duration_min)}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${workout.target_pace ? `
+                            <div class="workout-stat">
+                                <span class="stat-icon">⚡</span>
+                                <span class="stat-value">Темп: ${workout.target_pace}</span>
+                            </div>
+                        ` : ''}
+
+                        ${workout.intensity ? `
+                            <div class="workout-stat">
+                                <span class="stat-icon">💪</span>
+                                <span class="stat-value">${this.translateIntensity(workout.intensity)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="workout-description">
+                        <h4>Описание тренировки</h4>
+                        <p>${workout.description}</p>
+                        ${workout.warmup ? `<p><strong>Разминка:</strong> ${workout.warmup}</p>` : ''}
+                        ${workout.cooldown ? `<p><strong>Заминка:</strong> ${workout.cooldown}</p>` : ''}
+                    </div>
                     
                     ${this.renderIntervals(workout)}
                 </div>
@@ -236,42 +309,140 @@ class TrainingPlanForm {
         `;
     }
 
+    translateWorkoutType(type) {
+        const types = {
+            'base_building': 'Базовая тренировка',
+            'long_run': 'Длительная пробежка',
+            'tempo': 'Темповая тренировка',
+            'intervals': 'Интервальная тренировка',
+            'recovery': 'Восстановительная пробежка',
+            'easy': 'Легкая пробежка',
+            'threshold': 'Пороговая тренировка',
+            'speed': 'Скоростная тренировка',
+            'fartlek': 'Фартлек',
+            'hills': 'Тренировка в гору'
+        };
+        return types[type] || type;
+    }
+
+    translateIntensity(intensity) {
+        const intensities = {
+            'low': 'Низкая интенсивность',
+            'moderate': 'Средняя интенсивность',
+            'high': 'Высокая интенсивность',
+            'very_high': 'Очень высокая интенсивность'
+        };
+        return intensities[intensity] || intensity;
+    }
+
     renderIntervals(workout) {
-        if (!workout.intervals) return '';
+        if (!workout.intervals || workout.intervals.length === 0 || 
+            !workout.intervals.some(interval => interval.distance || interval.pace || interval.repetitions)) {
+            return '';
+        }
         
         return `
             <div class="workout-intervals">
-                <h4>Интервалы:</h4>
-                ${workout.intervals.map(interval => `
-                    <div class="interval-item">
-                        ${interval.repetitions}x ${interval.distance} @ ${interval.pace}
-                        ${interval.recovery ? `<span class="recovery">Отдых: ${interval.recovery}</span>` : ''}
-                    </div>
-                `).join('')}
+                <h4>Интервалы</h4>
+                <div class="intervals-list">
+                    ${workout.intervals.map(interval => {
+                        if (!interval.distance && !interval.pace && !interval.repetitions) return '';
+                        return `
+                            <div class="interval-item">
+                                <div class="interval-main">
+                                    ${interval.repetitions ? `${interval.repetitions}x ` : ''}
+                                    ${interval.distance || ''}
+                                    ${interval.pace ? `@ ${interval.pace}` : ''}
+                                </div>
+                                ${interval.recovery ? `
+                                    <div class="interval-recovery">
+                                        Отдых: ${interval.recovery}
+                                    </div>
+                                ` : ''}
+                                ${interval.description ? `
+                                    <div class="interval-description">
+                                        ${interval.description}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
             </div>
         `;
     }
 
     renderNutrition(workout) {
-        if (!workout.nutrition) return '';
+        if (!workout.nutrition || (!workout.nutrition.description && !workout.nutrition.recommendations)) {
+            return '';
+        }
         
         return `
             <div class="workout-nutrition">
-                <h4>Питание:</h4>
-                <p>${workout.nutrition.description}</p>
+                <h4>Питание</h4>
+                ${workout.nutrition.timing ? `
+                    <div class="nutrition-timing">
+                        <span class="timing-icon">🕒</span>
+                        <span>${workout.nutrition.timing}</span>
+                    </div>
+                ` : ''}
+                ${workout.nutrition.description ? `
+                    <p>${workout.nutrition.description}</p>
+                ` : ''}
+                ${workout.nutrition.recommendations ? `
+                    <div class="nutrition-recommendations">
+                        <span class="recommendations-icon">💡</span>
+                        <span>${workout.nutrition.recommendations.join(', ')}</span>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
 
     renderRecovery(workout) {
-        if (!workout.recovery) return '';
+        if (!workout.recovery || (!workout.recovery.recommendations && !workout.recovery.stretching)) {
+            return '';
+        }
         
         return `
             <div class="workout-recovery">
-                <h4>Восстановление:</h4>
-                <p>${workout.recovery.recommendations.join(', ')}</p>
+                <h4>Восстановление</h4>
+                ${workout.recovery.priority ? `
+                    <div class="recovery-priority">
+                        Приоритет: ${this.translateRecoveryPriority(workout.recovery.priority)}
+                    </div>
+                ` : ''}
+                ${workout.recovery.recommendations ? `
+                    <div class="recovery-recommendations">
+                        ${workout.recovery.recommendations.map(rec => `
+                            <div class="recovery-item">
+                                <span class="recovery-icon">✓</span>
+                                <span>${rec}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                ${workout.recovery.stretching ? `
+                    <div class="stretching-exercises">
+                        <h5>Растяжка</h5>
+                        <div class="stretching-list">
+                            ${workout.recovery.stretching.map(stretch => `
+                                <span class="stretch-item">${stretch}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
+    }
+
+    translateRecoveryPriority(priority) {
+        const priorities = {
+            'low': 'Низкий',
+            'medium': 'Средний',
+            'high': 'Высокий'
+        };
+        return priorities[priority] || priority;
     }
 
     renderLoading() {
