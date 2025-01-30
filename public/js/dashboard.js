@@ -519,7 +519,7 @@ async function loadDetailedAnalytics() {
                 <div class="charts-section">
                     <div class="chart-row">
                         <div class="chart-container main-chart">
-                            <div id="progressChart"></div>
+                            <div id="progressChart" style="width: 100%;"></div>
                         </div>
                     </div>
                     <div class="chart-row">
@@ -557,11 +557,13 @@ async function loadDetailedAnalytics() {
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
+                width: 100%;
             }
             .chart-row {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
                 gap: 15px;
+                width: 100%;
             }
             .chart-container {
                 background: white;
@@ -571,10 +573,17 @@ async function loadDetailedAnalytics() {
                 min-height: 250px;
                 width: 100%;
                 overflow: hidden;
+                display: flex;
+                flex-direction: column;
             }
             .main-chart {
                 grid-column: 1 / -1;
                 min-height: 350px;
+            }
+            .chart-container > div {
+                flex: 1;
+                width: 100%;
+                min-height: 0;
             }
             .stats-container {
                 margin-top: 20px;
@@ -686,13 +695,10 @@ function createProgressChart(runs) {
             dashArray: 5
         }],
         chart: {
-            height: '100%',
             type: 'line',
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800
-            },
+            height: 350,
+            width: '100%',
+            parentHeightOffset: 0,
             toolbar: {
                 show: true,
                 tools: {
@@ -710,7 +716,11 @@ function createProgressChart(runs) {
                 enabled: true,
                 type: 'x'
             },
-            redrawOnWindowResize: true
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
         },
         markers: {
             size: [4, 0, 0],
@@ -723,11 +733,9 @@ function createProgressChart(runs) {
             width: [0, 2, 2]
         },
         grid: {
-            borderColor: '#f1f1f1',
-            xaxis: {
-                lines: {
-                    show: true
-                }
+            padding: {
+                right: 30,
+                left: 20
             }
         },
         xaxis: {
