@@ -978,6 +978,63 @@ body {
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
+/* Стили для селектора дней */
+.days-selector {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.days-selector label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.days-selector label:hover {
+    background-color: #f8fafc;
+}
+
+.days-selector input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.days-selector input[type="checkbox"]:checked + span {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.days-selector label:has(input:checked) {
+    background-color: #f0f5ff;
+    border-color: var(--primary-color);
+}
+
+/* Стили для числового поля */
+input[type="number"].form-control {
+    -moz-appearance: textfield;
+}
+
+input[type="number"].form-control::-webkit-outer-spin-button,
+input[type="number"].form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Стили для поля времени */
+input[type="time"].form-control {
+    max-width: 200px;
+}
+
 select.form-control {
     appearance: none;
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
@@ -1019,7 +1076,7 @@ textarea.form-control {
     transform: translateY(1px);
 }
 
-/* Медиа-запросы */
+/* Адаптивность */
 @media (max-width: 640px) {
     .training-plan-form-container {
         padding: 16px;
@@ -1027,6 +1084,16 @@ textarea.form-control {
 
     .training-plan-form {
         padding: 16px;
+    }
+
+    .days-selector {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 400px) {
+    .days-selector {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 

@@ -22,16 +22,6 @@ class TrainingPlanForm {
                     </div>
 
                     <div class="form-group">
-                        <label>Количество тренировок в неделю</label>
-                        <select name="training_days" class="form-control" required>
-                            <option value="2">2 дня</option>
-                            <option value="3" selected>3 дня</option>
-                            <option value="4">4 дня</option>
-                            <option value="5">5 дней</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label>Текущий уровень</label>
                         <select name="current_level" class="form-control" required>
                             <option value="beginner">Начинающий (до 5 км)</option>
@@ -41,9 +31,33 @@ class TrainingPlanForm {
                     </div>
 
                     <div class="form-group">
-                        <label>Дополнительные пожелания</label>
-                        <textarea name="notes" class="form-control" rows="3" 
-                            placeholder="Например: предпочитаемое время тренировок, ограничения по здоровью, специфические цели"></textarea>
+                        <label>Недельный километраж</label>
+                        <input type="number" name="weekly_mileage" class="form-control" min="0" step="1" 
+                            placeholder="Например: 20" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Предпочитаемые дни тренировок</label>
+                        <div class="days-selector">
+                            <label><input type="checkbox" name="preferred_days" value="1"> Пн</label>
+                            <label><input type="checkbox" name="preferred_days" value="2"> Вт</label>
+                            <label><input type="checkbox" name="preferred_days" value="3"> Ср</label>
+                            <label><input type="checkbox" name="preferred_days" value="4"> Чт</label>
+                            <label><input type="checkbox" name="preferred_days" value="5"> Пт</label>
+                            <label><input type="checkbox" name="preferred_days" value="6"> Сб</label>
+                            <label><input type="checkbox" name="preferred_days" value="0"> Вс</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Предпочитаемое время тренировок</label>
+                        <input type="time" name="preferred_workout_time" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ограничения по здоровью</label>
+                        <textarea name="injuries" class="form-control" rows="3" 
+                            placeholder="Например: травмы, хронические заболевания или другие ограничения"></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Сгенерировать план</button>
@@ -64,6 +78,15 @@ class TrainingPlanForm {
         const formData = new FormData(form);
         const planResult = this.container.querySelector('#planResult');
 
+        // Проверяем, что выбран хотя бы один день тренировок
+        const selectedDays = Array.from(form.querySelectorAll('input[name="preferred_days"]:checked'))
+            .map(input => parseInt(input.value));
+        
+        if (selectedDays.length === 0) {
+            this.showError('Пожалуйста, выберите хотя бы один день для тренировок');
+            return;
+        }
+
         // Показываем анимацию загрузки
         planResult.innerHTML = this.renderLoading();
         planResult.style.display = 'block';
@@ -72,9 +95,11 @@ class TrainingPlanForm {
         const request = {
             athlete_context: {
                 current_level: formData.get('current_level'),
-                training_days: parseInt(formData.get('training_days')),
+                weekly_mileage: parseInt(formData.get('weekly_mileage')) || undefined,
+                preferred_days: selectedDays,
                 goal_type: formData.get('goal_type'),
-                notes: formData.get('notes') || undefined
+                preferred_workout_time: formData.get('preferred_workout_time') || undefined,
+                injuries: formData.get('injuries') || undefined
             },
             // Используем текущую дату как начало и +30 дней как конец
             start_date: new Date().toISOString().split('T')[0],
