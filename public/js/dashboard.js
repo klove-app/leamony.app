@@ -364,6 +364,8 @@ async function switchTab(tabName) {
 
     if (tabName === 'analytics') {
         await loadDetailedAnalytics();
+    } else if (tabName === 'training') {
+        loadTrainingPlan();
     }
 }
 
@@ -728,6 +730,357 @@ function showEmptyState() {
         syncButton.addEventListener('click', handleTelegramSync);
     }
     console.groupEnd();
+}
+
+// Функция для загрузки вкладки с планом тренировок
+function loadTrainingPlan() {
+    const trainingTab = document.getElementById('trainingTab');
+    if (!trainingTab) return;
+
+    trainingTab.innerHTML = `
+        <div class="training-plan-container">
+            <div class="request-section">
+                <h2>Получить план тренировок</h2>
+                <div class="goals-form">
+                    <div class="form-group">
+                        <label for="mainGoal">Основная цель</label>
+                        <select id="mainGoal" class="form-control">
+                            <option value="improve_endurance">Улучшить выносливость</option>
+                            <option value="increase_distance">Увеличить дистанцию</option>
+                            <option value="improve_speed">Улучшить скорость</option>
+                            <option value="weight_loss">Снижение веса</option>
+                            <option value="marathon_prep">Подготовка к марафону</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="trainingDays">Количество тренировок в неделю</label>
+                        <select id="trainingDays" class="form-control">
+                            <option value="2">2 дня</option>
+                            <option value="3" selected>3 дня</option>
+                            <option value="4">4 дня</option>
+                            <option value="5">5 дней</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentLevel">Текущий уровень</label>
+                        <select id="currentLevel" class="form-control">
+                            <option value="beginner">Начинающий (до 5 км)</option>
+                            <option value="intermediate">Средний (5-10 км)</option>
+                            <option value="advanced">Продвинутый (более 10 км)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="additionalNotes">Дополнительные пожелания</label>
+                        <textarea id="additionalNotes" class="form-control" rows="3" 
+                            placeholder="Например: предпочитаемое время тренировок, ограничения по здоровью, специфические цели"></textarea>
+                    </div>
+                    <button id="generatePlanButton" class="primary-button">
+                        Сгенерировать план
+                    </button>
+                </div>
+            </div>
+            <div id="planResult" class="plan-result" style="display: none;">
+                <div class="plan-header">
+                    <h3>Ваш план тренировок</h3>
+                    <div class="plan-actions">
+                        <button class="secondary-button" onclick="savePlan()">
+                            <span class="button-icon">💾</span> Сохранить
+                        </button>
+                        <button class="secondary-button" onclick="sharePlan()">
+                            <span class="button-icon">📤</span> Поделиться
+                        </button>
+                    </div>
+                </div>
+                <div class="plan-content">
+                    <div class="plan-overview">
+                        <div class="overview-item">
+                            <span class="overview-label">Длительность плана:</span>
+                            <span class="overview-value">4 недели</span>
+                        </div>
+                        <div class="overview-item">
+                            <span class="overview-label">Тренировок в неделю:</span>
+                            <span class="overview-value">3</span>
+                        </div>
+                        <div class="overview-item">
+                            <span class="overview-label">Общая дистанция:</span>
+                            <span class="overview-value">120 км</span>
+                        </div>
+                    </div>
+                    <div class="weekly-plans">
+                        <!-- Здесь будет контент плана -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Добавляем стили
+    const style = document.createElement('style');
+    style.textContent = `
+        .training-plan-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .request-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .request-section h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .goals-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-control {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .primary-button {
+            background: #4e73df;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .primary-button:hover {
+            background: #2e59d9;
+        }
+
+        .plan-result {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .secondary-button {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .secondary-button:hover {
+            background: #e9ecef;
+        }
+
+        .plan-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .overview-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .overview-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .overview-value {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .weekly-plans {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .training-plan-container {
+                padding: 10px;
+            }
+
+            .plan-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .plan-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .plan-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Добавляем обработчик для кнопки генерации плана
+    const generateButton = document.getElementById('generatePlanButton');
+    if (generateButton) {
+        generateButton.addEventListener('click', generateTrainingPlan);
+    }
+}
+
+// Функция для генерации плана тренировок
+async function generateTrainingPlan() {
+    const planResult = document.getElementById('planResult');
+    const weeklyPlans = planResult.querySelector('.weekly-plans');
+    
+    // Показываем результат
+    planResult.style.display = 'block';
+    
+    // Пример структуры плана (потом заменим на реальные данные от API)
+    weeklyPlans.innerHTML = `
+        <div class="week-plan">
+            <h4>Неделя 1 - Адаптация</h4>
+            <div class="training-days">
+                <div class="training-day">
+                    <div class="day-header">
+                        <span class="day-title">День 1</span>
+                        <span class="day-type">Легкая пробежка</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="workout-details">
+                            <span class="detail-item">🏃‍♂️ Дистанция: 5 км</span>
+                            <span class="detail-item">⏱️ Темп: 7:00 мин/км</span>
+                            <span class="detail-item">💪 Интенсивность: Низкая</span>
+                        </div>
+                        <div class="workout-notes">
+                            Разминка 5-10 минут, легкий бег в комфортном темпе, заминка 5 минут
+                        </div>
+                    </div>
+                </div>
+                <!-- Добавьте больше дней по аналогии -->
+            </div>
+        </div>
+    `;
+
+    // Добавляем стили для плана
+    const style = document.createElement('style');
+    style.textContent += `
+        .week-plan {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .week-plan h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .training-days {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .training-day {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .day-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .day-type {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .workout-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .detail-item {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .workout-notes {
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Инициализация страницы
