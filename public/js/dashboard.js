@@ -353,56 +353,38 @@ async function handleLogout() {
 async function switchTab(tabName) {
     console.group('Переключение вкладки:', tabName);
     
+    // Находим все вкладки и кнопки
     const tabs = document.querySelectorAll('.tab-content');
     const buttons = document.querySelectorAll('.tab-button');
     
-    console.log('Найдено вкладок:', tabs.length);
-    console.log('Найдено кнопок:', buttons.length);
-    
-    // Проверяем существование контейнеров
-    const currentTab = document.getElementById('currentTab');
-    const analyticsTab = document.getElementById('analyticsTab');
-    const trainingTab = document.getElementById('trainingTab');
-    
-    console.log('Контейнеры вкладок:', {
-        currentTab: !!currentTab,
-        analyticsTab: !!analyticsTab,
-        trainingTab: !!trainingTab
-    });
-
-    // Скрываем все вкладки
+    // Скрываем все вкладки и убираем активный класс
     tabs.forEach(tab => {
-        tab.style.display = 'none';
-        console.log(`Скрываем вкладку ${tab.id}`);
+        tab.classList.remove('active');
     });
     
-    // Показываем нужную вкладку
-    const activeTab = document.getElementById(`${tabName}Tab`);
-    if (activeTab) {
-        activeTab.style.display = 'block';
-        console.log(`Показываем вкладку ${tabName}Tab`);
-    } else {
-        console.error(`Вкладка ${tabName}Tab не найдена`);
-    }
-    
-    // Обновляем состояние кнопок
     buttons.forEach(button => {
-        const isActive = button.dataset.tab === tabName;
-        button.classList.toggle('active', isActive);
-        console.log(`Кнопка ${button.dataset.tab}: ${isActive ? 'активна' : 'неактивна'}`);
+        button.classList.remove('active');
     });
-
-    try {
-        if (tabName === 'analytics') {
-            console.log('Загружаем аналитику...');
-            await loadDetailedAnalytics();
-        } else if (tabName === 'training') {
-            console.log('Загружаем план тренировок...');
-            loadTrainingPlan();
+    
+    // Активируем нужную вкладку и кнопку
+    const activeTab = document.getElementById(`${tabName}Tab`);
+    const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+    
+    if (activeTab && activeButton) {
+        activeTab.classList.add('active');
+        activeButton.classList.add('active');
+        
+        // Загружаем контент в зависимости от вкладки
+        try {
+            if (tabName === 'analytics') {
+                await loadDetailedAnalytics();
+            } else if (tabName === 'training') {
+                loadTrainingPlan();
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке контента вкладки:', error);
+            showError('Не удалось загрузить содержимое вкладки');
         }
-    } catch (error) {
-        console.error('Ошибка при загрузке содержимого вкладки:', error);
-        showError('Не удалось загрузить содержимое вкладки');
     }
     
     console.groupEnd();
@@ -1127,19 +1109,25 @@ async function generateTrainingPlan() {
 
 // Функция для инициализации вкладок
 function initializeTabs() {
-    console.log('Инициализация вкладок');
+    console.group('Инициализация вкладок');
     
     // Проверяем, не существует ли уже навигация
-    if (document.querySelector('.tab-navigation')) {
+    const existingNavigation = document.querySelector('.tab-navigation');
+    if (existingNavigation) {
         console.log('Навигация уже существует, пропускаем создание');
+        console.groupEnd();
         return;
     }
 
     const mainContent = document.querySelector('.dashboard-content');
     if (!mainContent) {
         console.error('Не найден контейнер для контента');
+        console.groupEnd();
         return;
     }
+
+    // Сохраняем существующий контент
+    const existingContent = Array.from(mainContent.children);
 
     // Создаем навигацию
     const tabNavigation = document.createElement('div');
@@ -1154,29 +1142,77 @@ function initializeTabs() {
     const tabContainers = document.createElement('div');
     tabContainers.className = 'tab-containers';
     tabContainers.innerHTML = `
-        <div id="currentTab" class="tab-content" style="display: block;"></div>
-        <div id="analyticsTab" class="tab-content" style="display: none;"></div>
-        <div id="trainingTab" class="tab-content" style="display: none;"></div>
+        <div id="currentTab" class="tab-content active"></div>
+        <div id="analyticsTab" class="tab-content"></div>
+        <div id="trainingTab" class="tab-content"></div>
     `;
 
-    // Добавляем навигацию в начало контента
-    mainContent.insertBefore(tabNavigation, mainContent.firstChild);
+    // Очищаем основной контейнер
+    mainContent.innerHTML = '';
+
+    // Добавляем новую структуру
+    mainContent.appendChild(tabNavigation);
     mainContent.appendChild(tabContainers);
 
     // Перемещаем существующий контент в currentTab
-    const existingContent = Array.from(mainContent.children).filter(child => 
-        !child.classList.contains('tab-navigation') && 
-        !child.classList.contains('tab-containers')
-    );
-    
     const currentTab = document.getElementById('currentTab');
-    existingContent.forEach(element => currentTab.appendChild(element));
+    existingContent.forEach(element => {
+        if (!element.classList.contains('tab-navigation') && 
+            !element.classList.contains('tab-containers')) {
+            currentTab.appendChild(element.cloneNode(true));
+        }
+    });
+
+    // Добавляем стили для вкладок
+    const style = document.createElement('style');
+    style.textContent = `
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: #f0f0f0;
+        }
+
+        .tab-button.active {
+            color: #4a69bd;
+            font-weight: bold;
+            background: #e8f0fe;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    `;
+    document.head.appendChild(style);
 
     // Добавляем обработчики для кнопок
     const buttons = tabNavigation.querySelectorAll('.tab-button');
     buttons.forEach(button => {
         button.addEventListener('click', () => switchTab(button.dataset.tab));
     });
+
+    console.log('Инициализация вкладок завершена');
+    console.groupEnd();
 }
 
 // Инициализация страницы
@@ -1197,47 +1233,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Инициализируем вкладки
         initializeTabs();
-
-        // Настраиваем обработчики событий
-        const logoutButton = document.getElementById('logoutButton');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', handleLogout);
-        }
-
-        const refreshButton = document.getElementById('refreshButton');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', () => loadUserData(true));
-        }
-
-        const viewLogsButton = document.getElementById('viewLogsButton');
-        if (viewLogsButton) {
-            viewLogsButton.addEventListener('click', viewLogs);
-        }
-
-        const exportButton = document.getElementById('exportButton');
-        if (exportButton) {
-            exportButton.addEventListener('click', () => {
-                showError('Функция экспорта данных находится в разработке');
-            });
-        }
-
-        // Добавляем обработчики для кнопок периода
-        const periodButtons = document.querySelectorAll('.period-button');
-        periodButtons.forEach(button => {
-            button.addEventListener('click', () => updatePeriod(button.dataset.period));
-        });
-
-        // Добавляем обработчики для вкладок
-        const tabButtons = document.querySelectorAll('.tab-button');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => switchTab(button.dataset.tab));
-        });
-
+        
         // Загружаем данные
         await loadUserData(false);
         
         isInitialized = true;
         console.log('Инициализация завершена');
+    } catch (error) {
+        console.error('Ошибка при инициализации:', error);
+        showError('Произошла ошибка при загрузке страницы');
     } finally {
         isLoading = false;
         console.groupEnd();
