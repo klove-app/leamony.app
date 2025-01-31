@@ -349,63 +349,147 @@ async function loadUserData(forceCheck = false) {
 
         // Получаем даты для текущего периода
         const { startDate, endDate } = getPeriodDates(currentPeriod);
+        console.log('Запрашиваем данные за период:', { startDate, endDate });
+
         const response = await getRuns(startDate, endDate);
         console.log('Получен ответ:', response);
         
         // Преобразуем данные в нужный формат
         const runs = Array.isArray(response) ? response : [];
         console.log('Преобразованные пробежки:', runs);
-        
-        // Подготавливаем все данные
+
+        // Подготавливаем данные для обновления
         const data = {
-            hasRuns: runs && runs.length > 0,
             welcomeMessage: `Привет, ${user.username}! 👋`,
-            yearlyGoal: user.yearly_goal,
-            stats: null,
-            recentRuns: null
+            stats: calculateStats(runs),
+            recentRuns: runs.slice(0, 5),
+            runs: runs
         };
 
-        // Обновляем DOM
-        const currentTab = document.getElementById('currentTab');
-        if (currentTab) {
-            // Обновляем приветствие
-            const welcomeMessage = currentTab.querySelector('.welcome-message');
-            if (welcomeMessage) welcomeMessage.textContent = data.welcomeMessage;
+        // Обновляем дашборд
+        updateDashboard(data);
 
-            if (data.hasRuns) {
-                const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-                const avgDistance = totalDistance / runs.length;
-                const lastRun = new Date(runs[0].date_added);
-                const daysSinceLastRun = Math.floor((new Date() - lastRun) / (1000 * 60 * 60 * 24));
-
-                // Обновляем информацию о последней пробежке
-                const lastRunInfo = currentTab.querySelector('#lastRunInfo');
-                if (lastRunInfo) {
-                    lastRunInfo.textContent = daysSinceLastRun === 0 
-                        ? 'Отличная пробежка сегодня!'
-                        : `Последняя пробежка: ${daysSinceLastRun} дн. назад`;
-                }
-
-                // Обновляем прогресс
-                updateProgressSection(totalDistance, data.yearlyGoal);
-                
-                // Обновляем метрики
-                updateMetrics(totalDistance, avgDistance, runs.length);
-                
-                // Обновляем таблицу пробежек
-                updateRunsTable(runs.slice(0, 5));
-            } else {
-                // Показываем пустое состояние
-                showEmptyState();
-            }
-        }
-
-        console.groupEnd();
+        console.log('Данные успешно загружены');
     } catch (error) {
         console.error('Ошибка при загрузке данных:', error);
         showError('Не удалось загрузить данные');
+    } finally {
         console.groupEnd();
     }
+}
+
+function calculateStats(runs) {
+    if (!runs || runs.length === 0) {
+        return {
+            totalDistance: 0,
+            avgDistance: 0,
+            totalRuns: 0
+        };
+    }
+
+    const totalDistance = runs.reduce((sum, run) => sum + parseFloat(run.km || 0), 0);
+    const avgDistance = totalDistance / runs.length;
+
+    return {
+        totalDistance: totalDistance.toFixed(1),
+        avgDistance: avgDistance.toFixed(1),
+        totalRuns: runs.length
+    };
+}
+
+function updateDashboard(data) {
+    console.group('Обновление дашборда');
+    
+    try {
+        const currentTab = document.getElementById('currentTab');
+        if (!currentTab) {
+            console.error('Не найден контейнер для контента');
+            return;
+        }
+
+        // Обновляем приветственное сообщение
+        const welcomeMessage = currentTab.querySelector('.welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.textContent = data.welcomeMessage;
+        }
+
+        // Обновляем метрики
+        if (data.stats) {
+            updateMetrics(data.stats);
+        }
+
+        // Обновляем таблицу недавних пробежек
+        if (data.recentRuns) {
+            updateRecentRuns(data.recentRuns);
+        }
+
+        // Обновляем историю пробежек по месяцам
+        if (data.runs) {
+            updateMonthlyRuns(data.runs);
+        }
+
+        console.log('Дашборд успешно обновлен');
+    } catch (error) {
+        console.error('Ошибка при обновлении дашборда:', error);
+        showError('Произошла ошибка при обновлении данных');
+    }
+
+    console.groupEnd();
+}
+
+function updateMetrics(stats) {
+    console.group('Обновление метрик');
+    
+    try {
+        const metricCards = document.querySelectorAll('.metric-card .metric-value');
+        if (metricCards.length >= 3) {
+            metricCards[0].textContent = `${stats.totalDistance} км`;
+            metricCards[1].textContent = `${stats.avgDistance} км`;
+            metricCards[2].textContent = stats.totalRuns;
+        }
+
+        console.log('Метрики успешно обновлены');
+    } catch (error) {
+        console.error('Ошибка при обновлении метрик:', error);
+    }
+
+    console.groupEnd();
+}
+
+function updateRecentRuns(runs) {
+    console.group('Обновление таблицы недавних пробежек');
+    
+    try {
+        const tbody = document.querySelector('.recent-runs table tbody');
+        if (!tbody) {
+            console.error('Не найдена таблица для недавних пробежек');
+            return;
+        }
+
+        if (!runs || runs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state">Нет данных о пробежках</td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = runs.map(run => `
+            <tr>
+                <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                <td class="distance">${run.km}</td>
+                <td>${run.time || '-'}</td>
+                <td class="notes">${run.notes || '-'}</td>
+            </tr>
+        `).join('');
+
+        console.log('Таблица недавних пробежек обновлена');
+    } catch (error) {
+        console.error('Ошибка при обновлении таблицы:', error);
+    }
+
+    console.groupEnd();
 }
 
 // Обработчик выхода
@@ -1407,46 +1491,6 @@ function setupEventListeners() {
     }
 
     console.log('Обработчики событий настроены');
-    console.groupEnd();
-}
-
-function updateDashboard(data) {
-    console.group('Обновление дашборда');
-    
-    try {
-        const currentTab = document.getElementById('currentTab');
-        if (!currentTab) {
-            console.error('Не найден контейнер для контента');
-            return;
-        }
-
-        // Обновляем приветственное сообщение
-        const welcomeMessage = currentTab.querySelector('.welcome-message');
-        if (welcomeMessage && data.welcomeMessage) {
-            welcomeMessage.textContent = data.welcomeMessage;
-        }
-
-        // Обновляем метрики
-        if (data.stats) {
-            updateMetrics(data.stats);
-        }
-
-        // Обновляем таблицу недавних пробежек
-        if (data.recentRuns) {
-            updateRecentRuns(data.recentRuns);
-        }
-
-        // Обновляем историю пробежек по месяцам
-        if (data.runs) {
-            updateMonthlyRuns(data.runs);
-        }
-
-        console.log('Дашборд успешно обновлен');
-    } catch (error) {
-        console.error('Ошибка при обновлении дашборда:', error);
-        showError('Произошла ошибка при обновлении данных');
-    }
-
     console.groupEnd();
 }
 
