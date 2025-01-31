@@ -519,6 +519,7 @@ class TrainingPlanForm {
                             <div class="week-header">
                                 <h4>Неделя ${weekIndex + 1}</h4>
                                 <div class="week-focus">${plan.periodization[`week_${weekIndex + 1}`] || ''}</div>
+                                <div class="expand-icon" role="button" aria-label="Развернуть/свернуть неделю"></div>
                             </div>
                             <div class="workouts-grid">
                                 ${workouts.map(workout => this.renderWorkout(workout)).join('')}
@@ -690,7 +691,7 @@ class TrainingPlanForm {
         // Добавляем кнопку для разворачивания/сворачивания
         const expandButton = document.createElement('button');
         expandButton.className = 'expand-button';
-        expandButton.innerHTML = '▼';
+        expandButton.setAttribute('aria-label', 'Развернуть/свернуть план');
         header.appendChild(expandButton);
 
         // Добавляем обработчик для разворачивания/сворачивания
