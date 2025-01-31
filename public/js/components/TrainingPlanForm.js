@@ -104,8 +104,8 @@ class TrainingPlanForm {
         };
 
         try {
-            // Отправляем запрос на создание плана
-            const response = await fetch('/api/v1/ai/training-plan', {
+            // Отправляем запрос на генерацию плана
+            const response = await fetch('/api/v1/ai/training-plan/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,26 +114,20 @@ class TrainingPlanForm {
                 body: JSON.stringify(request)
             });
 
-            // Если получили статус "pending", значит задача принята в обработку
-            if (response.status === 200) {
-                const result = await response.json();
-                if (result.status === 'pending') {
-                    // Показываем сообщение о том, что план в процессе создания
-                    this.showInProgress();
-                    // Начинаем периодическую проверку статуса
-                    this.startStatusCheck();
-                } else if (result.status === 'completed' && result.plan) {
-                    // План уже готов
-                    if (this.validatePlanData(result.plan)) {
-                        this.renderPlan(result.plan, this.container.querySelector('.plan-result'));
-                    } else {
-                        throw new Error('Некорректный формат данных плана тренировок');
-                    }
-                } else if (result.status === 'error') {
-                    throw new Error(result.error || 'Ошибка при создании плана');
-                }
-            } else {
+            if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            // Если запрос принят в обработку
+            if (result.status === 'pending') {
+                // Показываем сообщение о том, что план в процессе создания
+                this.showInProgress();
+                // Начинаем периодическую проверку статуса
+                this.startStatusCheck();
+            } else {
+                throw new Error('Неожиданный ответ от сервера');
             }
 
         } catch (error) {
@@ -190,20 +184,29 @@ class TrainingPlanForm {
 
                 const result = await response.json();
                 
-                if (result.status === 'completed' && result.plan) {
-                    // План готов, отображаем его
-                    clearInterval(this.statusCheckInterval);
-                    if (this.validatePlanData(result.plan)) {
-                        this.renderPlan(result.plan, this.container.querySelector('.plan-result'));
-                    } else {
-                        throw new Error('Некорректный формат данных плана тренировок');
-                    }
-                } else if (result.status === 'error') {
-                    // Произошла ошибка при создании плана
-                    clearInterval(this.statusCheckInterval);
-                    this.showError(result.error || 'Не удалось создать план тренировок. Пожалуйста, попробуйте позже.');
+                switch (result.status) {
+                    case 'completed':
+                        clearInterval(this.statusCheckInterval);
+                        if (result.plan && this.validatePlanData(result.plan)) {
+                            this.renderPlan(result.plan, this.container.querySelector('.plan-result'));
+                        } else {
+                            throw new Error('Некорректный формат данных плана тренировок');
+                        }
+                        break;
+                        
+                    case 'error':
+                        clearInterval(this.statusCheckInterval);
+                        this.showError(result.error || 'Не удалось создать план тренировок. Пожалуйста, попробуйте позже.');
+                        break;
+                        
+                    case 'pending':
+                        // Продолжаем ожидание
+                        break;
+                        
+                    default:
+                        clearInterval(this.statusCheckInterval);
+                        this.showError('Неизвестный статус плана тренировок');
                 }
-                // Если статус 'pending', продолжаем проверять
                 
             } catch (error) {
                 console.error('Ошибка при проверке статуса:', error);
@@ -238,12 +241,16 @@ class TrainingPlanForm {
     }
 
     validatePlanData(plan) {
-        // Проверяем наличие необходимых полей
+        // Проверяем наличие необходимых полей согласно документации
         if (!plan || typeof plan !== 'object') return false;
-        if (!Array.isArray(plan.weekly_mileage)) return false;
-        if (!Array.isArray(plan.recommendations)) return false;
         if (!Array.isArray(plan.plan)) return false;
         if (typeof plan.summary !== 'string') return false;
+        if (!Array.isArray(plan.weekly_mileage)) return false;
+        if (!Array.isArray(plan.recommendations)) return false;
+        if (!Array.isArray(plan.key_workouts_explanation)) return false;
+        if (typeof plan.periodization !== 'object') return false;
+        if (typeof plan.nutrition_strategy !== 'object') return false;
+        if (typeof plan.recovery_strategy !== 'object') return false;
 
         // Проверяем структуру каждой тренировки
         return plan.plan.every(workout => {
@@ -252,9 +259,11 @@ class TrainingPlanForm {
                 typeof workout.date === 'string' &&
                 typeof workout.type === 'string' &&
                 typeof workout.description === 'string' &&
+                typeof workout.intensity === 'string' &&
                 (workout.distance === undefined || typeof workout.distance === 'number') &&
                 (workout.duration_min === undefined || typeof workout.duration_min === 'number') &&
-                (workout.target_pace === undefined || typeof workout.target_pace === 'string')
+                (workout.target_pace === undefined || typeof workout.target_pace === 'string') &&
+                typeof workout.key_workout === 'boolean'
             );
         });
     }
@@ -269,15 +278,6 @@ class TrainingPlanForm {
     }
 
     renderPlan(plan, container) {
-        // Форматируем дату для отображения
-        const formatDate = (dateStr) => {
-            return new Date(dateStr).toLocaleDateString('ru-RU', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long'
-            });
-        };
-
         // Группируем тренировки по неделям
         const workoutsByWeek = plan.plan.reduce((weeks, workout) => {
             const date = new Date(workout.date);
@@ -313,17 +313,52 @@ class TrainingPlanForm {
                     </div>
                 </div>
 
-                <div class="plan-recommendations">
-                    <h3>Рекомендации</h3>
-                    <ul>
-                        ${plan.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                    </ul>
+                <div class="plan-sections">
+                    <div class="key-workouts">
+                        <h3>Ключевые тренировки</h3>
+                        <ul>
+                            ${plan.key_workouts_explanation.map(explanation => `
+                                <li>${explanation}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="plan-recommendations">
+                        <h3>Рекомендации</h3>
+                        <ul>
+                            ${plan.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="nutrition-strategy">
+                        <h3>Стратегия питания</h3>
+                        ${Object.entries(plan.nutrition_strategy).map(([phase, tips]) => `
+                            <div class="nutrition-phase">
+                                <h4>${this.translatePhase(phase)}</h4>
+                                <ul>
+                                    ${tips.map(tip => `<li>${tip}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="recovery-strategy">
+                        <h3>Стратегия восстановления</h3>
+                        ${Object.entries(plan.recovery_strategy).map(([intensity, tips]) => `
+                            <div class="recovery-phase">
+                                <h4>${this.translateIntensity(intensity)}</h4>
+                                <ul>
+                                    ${tips.map(tip => `<li>${tip}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
 
                 <div class="weeks-container">
                     ${Object.entries(workoutsByWeek).map(([weekStart, workouts], weekIndex) => `
                         <div class="week-block">
-                            <h3>Неделя ${weekIndex + 1}</h3>
+                            <h3>Неделя ${weekIndex + 1} - ${plan.periodization[`week_${weekIndex + 1}`] || ''}</h3>
                             <div class="workouts-grid">
                                 ${workouts.map(workout => this.renderWorkout(workout)).join('')}
                             </div>
@@ -366,10 +401,166 @@ class TrainingPlanForm {
                         ${workout.cooldown ? `<p><strong>Заминка:</strong> ${workout.cooldown}</p>` : ''}
                     </div>
                     
-                    ${this.renderIntervals(workout)}
-                    ${this.renderNutrition(workout)}
-                    ${this.renderRecovery(workout)}
+                    ${this.renderHeartRateZones(workout.heart_rate_zones)}
+                    ${this.renderIntervals(workout.intervals)}
+                    ${this.renderNutrition(workout.nutrition)}
+                    ${this.renderRecovery(workout.recovery)}
+                    ${this.renderEquipment(workout.equipment)}
+                    ${workout.notes ? `
+                        <div class="workout-notes">
+                            <h4>Дополнительные заметки</h4>
+                            <p>${workout.notes}</p>
+                        </div>
+                    ` : ''}
                 </div>
+            </div>
+        `;
+    }
+
+    renderHeartRateZones(zones) {
+        if (!zones) return '';
+        
+        return `
+            <div class="heart-rate-zones">
+                <h4>Целевые зоны пульса</h4>
+                <div class="zones-list">
+                    ${Object.entries(zones).map(([phase, range]) => `
+                        <div class="zone-item">
+                            <span class="zone-phase">${this.translatePhase(phase)}:</span>
+                            <span class="zone-range">${range} уд/мин</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderEquipment(equipment) {
+        if (!equipment || equipment.length === 0) return '';
+        
+        return `
+            <div class="workout-equipment">
+                <h4>Необходимое снаряжение</h4>
+                <div class="equipment-list">
+                    ${equipment.map(item => `
+                        <span class="equipment-item">${item}</span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderIntervals(intervals) {
+        if (!intervals || intervals.length === 0) return '';
+        
+        return `
+            <div class="workout-intervals">
+                <h4>Интервалы</h4>
+                <div class="intervals-list">
+                    ${intervals.map(interval => `
+                        <div class="interval-item">
+                            <div class="interval-main">
+                                ${interval.repetitions ? `${interval.repetitions}x ` : ''}
+                                ${interval.distance || ''}
+                                ${interval.pace ? `@ ${interval.pace}` : ''}
+                            </div>
+                            ${interval.recovery ? `
+                                <div class="interval-recovery">
+                                    Отдых: ${interval.recovery}
+                                </div>
+                            ` : ''}
+                            ${interval.description ? `
+                                <div class="interval-description">
+                                    ${interval.description}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderNutrition(nutrition) {
+        if (!nutrition) return '';
+        
+        return `
+            <div class="workout-nutrition">
+                <h4>Питание</h4>
+                ${nutrition.timing ? `
+                    <div class="nutrition-timing">
+                        <span class="timing-icon">🕒</span>
+                        <span>${nutrition.timing}</span>
+                    </div>
+                ` : ''}
+                ${nutrition.description ? `
+                    <p>${nutrition.description}</p>
+                ` : ''}
+                ${nutrition.recommendations ? `
+                    <div class="nutrition-recommendations">
+                        <h5>Рекомендации:</h5>
+                        <ul>
+                            ${nutrition.recommendations.map(rec => `
+                                <li>${rec}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                ${nutrition.supplements ? `
+                    <div class="nutrition-supplements">
+                        <h5>Добавки:</h5>
+                        <ul>
+                            ${nutrition.supplements.map(supp => `
+                                <li>${supp}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    renderRecovery(recovery) {
+        if (!recovery) return '';
+        
+        return `
+            <div class="workout-recovery">
+                <h4>Восстановление</h4>
+                ${recovery.priority ? `
+                    <div class="recovery-priority">
+                        Приоритет: ${this.translateRecoveryPriority(recovery.priority)}
+                    </div>
+                ` : ''}
+                ${recovery.recommendations ? `
+                    <div class="recovery-recommendations">
+                        <h5>Рекомендации:</h5>
+                        <ul>
+                            ${recovery.recommendations.map(rec => `
+                                <li>${rec}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                ${recovery.stretching ? `
+                    <div class="stretching-exercises">
+                        <h5>Растяжка:</h5>
+                        <ul>
+                            ${recovery.stretching.map(stretch => `
+                                <li>${stretch}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                ${recovery.recovery_activities ? `
+                    <div class="recovery-activities">
+                        <h5>Дополнительные активности:</h5>
+                        <ul>
+                            ${recovery.recovery_activities.map(activity => `
+                                <li>${activity}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -398,107 +589,6 @@ class TrainingPlanForm {
             'very_high': 'Очень высокая интенсивность'
         };
         return intensities[intensity] || intensity;
-    }
-
-    renderIntervals(workout) {
-        if (!workout.intervals || workout.intervals.length === 0 || 
-            !workout.intervals.some(interval => interval.distance || interval.pace || interval.repetitions)) {
-            return '';
-        }
-        
-        return `
-            <div class="workout-intervals">
-                <h4>Интервалы</h4>
-                <div class="intervals-list">
-                    ${workout.intervals.map(interval => {
-                        if (!interval.distance && !interval.pace && !interval.repetitions) return '';
-                        return `
-                            <div class="interval-item">
-                                <div class="interval-main">
-                                    ${interval.repetitions ? `${interval.repetitions}x ` : ''}
-                                    ${interval.distance || ''}
-                                    ${interval.pace ? `@ ${interval.pace}` : ''}
-                                </div>
-                                ${interval.recovery ? `
-                                    <div class="interval-recovery">
-                                        Отдых: ${interval.recovery}
-                                    </div>
-                                ` : ''}
-                                ${interval.description ? `
-                                    <div class="interval-description">
-                                        ${interval.description}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    renderNutrition(workout) {
-        if (!workout.nutrition || (!workout.nutrition.description && !workout.nutrition.recommendations)) {
-            return '';
-        }
-        
-        return `
-            <div class="workout-nutrition">
-                <h4>Питание</h4>
-                ${workout.nutrition.timing ? `
-                    <div class="nutrition-timing">
-                        <span class="timing-icon">🕒</span>
-                        <span>${workout.nutrition.timing}</span>
-                    </div>
-                ` : ''}
-                ${workout.nutrition.description ? `
-                    <p>${workout.nutrition.description}</p>
-                ` : ''}
-                ${workout.nutrition.recommendations ? `
-                    <div class="nutrition-recommendations">
-                        <span class="recommendations-icon">💡</span>
-                        <span>${workout.nutrition.recommendations.join(', ')}</span>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    renderRecovery(workout) {
-        if (!workout.recovery || (!workout.recovery.recommendations && !workout.recovery.stretching)) {
-            return '';
-        }
-        
-        return `
-            <div class="workout-recovery">
-                <h4>Восстановление</h4>
-                ${workout.recovery.priority ? `
-                    <div class="recovery-priority">
-                        Приоритет: ${this.translateRecoveryPriority(workout.recovery.priority)}
-                    </div>
-                ` : ''}
-                ${workout.recovery.recommendations ? `
-                    <div class="recovery-recommendations">
-                        ${workout.recovery.recommendations.map(rec => `
-                            <div class="recovery-item">
-                                <span class="recovery-icon">✓</span>
-                                <span>${rec}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                ${workout.recovery.stretching ? `
-                    <div class="stretching-exercises">
-                        <h5>Растяжка</h5>
-                        <div class="stretching-list">
-                            ${workout.recovery.stretching.map(stretch => `
-                                <span class="stretch-item">${stretch}</span>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-            </div>
-        `;
     }
 
     translateRecoveryPriority(priority) {
@@ -559,6 +649,17 @@ class TrainingPlanForm {
             .split('; ')
             .find(row => row.startsWith('access_token='))
             ?.split('=')[1];
+    }
+
+    translatePhase(phase) {
+        const phases = {
+            'pre_workout': 'Перед тренировкой',
+            'during_workout': 'Во время тренировки',
+            'post_workout': 'После тренировки',
+            'recovery_day': 'В день отдыха',
+            'race_day': 'В день соревнований'
+        };
+        return phases[phase] || phase;
     }
 }
 
