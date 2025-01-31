@@ -235,223 +235,15 @@ function createBaseStructure() {
 
 // Функция для инициализации вкладок
 function initializeTabs() {
-    console.group('Инициализация вкладок');
+    const tabsContainer = document.createElement('div');
+    tabsContainer.className = 'tabs-container';
+    tabsContainer.innerHTML = `
+        <button class="tab-button active" data-tab="analytics">Аналитика</button>
+        <button class="tab-button" data-tab="training-plan">Тренировочный план</button>
+    `;
     
-    // Удаляем существующую навигацию, если она есть
-    const existingNavigation = document.querySelector('.tab-navigation');
-    if (existingNavigation) {
-        existingNavigation.remove();
-    }
-    const existingTabContainers = document.querySelector('.tab-containers');
-    if (existingTabContainers) {
-        existingTabContainers.remove();
-    }
-
-    const mainContent = document.querySelector('.dashboard-content');
-    if (!mainContent) {
-        console.error('Не найден контейнер для контента');
-        console.groupEnd();
-        return;
-    }
-
-    // Создаем навигацию
-    const tabNavigation = document.createElement('div');
-    tabNavigation.className = 'tab-navigation';
-    tabNavigation.innerHTML = `
-        <button class="tab-button active" data-tab="current">Текущие данные</button>
-        <button class="tab-button" data-tab="analytics">Аналитика</button>
-        <button class="tab-button" data-tab="training">План тренировок</button>
-    `;
-
-    // Создаем контейнеры для контента вкладок
-    const tabContainers = document.createElement('div');
-    tabContainers.className = 'tab-containers';
-    tabContainers.innerHTML = `
-        <div id="currentTab" class="tab-content active"></div>
-        <div id="analyticsTab" class="tab-content"></div>
-        <div id="trainingTab" class="tab-content"></div>
-    `;
-
-    // Очищаем основной контейнер
-    mainContent.innerHTML = '';
-
-    // Добавляем новую структуру
-    mainContent.appendChild(tabNavigation);
-    mainContent.appendChild(tabContainers);
-
-    // Создаем базовую структуру для первой вкладки
     const currentTab = document.getElementById('currentTab');
-    currentTab.innerHTML = createBaseStructure();
-
-    // Добавляем стили для вкладок
-    const existingStyle = document.querySelector('style[data-tabs-style]');
-    if (!existingStyle) {
-        const style = document.createElement('style');
-        style.setAttribute('data-tabs-style', 'true');
-        style.textContent = `
-            .tab-navigation {
-                display: flex;
-                gap: 10px;
-                margin-bottom: 20px;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 10px;
-            }
-
-            .tab-button {
-                padding: 8px 16px;
-                border: none;
-                background: none;
-                cursor: pointer;
-                font-size: 16px;
-                color: #666;
-                border-radius: 4px;
-                transition: all 0.3s ease;
-            }
-
-            .tab-button:hover {
-                background: #f0f0f0;
-            }
-
-            .tab-button.active {
-                color: #4a69bd;
-                font-weight: bold;
-                background: #e8f0fe;
-            }
-
-            .tab-content {
-                display: none;
-            }
-
-            .tab-content.active {
-                display: block;
-            }
-
-            .period-selector {
-                margin: 20px 0;
-            }
-
-            .period-button {
-                padding: 8px 16px;
-                margin-right: 10px;
-                border: 1px solid #ddd;
-                background: white;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-
-            .period-button.active {
-                background: #4a69bd;
-                color: white;
-                border-color: #4a69bd;
-            }
-
-            .metrics-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                margin: 20px 0;
-            }
-
-            .metric-card {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-
-            .recent-runs {
-                margin-top: 20px;
-                background: white;
-                border-radius: 8px;
-                padding: 20px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-
-            .table-container {
-                overflow-x: auto;
-                margin-top: 10px;
-            }
-
-            .recent-runs table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 10px;
-            }
-
-            .recent-runs th,
-            .recent-runs td {
-                padding: 12px;
-                text-align: left;
-                border-bottom: 1px solid #eee;
-            }
-
-            .recent-runs th {
-                background-color: #f8f9fa;
-                font-weight: 600;
-                color: #333;
-            }
-
-            .recent-runs tr:hover {
-                background-color: #f8f9fa;
-            }
-
-            .recent-runs td.distance {
-                font-weight: 500;
-                color: #4a69bd;
-            }
-
-            .recent-runs td.notes {
-                color: #666;
-                font-style: italic;
-            }
-
-            .action-buttons {
-                display: flex;
-                gap: 10px;
-                margin-top: 20px;
-            }
-
-            .action-button {
-                padding: 8px 16px;
-                border: 1px solid #ddd;
-                background: white;
-                border-radius: 4px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-
-            .button-icon {
-                font-size: 16px;
-            }
-
-            @media (max-width: 768px) {
-                .recent-runs {
-                    padding: 15px;
-                }
-
-                .recent-runs th,
-                .recent-runs td {
-                    padding: 8px;
-                    font-size: 14px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    // Добавляем обработчики для кнопок
-    const buttons = tabNavigation.querySelectorAll('.tab-button');
-    buttons.forEach(button => {
-        button.addEventListener('click', () => switchTab(button.dataset.tab));
-    });
-
-    // Добавляем обработчики для кнопок периода
-    const periodButtons = currentTab.querySelectorAll('.period-button');
-    periodButtons.forEach(button => {
-        button.addEventListener('click', () => updatePeriod(button.dataset.period));
-    });
+    currentTab.appendChild(tabsContainer);
 
     // Добавляем обработчики для кнопок действий
     const refreshButton = currentTab.querySelector('#refreshButton');
@@ -471,8 +263,34 @@ function initializeTabs() {
         });
     }
 
+    // Добавляем обработчики для переключения вкладок
+    const tabButtons = tabsContainer.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Убираем активный класс у всех кнопок
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            // Добавляем активный класс нажатой кнопке
+            button.classList.add('active');
+            
+            const tabName = button.dataset.tab;
+            switchTab(tabName);
+        });
+    });
+
     console.log('Инициализация вкладок завершена');
     console.groupEnd();
+}
+
+function switchTab(tabName) {
+    // Скрываем все контейнеры контента
+    const contentContainers = document.querySelectorAll('.tab-content');
+    contentContainers.forEach(container => container.style.display = 'none');
+    
+    // Показываем нужный контейнер
+    const activeContainer = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
+    if (activeContainer) {
+        activeContainer.style.display = 'block';
+    }
 }
 
 // Обновляем функцию loadUserData
@@ -582,50 +400,6 @@ async function handleLogout() {
         console.groupEnd();
         window.location.href = '/';
     }
-}
-
-// Функция для переключения вкладок
-async function switchTab(tabName) {
-    console.group('Переключение на вкладку:', tabName);
-    
-    try {
-        // Обновляем активную кнопку
-        const buttons = document.querySelectorAll('.tab-button');
-        buttons.forEach(button => {
-            button.classList.toggle('active', button.dataset.tab === tabName);
-        });
-
-        // Обновляем активный контент
-        const tabs = document.querySelectorAll('.tab-content');
-        tabs.forEach(tab => {
-            tab.classList.toggle('active', tab.id === `${tabName}Tab`);
-        });
-
-        // Инициализируем контент для каждой вкладки
-        if (tabName === 'training') {
-            const trainingTab = document.getElementById('trainingTab');
-            if (trainingTab && !trainingTab.querySelector('.training-plan-form-container')) {
-                console.log('Инициализация формы плана тренировок');
-                new TrainingPlanForm(trainingTab);
-            }
-        } else if (tabName === 'analytics') {
-            const analyticsTab = document.getElementById('analyticsTab');
-            if (analyticsTab) {
-                console.log('Инициализация аналитики');
-                await loadDetailedAnalytics();
-            }
-        } else if (tabName === 'current') {
-            console.log('Загрузка текущих данных');
-            await loadUserData();
-        }
-
-        console.log('Вкладка успешно переключена');
-    } catch (error) {
-        console.error('Ошибка при переключении вкладки:', error);
-        showError('Произошла ошибка при переключении вкладки');
-    }
-
-    console.groupEnd();
 }
 
 // Добавляем функции для создания графиков после существующего кода
