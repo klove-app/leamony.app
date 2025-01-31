@@ -889,8 +889,8 @@ class TrainingPlanForm {
         if (!token) return null;
 
         try {
-            console.log('Отправляем запрос на /api/v1/training-plan/current');
-            const response = await fetch('/api/v1/training-plan/current', {
+            console.log('Отправляем запрос на /api/v1/ai/training-plan/current');
+            const response = await fetch('/api/v1/ai/training-plan/current', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
