@@ -103,120 +103,130 @@ class TrainingPlanForm {
             workout_history: []
         };
 
-        // Максимальное количество попыток
-        const maxRetries = 3;
-        // Таймаут для каждой попытки (5 минут)
-        const timeout = 300000;
+        try {
+            // Отправляем запрос на создание плана
+            const response = await fetch('/api/v1/ai/training-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getToken()}`
+                },
+                body: JSON.stringify(request)
+            });
+
+            // Если получили статус "pending", значит задача принята в обработку
+            if (response.status === 200) {
+                const result = await response.json();
+                if (result.status === 'pending') {
+                    // Показываем сообщение о том, что план в процессе создания
+                    this.showInProgress();
+                    // Начинаем периодическую проверку статуса
+                    this.startStatusCheck();
+                } else if (result.status === 'completed' && result.plan) {
+                    // План уже готов
+                    if (this.validatePlanData(result.plan)) {
+                        this.renderPlan(result.plan, this.container.querySelector('.plan-result'));
+                    } else {
+                        throw new Error('Некорректный формат данных плана тренировок');
+                    }
+                } else if (result.status === 'error') {
+                    throw new Error(result.error || 'Ошибка при создании плана');
+                }
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+        } catch (error) {
+            console.error('Ошибка при создании плана:', error);
+            this.showError('Не удалось создать план тренировок. Пожалуйста, попробуйте позже.');
+        }
+    }
+
+    showInProgress() {
+        const container = this.container.querySelector('.plan-result') || document.createElement('div');
+        container.className = 'plan-result';
+        container.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-animation"></div>
+                <div class="loading-text">
+                    План тренировок создается<span class="loading-dots"></span>
+                </div>
+                <div class="loading-subtext">
+                    Это может занять 1-2 минуты. План появится автоматически после генерации.
+                </div>
+                <div class="loading-progress">
+                    <div class="loading-progress-bar"></div>
+                </div>
+                <div class="loading-tips">
+                    <h4>Пока план готовится:</h4>
+                    <ul>
+                        <li>Мы учитываем ваш текущий уровень подготовки</li>
+                        <li>Адаптируем нагрузку под ваши цели</li>
+                        <li>Составляем оптимальное расписание тренировок</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+        if (!this.container.contains(container)) {
+            this.container.appendChild(container);
+        }
+    }
+
+    async startStatusCheck() {
+        // Интервал проверки статуса (30 секунд)
+        const CHECK_INTERVAL = 30000;
         
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const checkStatus = async () => {
             try {
-                // Создаем AbortController для таймаута
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-                // Обновляем текст с информацией о том, что запрос может занять время
-                this.updateLoadingText(`Попытка ${attempt}/${maxRetries}: Генерируем ваш персональный план тренировок... Это может занять 1-2 минуты`);
-
-                const response = await fetch('/api/v1/ai/training-plan', {
-                    method: 'POST',
+                const response = await fetch('/api/v1/ai/training-plan/status', {
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.getToken()}`,
-                        'Keep-Alive': 'timeout=300',
-                        'Connection': 'keep-alive'
-                    },
-                    body: JSON.stringify(request),
-                    signal: controller.signal,
-                    keepalive: true
+                        'Authorization': `Bearer ${this.getToken()}`
+                    }
                 });
-
-                // Очищаем таймаут
-                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const plan = await response.json();
+                const result = await response.json();
                 
-                // Проверяем структуру полученных данных
-                if (!this.validatePlanData(plan)) {
-                    throw new Error('Некорректный формат данных плана тренировок');
+                if (result.status === 'completed' && result.plan) {
+                    // План готов, отображаем его
+                    clearInterval(this.statusCheckInterval);
+                    if (this.validatePlanData(result.plan)) {
+                        this.renderPlan(result.plan, this.container.querySelector('.plan-result'));
+                    } else {
+                        throw new Error('Некорректный формат данных плана тренировок');
+                    }
+                } else if (result.status === 'error') {
+                    // Произошла ошибка при создании плана
+                    clearInterval(this.statusCheckInterval);
+                    this.showError(result.error || 'Не удалось создать план тренировок. Пожалуйста, попробуйте позже.');
                 }
-
-                // Создаем контейнер для плана, если его еще нет
-                let planContainer = this.container.querySelector('.plan-result');
-                if (!planContainer) {
-                    planContainer = document.createElement('div');
-                    planContainer.className = 'plan-result';
-                    this.container.appendChild(planContainer);
-                }
-
-                // Отображаем план
-                this.renderPlan(plan, planContainer);
-
-                // Добавляем сырой запрос и ответ от API
-                const rawContainer = document.createElement('div');
-                rawContainer.className = 'raw-data';
+                // Если статус 'pending', продолжаем проверять
                 
-                const rawRequest = document.createElement('pre');
-                rawRequest.className = 'raw-response';
-                rawRequest.innerHTML = '<h4>Отправленный запрос:</h4>' + JSON.stringify(request, null, 2);
-                
-                const rawResponse = document.createElement('pre');
-                rawResponse.className = 'raw-response';
-                rawResponse.innerHTML = '<h4>Полученный ответ:</h4>' + JSON.stringify(plan, null, 2);
-                
-                rawContainer.appendChild(rawRequest);
-                rawContainer.appendChild(rawResponse);
-                planContainer.appendChild(rawContainer);
-
-                // Добавляем обработчики для разворачивания/сворачивания тренировок
-                planContainer.querySelectorAll('.workout-card').forEach(card => {
-                    const header = card.querySelector('.workout-header');
-                    const body = card.querySelector('.workout-details');
-                    body.style.display = 'none';
-                    
-                    header.addEventListener('click', () => {
-                        const isExpanded = body.style.display !== 'none';
-                        body.style.display = isExpanded ? 'none' : 'block';
-                        header.classList.toggle('expanded', !isExpanded);
-                    });
-                });
-
-                // Если успешно, выходим из цикла
-                break;
             } catch (error) {
-                console.error(`Попытка ${attempt} не удалась:`, error);
-                
-                // Если это была последняя попытка
-                if (attempt === maxRetries) {
-                    this.showError('Не удалось сгенерировать план тренировок. Пожалуйста, попробуйте позже.');
-                    return;
+                console.error('Ошибка при проверке статуса:', error);
+                // При ошибке делаем еще несколько попыток, потом останавливаем
+                this.statusCheckRetries = (this.statusCheckRetries || 0) + 1;
+                if (this.statusCheckRetries >= 5) {
+                    clearInterval(this.statusCheckInterval);
+                    this.showError('Не удается проверить статус плана. Пожалуйста, обновите страницу позже.');
                 }
-
-                // Определяем тип ошибки и устанавливаем задержку
-                let delay;
-                if (error.name === 'AbortError') {
-                    // Если это таймаут, ждем 30 секунд перед следующей попыткой
-                    delay = 30000;
-                    this.updateLoadingText(`Превышено время ожидания (5 минут). Следующая попытка через 30 секунд...`);
-                } else if (error.message.includes('status: 429')) {
-                    // Если сервер сообщает о превышении лимита запросов, ждем 3 минуты
-                    delay = 180000;
-                    this.updateLoadingText(`Слишком много запросов. Следующая попытка через 3 минуты...`);
-                } else if (error.message.includes('status: 500')) {
-                    // Если ошибка на стороне сервера, ждем 2 минуты
-                    delay = 120000;
-                    this.updateLoadingText(`Сервер обрабатывает запрос. Следующая попытка через 2 минуты...`);
-                } else {
-                    // Для остальных ошибок используем задержку 1 минута
-                    delay = 60000;
-                    this.updateLoadingText(`Ошибка запроса. Следующая попытка через 1 минуту...`);
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, delay));
             }
+        };
+
+        // Запускаем периодическую проверку
+        this.statusCheckInterval = setInterval(checkStatus, CHECK_INTERVAL);
+        
+        // Сразу делаем первую проверку
+        await checkStatus();
+    }
+
+    // Очищаем интервал при уничтожении компонента
+    destroy() {
+        if (this.statusCheckInterval) {
+            clearInterval(this.statusCheckInterval);
         }
     }
 
