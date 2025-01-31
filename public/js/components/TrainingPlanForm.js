@@ -6,6 +6,9 @@ class TrainingPlanForm {
     }
 
     async init() {
+        // Очищаем контейнер перед инициализацией
+        this.container.innerHTML = '';
+
         // Создаем контейнер для результата плана
         const planResult = document.createElement('div');
         planResult.className = 'plan-result';
@@ -16,18 +19,32 @@ class TrainingPlanForm {
         formContainer.className = 'form-container';
         this.container.appendChild(formContainer);
 
-        // Проверяем наличие существующего плана
-        await this.checkExistingPlan();
-
-        // Рендерим форму
-        this.renderForm(formContainer);
+        try {
+            // Проверяем наличие существующего плана
+            const plan = await this.checkExistingPlan();
+            
+            if (plan) {
+                // Если план существует, отображаем его и скрываем форму
+                this.displayExistingPlan(plan, planResult);
+                formContainer.style.display = 'none';
+            } else {
+                // Если плана нет, показываем форму
+                planResult.style.display = 'none';
+                this.renderForm(formContainer);
+            }
+        } catch (error) {
+            console.error('Ошибка при инициализации:', error);
+            // В случае ошибки показываем форму
+            planResult.style.display = 'none';
+            this.renderForm(formContainer);
+        }
     }
 
     async checkExistingPlan() {
-        try {
-            const token = this.getToken();
-            if (!token) return;
+        const token = this.getToken();
+        if (!token) return null;
 
+        try {
             const response = await fetch('/api/v1/ai/training-plan/current', {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -37,32 +54,31 @@ class TrainingPlanForm {
             if (response.ok) {
                 const plan = await response.json();
                 if (plan && this.validatePlanData(plan)) {
-                    // Если план существует, отображаем его и скрываем форму
-                    const planResult = this.container.querySelector('.plan-result');
-                    const formContainer = this.container.querySelector('.form-container');
-                    
-                    // Создаем заголовок плана
-                    planResult.innerHTML = `
-                        <div class="training-plan-header">
-                            <div class="plan-info">
-                                <span class="plan-title">Ваш план тренировок</span>
-                            </div>
-                            <div class="plan-status ready">
-                                <span class="status-text">ready</span>
-                            </div>
-                        </div>
-                    `;
-
-                    // Рендерим план
-                    this.renderPlan(plan, planResult);
-
-                    // Скрываем форму
-                    formContainer.style.display = 'none';
+                    return plan;
                 }
             }
+            return null;
         } catch (error) {
             console.error('Ошибка при проверке существующего плана:', error);
+            return null;
         }
+    }
+
+    displayExistingPlan(plan, container) {
+        // Создаем заголовок плана
+        container.innerHTML = `
+            <div class="training-plan-header">
+                <div class="plan-info">
+                    <span class="plan-title">Ваш план тренировок</span>
+                </div>
+                <div class="plan-status ready">
+                    <span class="status-text">ready</span>
+                </div>
+            </div>
+        `;
+
+        // Рендерим план
+        this.renderPlan(plan, container);
     }
 
     renderForm(container) {
