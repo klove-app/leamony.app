@@ -139,31 +139,110 @@ class TrainingPlanForm {
     showInProgress() {
         const container = this.container.querySelector('.plan-result') || document.createElement('div');
         container.className = 'plan-result';
+        
+        // Получаем данные из формы
+        const form = this.container.querySelector('#trainingPlanForm');
+        const formData = new FormData(form);
+        const goalType = formData.get('goal_type');
+        
+        // Получаем имя пользователя из глобального состояния или куки
+        const username = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('username='))
+            ?.split('=')[1] || 'Пользователь';
+        
+        // Форматируем текущую дату
+        const currentDate = new Date().toLocaleDateString('ru', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+
+        // Переводим тип цели на русский
+        const goalTypeTranslations = {
+            'improve_endurance': 'улучшения выносливости',
+            'increase_distance': 'увеличения дистанции',
+            'improve_speed': 'улучшения скорости',
+            'weight_loss': 'снижения веса',
+            'marathon_prep': 'подготовки к марафону'
+        };
+
         container.innerHTML = `
-            <div class="loading-container">
-                <div class="loading-animation"></div>
-                <div class="loading-text">
-                    План тренировок создается<span class="loading-dots"></span>
+            <div class="training-plan-header">
+                <div class="plan-title">
+                    <h3>Тренировочный план для ${username}</h3>
+                    <p>для ${goalTypeTranslations[goalType] || goalType}</p>
+                    <p class="plan-date">от ${currentDate}</p>
                 </div>
-                <div class="loading-subtext">
-                    Это может занять 1-2 минуты. План появится автоматически после генерации.
-                </div>
-                <div class="loading-progress">
-                    <div class="loading-progress-bar"></div>
-                </div>
-                <div class="loading-tips">
-                    <h4>Пока план готовится:</h4>
-                    <ul>
-                        <li>Мы учитываем ваш текущий уровень подготовки</li>
-                        <li>Адаптируем нагрузку под ваши цели</li>
-                        <li>Составляем оптимальное расписание тренировок</li>
-                    </ul>
+                <div class="plan-status preparing">
+                    <span class="status-text">preparing</span>
                 </div>
             </div>
         `;
+
         if (!this.container.contains(container)) {
             this.container.appendChild(container);
         }
+
+        // Добавляем стили
+        const style = document.createElement('style');
+        style.textContent = `
+            .training-plan-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 1.5rem;
+                background: var(--light-purple);
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                border: 1px solid var(--primary-purple);
+            }
+
+            .plan-title {
+                flex: 1;
+            }
+
+            .plan-title h3 {
+                margin: 0;
+                color: var(--primary-purple);
+                font-size: 1.2rem;
+                font-weight: 600;
+            }
+
+            .plan-title p {
+                margin: 0.25rem 0 0;
+                color: #666;
+                font-size: 0.9rem;
+            }
+
+            .plan-date {
+                color: #888 !important;
+                font-size: 0.8rem !important;
+            }
+
+            .plan-status {
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                font-weight: 500;
+            }
+
+            .plan-status.preparing {
+                background: #FFF3E0;
+                color: #FF9800;
+            }
+
+            .plan-status.ready {
+                background: #E8F5E9;
+                color: #4CAF50;
+            }
+
+            .plan-status.error {
+                background: #FFEBEE;
+                color: #F44336;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     async startStatusCheck() {
@@ -278,6 +357,23 @@ class TrainingPlanForm {
     }
 
     renderPlan(plan, container) {
+        // Обновляем статус в заголовке на ready
+        const header = container.querySelector('.training-plan-header');
+        const statusElement = header.querySelector('.plan-status');
+        statusElement.className = 'plan-status ready';
+        statusElement.innerHTML = '<span class="status-text">ready</span>';
+        
+        // Добавляем кнопку для разворачивания/сворачивания
+        const expandButton = document.createElement('button');
+        expandButton.className = 'expand-button';
+        expandButton.innerHTML = '▼';
+        header.appendChild(expandButton);
+
+        // Создаем контейнер для содержимого плана
+        const planContent = document.createElement('div');
+        planContent.className = 'training-plan-content';
+        planContent.style.display = 'none'; // По умолчанию скрыт
+        
         // Группируем тренировки по неделям
         const workoutsByWeek = plan.plan.reduce((weeks, workout) => {
             const date = new Date(workout.date);
@@ -292,16 +388,16 @@ class TrainingPlanForm {
             return weeks;
         }, {});
 
-        container.innerHTML = `
+        planContent.innerHTML = `
             <div class="training-plan">
-                <div class="plan-header">
-                    <h2>Ваш план тренировок</h2>
-                    <p class="plan-summary">${plan.summary}</p>
-                </div>
+                <div class="plan-sections">
+                    <div class="plan-summary">
+                        <h3>Общая информация</h3>
+                        <p>${plan.summary}</p>
+                    </div>
 
-                <div class="plan-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Километраж по неделям</span>
+                    <div class="plan-stats">
+                        <h3>Километраж по неделям</h3>
                         <div class="weekly-mileage">
                             ${plan.weekly_mileage.map((km, index) => `
                                 <div class="week-stat">
@@ -311,9 +407,7 @@ class TrainingPlanForm {
                             `).join('')}
                         </div>
                     </div>
-                </div>
 
-                <div class="plan-sections">
                     <div class="key-workouts">
                         <h3>Ключевые тренировки</h3>
                         <ul>
@@ -367,6 +461,81 @@ class TrainingPlanForm {
                 </div>
             </div>
         `;
+
+        // Добавляем стили для разворачивания
+        const style = document.createElement('style');
+        style.textContent = `
+            .training-plan-header {
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .training-plan-header:hover {
+                background: var(--light-purple);
+            }
+
+            .expand-button {
+                background: none;
+                border: none;
+                color: var(--primary-purple);
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 0.5rem;
+                margin-left: 1rem;
+                transition: transform 0.2s;
+            }
+
+            .expand-button.expanded {
+                transform: rotate(180deg);
+            }
+
+            .training-plan-content {
+                margin-top: 1rem;
+                padding: 1.5rem;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .plan-sections {
+                display: grid;
+                gap: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .plan-summary {
+                background: var(--light-purple);
+                padding: 1.5rem;
+                border-radius: 8px;
+            }
+
+            .weekly-mileage {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .week-stat {
+                background: white;
+                padding: 1rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Добавляем контейнер с содержимым после заголовка
+        container.appendChild(planContent);
+
+        // Добавляем обработчик для разворачивания/сворачивания
+        header.addEventListener('click', () => {
+            const isExpanded = planContent.style.display !== 'none';
+            planContent.style.display = isExpanded ? 'none' : 'block';
+            expandButton.className = `expand-button${isExpanded ? '' : ' expanded'}`;
+        });
     }
 
     renderWorkout(workout) {
