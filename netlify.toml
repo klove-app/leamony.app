@@ -32,7 +32,7 @@ from = "/api/*"
 to = "https://api.runconnect.app/api/:splat"
 status = 200
 force = true
-headers = {X-From = "Netlify", Access-Control-Allow-Origin = "*", Access-Control-Allow-Methods = "GET, POST, OPTIONS", Access-Control-Allow-Headers = "Authorization, Content-Type"}
+headers = {X-From = "Netlify", Access-Control-Allow-Origin = "https://runconnect.app", Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS", Access-Control-Allow-Headers = "Authorization, Content-Type, Accept", Access-Control-Allow-Credentials = "true"}
 
 # Редирект для API с HTTP на HTTPS
 [[redirects]]

@@ -126,7 +126,7 @@ function checkCookies(stage) {
 
 // Функция для сохранения куки с дополнительными параметрами
 function setCookie(name, value) {
-    const cookieValue = `${name}=${value}; path=/; secure; samesite=strict`;
+    const cookieValue = `${name}=${value}; domain=runconnect.app; path=/; secure; samesite=strict`;
     document.cookie = cookieValue;
     console.log(`Setting cookie: ${name}=${value.substring(0, 10)}...`);
     
@@ -160,8 +160,7 @@ async function login(username, password) {
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept': 'application/json',
-                'Origin': window.location.origin
+                'Accept': 'application/json'
             },
             body: formData
         });
@@ -237,10 +236,9 @@ async function refreshToken() {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Origin': window.location.origin
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            mode: 'cors'
+            credentials: 'include'
         });
 
         console.log('Статус ответа:', response.status, response.statusText);
@@ -257,8 +255,8 @@ async function refreshToken() {
             if (response.status === 401) {
                 console.log('Refresh token истек или недействителен');
                 // Очищаем куки при невалидном токене
-                document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
-                document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+                document.cookie = 'refresh_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+                document.cookie = 'access_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
                 return { success: false, error: 'invalid_refresh_token' };
             }
             console.log('Не удалось обновить токен:', data);
@@ -277,10 +275,10 @@ async function refreshToken() {
 
         // Сохраняем новые токены
         if (data.access_token) {
-            document.cookie = `access_token=${data.access_token}; path=/;`;
+            setCookie('access_token', data.access_token);
         }
         if (data.refresh_token) {
-            document.cookie = `refresh_token=${data.refresh_token}; path=/;`;
+            setCookie('refresh_token', data.refresh_token);
         }
 
         console.log('Токен успешно обновлен, данные пользователя:', data.user);
@@ -438,8 +436,8 @@ async function logout() {
         });
 
         // Очищаем куки
-        document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
-        document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        document.cookie = 'refresh_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        document.cookie = 'access_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
 
         console.log('Cookie state after clearing:');
         checkCookies('After Logout');
