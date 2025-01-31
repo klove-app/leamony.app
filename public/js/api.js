@@ -237,11 +237,12 @@ async function refreshToken() {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
             },
-            credentials: 'include'
+            mode: 'cors'
         });
-        
+
         console.log('Статус ответа:', response.status, response.statusText);
 
         const data = await response.json();
