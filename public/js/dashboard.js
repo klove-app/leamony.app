@@ -612,7 +612,7 @@ async function switchTab(tabName) {
             const analyticsTab = document.getElementById('analyticsTab');
             if (analyticsTab) {
                 console.log('Инициализация аналитики');
-                // Здесь будет инициализация аналитики
+                await loadDetailedAnalytics();
             }
         } else if (tabName === 'current') {
             console.log('Загрузка текущих данных');
@@ -906,64 +906,58 @@ async function loadDetailedAnalytics() {
         `;
         document.head.appendChild(style);
 
+        console.groupEnd();
     } catch (error) {
         console.error('Ошибка при загрузке аналитики:', error);
         showError('Не удалось загрузить аналитику');
+        console.groupEnd();
     }
 }
 
 function createMonthlyStats(monthlyRuns) {
-    // Сортируем месяцы в обратном порядке
-    const sortedMonths = Object.keys(monthlyRuns).sort().reverse();
-
-    return sortedMonths.map(monthKey => {
+    const months = Object.keys(monthlyRuns).sort().reverse();
+    
+    return months.map(monthKey => {
         const runs = monthlyRuns[monthKey];
         const [year, month] = monthKey.split('-');
-        const date = new Date(year, month - 1);
-
+        const monthName = new Date(year, month - 1).toLocaleString('ru', { month: 'long' });
+        
         // Рассчитываем статистику за месяц
         const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
         const avgDistance = totalDistance / runs.length;
-        const maxRun = Math.max(...runs.map(run => run.km));
-        const minRun = Math.min(...runs.map(run => run.km));
         const totalRuns = runs.length;
-
-        // Сортируем пробежки по дате (новые сверху)
-        const sortedRuns = [...runs].sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
+        
+        // Сортируем пробежки по дате (от новых к старым)
+        const sortedRuns = [...runs].sort((a, b) => 
+            new Date(b.date_added) - new Date(a.date_added)
+        );
 
         return `
             <div class="month-section">
-                <div class="month-title">
-                    ${date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}
-                </div>
+                <h3 class="month-title">${monthName} ${year}</h3>
+                
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-label">Всего пробежек</div>
-                        <div class="stat-value">${totalRuns}</div>
-                    </div>
-                    <div class="stat-item">
                         <div class="stat-label">Общая дистанция</div>
-                        <div class="stat-value">${formatNumber(totalDistance)} км</div>
+                        <div class="stat-value">${totalDistance.toFixed(1)} км</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Средняя дистанция</div>
-                        <div class="stat-value">${formatNumber(avgDistance)} км</div>
+                        <div class="stat-value">${avgDistance.toFixed(1)} км</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Лучшая пробежка</div>
-                        <div class="stat-value">${formatNumber(maxRun)} км</div>
+                        <div class="stat-label">Количество пробежек</div>
+                        <div class="stat-value">${totalRuns}</div>
                     </div>
                 </div>
+
                 <div class="runs-list">
                     ${sortedRuns.map(run => `
                         <div class="run-item">
                             <span class="run-date">
-                                ${new Date(run.date_added).toLocaleDateString('ru-RU', {
-                                    day: 'numeric',
-                                    month: 'short'
-                                })}
+                                ${new Date(run.date_added).toLocaleDateString('ru')}
                             </span>
-                            <span class="run-distance">${formatNumber(run.km)} км</span>
+                            <span class="run-distance">${run.km.toFixed(1)} км</span>
                             ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
                         </div>
                     `).join('')}
