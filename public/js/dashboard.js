@@ -235,28 +235,59 @@ function createBaseStructure() {
 
 // Функция для инициализации вкладок
 function initializeTabs() {
+    console.group('Инициализация вкладок');
+    
+    // Создаем основной контейнер для контента
+    const mainContent = document.querySelector('.dashboard-content');
+    if (!mainContent) {
+        console.error('Не найден контейнер для контента');
+        console.groupEnd();
+        return;
+    }
+
+    // Очищаем основной контейнер
+    mainContent.innerHTML = '';
+
+    // Создаем контейнеры для вкладок
     const tabsContainer = document.createElement('div');
     tabsContainer.className = 'tabs-container';
     tabsContainer.innerHTML = `
         <button class="tab-button active" data-tab="analytics">Аналитика</button>
         <button class="tab-button" data-tab="training-plan">Тренировочный план</button>
     `;
-    
-    const currentTab = document.getElementById('currentTab');
-    currentTab.appendChild(tabsContainer);
+
+    // Создаем контейнеры для контента вкладок
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'tab-content-container';
+    contentContainer.innerHTML = `
+        <div class="tab-content active" data-tab="analytics" id="analyticsTab">
+            ${createBaseStructure()}
+        </div>
+        <div class="tab-content" data-tab="training-plan" id="trainingPlanTab"></div>
+    `;
+
+    // Добавляем элементы на страницу
+    mainContent.appendChild(tabsContainer);
+    mainContent.appendChild(contentContainer);
+
+    // Инициализируем форму плана тренировок
+    const trainingPlanTab = document.getElementById('trainingPlanTab');
+    if (trainingPlanTab) {
+        new TrainingPlanForm(trainingPlanTab);
+    }
 
     // Добавляем обработчики для кнопок действий
-    const refreshButton = currentTab.querySelector('#refreshButton');
+    const refreshButton = mainContent.querySelector('#refreshButton');
     if (refreshButton) {
         refreshButton.addEventListener('click', () => loadUserData(true));
     }
 
-    const viewLogsButton = currentTab.querySelector('#viewLogsButton');
+    const viewLogsButton = mainContent.querySelector('#viewLogsButton');
     if (viewLogsButton) {
         viewLogsButton.addEventListener('click', viewLogs);
     }
 
-    const exportButton = currentTab.querySelector('#exportButton');
+    const exportButton = mainContent.querySelector('#exportButton');
     if (exportButton) {
         exportButton.addEventListener('click', () => {
             showError('Функция экспорта данных находится в разработке');
@@ -277,6 +308,9 @@ function initializeTabs() {
         });
     });
 
+    // Загружаем данные для аналитики
+    loadUserData();
+
     console.log('Инициализация вкладок завершена');
     console.groupEnd();
 }
@@ -284,12 +318,22 @@ function initializeTabs() {
 function switchTab(tabName) {
     // Скрываем все контейнеры контента
     const contentContainers = document.querySelectorAll('.tab-content');
-    contentContainers.forEach(container => container.style.display = 'none');
+    contentContainers.forEach(container => {
+        container.classList.remove('active');
+    });
     
     // Показываем нужный контейнер
     const activeContainer = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
     if (activeContainer) {
-        activeContainer.style.display = 'block';
+        activeContainer.classList.add('active');
+        
+        // Если переключились на вкладку с планом тренировок
+        if (tabName === 'training-plan') {
+            const trainingPlanTab = document.getElementById('trainingPlanTab');
+            if (trainingPlanTab && !trainingPlanTab.querySelector('.training-plan-form')) {
+                new TrainingPlanForm(trainingPlanTab);
+            }
+        }
     }
 }
 
