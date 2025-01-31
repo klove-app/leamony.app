@@ -341,31 +341,63 @@ class TrainingPlanForm {
     }
 
     validatePlanData(plan) {
+        console.log('Начинаем валидацию плана:', plan);
+        
         // Проверяем наличие необходимых полей согласно документации
-        if (!plan || typeof plan !== 'object') return false;
-        if (!Array.isArray(plan.plan)) return false;
-        if (typeof plan.summary !== 'string') return false;
-        if (!Array.isArray(plan.weekly_mileage)) return false;
-        if (!Array.isArray(plan.recommendations)) return false;
-        if (!Array.isArray(plan.key_workouts_explanation)) return false;
-        if (typeof plan.periodization !== 'object') return false;
-        if (typeof plan.nutrition_strategy !== 'object') return false;
-        if (typeof plan.recovery_strategy !== 'object') return false;
+        if (!plan || typeof plan !== 'object') {
+            console.error('План отсутствует или не является объектом');
+            return false;
+        }
+        
+        // Проверяем основные поля
+        const requiredFields = ['status', 'plan'];
+        for (const field of requiredFields) {
+            if (!(field in plan)) {
+                console.error(`Отсутствует обязательное поле: ${field}`);
+                return false;
+            }
+        }
+
+        // Проверяем статус
+        if (plan.status !== 'completed') {
+            console.error('Статус плана не completed:', plan.status);
+            return false;
+        }
+
+        // Проверяем наличие плана тренировок
+        if (!Array.isArray(plan.plan)) {
+            console.error('План тренировок не является массивом');
+            return false;
+        }
 
         // Проверяем структуру каждой тренировки
-        return plan.plan.every(workout => {
-            return (
-                workout &&
-                typeof workout.date === 'string' &&
-                typeof workout.type === 'string' &&
-                typeof workout.description === 'string' &&
-                typeof workout.intensity === 'string' &&
-                (workout.distance === undefined || typeof workout.distance === 'number') &&
-                (workout.duration_min === undefined || typeof workout.duration_min === 'number') &&
-                (workout.target_pace === undefined || typeof workout.target_pace === 'string') &&
-                typeof workout.key_workout === 'boolean'
-            );
+        const isValid = plan.plan.every((workout, index) => {
+            if (!workout || typeof workout !== 'object') {
+                console.error(`Тренировка ${index} не является объектом:`, workout);
+                return false;
+            }
+
+            const workoutFields = ['date', 'type', 'description'];
+            for (const field of workoutFields) {
+                if (!(field in workout)) {
+                    console.error(`В тренировке ${index} отсутствует поле ${field}`);
+                    return false;
+                }
+                if (typeof workout[field] !== 'string') {
+                    console.error(`В тренировке ${index} поле ${field} не является строкой`);
+                    return false;
+                }
+            }
+
+            return true;
         });
+
+        if (!isValid) {
+            return false;
+        }
+
+        console.log('План успешно прошел валидацию');
+        return true;
     }
 
     showLoading() {
@@ -857,36 +889,60 @@ class TrainingPlanForm {
         if (!token) return null;
 
         try {
-            const response = await fetch('/training-plan/current', {
+            console.log('Отправляем запрос на /api/v1/training-plan/current');
+            const response = await fetch('/api/v1/training-plan/current', {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
                 }
             });
 
+            console.log('Получен ответ:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+
             if (response.ok) {
-                const data = await response.json();
+                const rawText = await response.text();
+                console.log('Сырой ответ:', rawText);
+                
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch (e) {
+                    console.error('Ошибка парсинга JSON:', e);
+                    return null;
+                }
+                
+                console.log('Распарсенные данные:', data);
                 
                 switch(data.status) {
                     case 'completed':
                         // План существует и готов
                         if (data.plan && this.validatePlanData(data.plan)) {
+                            console.log('План валиден, возвращаем');
                             return data.plan;
                         }
+                        console.log('План не прошел валидацию');
                         return null;
                         
                     case 'pending':
                         // План в процессе генерации
+                        console.log('План в процессе генерации');
                         this.showInProgress();
                         this.startStatusCheck();
                         return 'pending';
                         
                     case 'error':
                         // Была ошибка при генерации
+                        console.log('Ошибка генерации плана:', data.error);
                         this.showError(data.error || 'Произошла ошибка при генерации плана');
                         return null;
                         
                     case 'not_found':
                         // Плана нет
+                        console.log('План не найден');
                         return null;
                         
                     default:
@@ -895,10 +951,20 @@ class TrainingPlanForm {
                 }
             } else if (response.status === 202) {
                 // План еще генерируется
+                console.log('Получен статус 202 - план генерируется');
                 this.showInProgress();
                 this.startStatusCheck();
                 return 'pending';
             }
+            
+            // В случае ошибки пытаемся получить текст ошибки
+            try {
+                const errorText = await response.text();
+                console.error('Ошибка ответа:', errorText);
+            } catch (e) {
+                console.error('Не удалось получить текст ошибки');
+            }
+            
             return null;
         } catch (error) {
             console.error('Ошибка при проверке существующего плана:', error);
