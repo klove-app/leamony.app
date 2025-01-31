@@ -126,9 +126,18 @@ function checkCookies(stage) {
 
 // Функция для сохранения куки с дополнительными параметрами
 function setCookie(name, value) {
-    const cookieValue = `${name}=${value}; domain=runconnect.app; path=/; secure; samesite=strict`;
+    // Определяем текущий домен
+    const currentDomain = window.location.hostname;
+    console.log('Current domain:', currentDomain);
+    
+    // Если домен заканчивается на netlify.app, не добавляем его в куки
+    const cookieOptions = currentDomain.endsWith('netlify.app') 
+        ? 'path=/; secure; samesite=strict'
+        : `domain=${currentDomain}; path=/; secure; samesite=strict`;
+    
+    const cookieValue = `${name}=${value}; ${cookieOptions}`;
     document.cookie = cookieValue;
-    console.log(`Setting cookie: ${name}=${value.substring(0, 10)}...`);
+    console.log(`Setting cookie: ${name}=${value.substring(0, 10)}... with options: ${cookieOptions}`);
     
     // Проверяем, сохранилась ли кука
     setTimeout(() => {
@@ -255,8 +264,10 @@ async function refreshToken() {
             if (response.status === 401) {
                 console.log('Refresh token истек или недействителен');
                 // Очищаем куки при невалидном токене
-                document.cookie = 'refresh_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-                document.cookie = 'access_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+                const currentDomain = window.location.hostname;
+                const domainOption = currentDomain.endsWith('netlify.app') ? '' : `domain=${currentDomain}; `;
+                document.cookie = `refresh_token=; ${domainOption}path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+                document.cookie = `access_token=; ${domainOption}path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
                 return { success: false, error: 'invalid_refresh_token' };
             }
             console.log('Не удалось обновить токен:', data);
@@ -436,8 +447,10 @@ async function logout() {
         });
 
         // Очищаем куки
-        document.cookie = 'refresh_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-        document.cookie = 'access_token=; domain=runconnect.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        const currentDomain = window.location.hostname;
+        const domainOption = currentDomain.endsWith('netlify.app') ? '' : `domain=${currentDomain}; `;
+        document.cookie = `refresh_token=; ${domainOption}path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+        document.cookie = `access_token=; ${domainOption}path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
         console.log('Cookie state after clearing:');
         checkCookies('After Logout');
