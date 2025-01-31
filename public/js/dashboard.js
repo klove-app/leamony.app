@@ -803,105 +803,148 @@ async function loadDetailedAnalytics() {
         // Добавляем стили
         const style = document.createElement('style');
         style.textContent = `
+            :root {
+                --primary-purple: #6B4DE6;
+                --primary-pink: #FF6B9B;
+                --light-purple: #F5F3FF;
+                --light-pink: #FFF3F7;
+                --dark-purple: #5B3ED6;
+                --dark-pink: #FF5B8B;
+            }
+
             .analytics-container {
                 max-width: 800px;
                 margin: 0 auto;
                 padding: 20px;
             }
 
+            .year-section {
+                margin-bottom: 2rem;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(107, 77, 230, 0.1);
+            }
+            
+            .year-header {
+                padding: 1.5rem;
+                border-bottom: 1px solid var(--light-purple);
+                background: linear-gradient(45deg, var(--light-purple), var(--light-pink));
+                border-radius: 12px 12px 0 0;
+            }
+            
+            .year-title {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+                color: var(--primary-purple);
+                font-weight: 600;
+            }
+            
             .month-section {
-                background: white;
-                border-radius: 15px;
-                padding: 20px;
-                margin-bottom: 20px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-bottom: 1px solid var(--light-purple);
             }
-
+            
+            .month-section:last-child {
+                border-bottom: none;
+            }
+            
+            .month-header {
+                padding: 1rem 1.5rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                transition: background-color 0.2s;
+            }
+            
+            .month-header:hover {
+                background: var(--light-purple);
+            }
+            
+            .month-section.expanded .month-header {
+                background: var(--light-purple);
+            }
+            
             .month-title {
-                font-size: 20px;
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #eee;
+                font-size: 1.2rem;
+                margin: 0;
+                color: var(--dark-purple);
+                flex: 0 0 200px;
+                font-weight: 500;
             }
-
+            
             .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
-                margin-bottom: 20px;
+                display: flex;
+                gap: 2rem;
+                flex: 1;
+                justify-content: center;
             }
-
+            
             .stat-item {
-                padding: 10px;
-                background: #f8f9fa;
-                border-radius: 8px;
+                text-align: center;
             }
-
+            
             .stat-label {
+                font-size: 0.9rem;
                 color: #666;
-                font-size: 14px;
-                margin-bottom: 5px;
+                margin-bottom: 0.25rem;
             }
-
+            
             .stat-value {
-                color: #333;
-                font-size: 16px;
-                font-weight: bold;
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--primary-purple);
             }
-
+            
+            .expand-icon {
+                font-size: 0.8rem;
+                color: var(--primary-purple);
+                transition: transform 0.2s;
+            }
+            
+            .month-section.expanded .expand-icon {
+                transform: rotate(180deg);
+            }
+            
             .runs-list {
-                border-top: 1px solid #eee;
-                padding-top: 15px;
+                display: none;
+                padding: 1rem 1.5rem;
+                background: #fff;
             }
-
+            
+            .month-section.expanded .runs-list {
+                display: block;
+                background: var(--light-purple);
+            }
+            
             .run-item {
                 display: flex;
-                justify-content: space-between;
-                padding: 10px;
-                border-bottom: 1px solid #eee;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid rgba(107, 77, 230, 0.1);
+                background: white;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
             }
-
+            
+            .run-item:last-child {
+                margin-bottom: 0;
+            }
+            
             .run-date {
+                flex: 0 0 120px;
                 color: #666;
-                min-width: 120px;
             }
-
+            
             .run-distance {
-                font-weight: bold;
-                color: #333;
+                flex: 0 0 100px;
+                font-weight: 600;
+                color: var(--primary-pink);
             }
-
+            
             .run-notes {
+                flex: 1;
                 color: #666;
-                font-style: italic;
-                margin-left: 20px;
-                flex-grow: 1;
-            }
-
-            @media (max-width: 768px) {
-                .analytics-container {
-                    padding: 10px;
-                }
-
-                .month-section {
-                    padding: 15px;
-                }
-
-                .stats-grid {
-                    grid-template-columns: 1fr;
-                    gap: 10px;
-                }
-
-                .run-item {
-                    flex-direction: column;
-                    gap: 5px;
-                }
-
-                .run-notes {
-                    margin-left: 0;
-                }
+                margin-left: 1rem;
             }
         `;
         document.head.appendChild(style);
@@ -915,53 +958,98 @@ async function loadDetailedAnalytics() {
 }
 
 function createMonthlyStats(monthlyRuns) {
-    const months = Object.keys(monthlyRuns).sort().reverse();
+    // Группируем месяцы по годам
+    const yearlyGroups = {};
+    Object.keys(monthlyRuns).forEach(monthKey => {
+        const [year] = monthKey.split('-');
+        if (!yearlyGroups[year]) {
+            yearlyGroups[year] = {};
+        }
+        yearlyGroups[year][monthKey] = monthlyRuns[monthKey];
+    });
+
+    // Сортируем годы в обратном порядке
+    const years = Object.keys(yearlyGroups).sort().reverse();
     
-    return months.map(monthKey => {
-        const runs = monthlyRuns[monthKey];
-        const [year, month] = monthKey.split('-');
-        const monthName = new Date(year, month - 1).toLocaleString('ru', { month: 'long' });
+    return years.map(year => {
+        const yearRuns = Object.values(yearlyGroups[year]).flat();
+        const yearTotalDistance = yearRuns.reduce((sum, run) => sum + run.km, 0);
+        const yearAvgDistance = yearTotalDistance / yearRuns.length;
+        const yearTotalRuns = yearRuns.length;
+
+        // Получаем месяцы для текущего года и сортируем их в обратном порядке
+        const months = Object.keys(yearlyGroups[year]).sort().reverse();
         
-        // Рассчитываем статистику за месяц
-        const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
-        const avgDistance = totalDistance / runs.length;
-        const totalRuns = runs.length;
-        
-        // Сортируем пробежки по дате (от новых к старым)
-        const sortedRuns = [...runs].sort((a, b) => 
-            new Date(b.date_added) - new Date(a.date_added)
-        );
+        const monthsHtml = months.map(monthKey => {
+            const runs = monthlyRuns[monthKey];
+            const [, month] = monthKey.split('-');
+            const monthName = new Date(year, month - 1).toLocaleString('ru', { month: 'long' });
+            
+            // Рассчитываем статистику за месяц
+            const totalDistance = runs.reduce((sum, run) => sum + run.km, 0);
+            const avgDistance = totalDistance / runs.length;
+            const totalRuns = runs.length;
+            
+            // Сортируем пробежки по дате (от новых к старым)
+            const sortedRuns = [...runs].sort((a, b) => 
+                new Date(b.date_added) - new Date(a.date_added)
+            );
+
+            return `
+                <div class="month-section">
+                    <div class="month-header" onclick="this.closest('.month-section').classList.toggle('expanded')">
+                        <h3 class="month-title">${monthName}</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Общая дистанция</div>
+                                <div class="stat-value">${totalDistance.toFixed(1)} км</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Средняя дистанция</div>
+                                <div class="stat-value">${avgDistance.toFixed(1)} км</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Количество пробежек</div>
+                                <div class="stat-value">${totalRuns}</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="runs-list">
+                        ${sortedRuns.map(run => `
+                            <div class="run-item">
+                                <span class="run-date">
+                                    ${new Date(run.date_added).toLocaleDateString('ru')}
+                                </span>
+                                <span class="run-distance">${run.km.toFixed(1)} км</span>
+                                ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
 
         return `
-            <div class="month-section">
-                <h3 class="month-title">${monthName} ${year}</h3>
-                
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-label">Общая дистанция</div>
-                        <div class="stat-value">${totalDistance.toFixed(1)} км</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Средняя дистанция</div>
-                        <div class="stat-value">${avgDistance.toFixed(1)} км</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Количество пробежек</div>
-                        <div class="stat-value">${totalRuns}</div>
-                    </div>
-                </div>
-
-                <div class="runs-list">
-                    ${sortedRuns.map(run => `
-                        <div class="run-item">
-                            <span class="run-date">
-                                ${new Date(run.date_added).toLocaleDateString('ru')}
-                            </span>
-                            <span class="run-distance">${run.km.toFixed(1)} км</span>
-                            ${run.notes ? `<span class="run-notes">${run.notes}</span>` : ''}
+            <div class="year-section">
+                <div class="year-header">
+                    <h2 class="year-title">${year}</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Общая дистанция за год</div>
+                            <div class="stat-value">${yearTotalDistance.toFixed(1)} км</div>
                         </div>
-                    `).join('')}
+                        <div class="stat-item">
+                            <div class="stat-label">Средняя дистанция за год</div>
+                            <div class="stat-value">${yearAvgDistance.toFixed(1)} км</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Всего пробежек за год</div>
+                            <div class="stat-value">${yearTotalRuns}</div>
+                        </div>
+                    </div>
                 </div>
+                ${monthsHtml}
             </div>
         `;
     }).join('');
