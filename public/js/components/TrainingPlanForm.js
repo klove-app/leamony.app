@@ -1,15 +1,75 @@
 class TrainingPlanForm {
     constructor(container) {
         this.container = container;
-        this.render();
-        this.bindEvents();
+        this.statusCheckInterval = null;
+        this.init();
     }
 
-    render() {
-        this.container.innerHTML = `
-            <div class="training-plan-form-container">
+    async init() {
+        // Создаем контейнер для результата плана
+        const planResult = document.createElement('div');
+        planResult.className = 'plan-result';
+        this.container.appendChild(planResult);
+
+        // Создаем контейнер для формы
+        const formContainer = document.createElement('div');
+        formContainer.className = 'form-container';
+        this.container.appendChild(formContainer);
+
+        // Проверяем наличие существующего плана
+        await this.checkExistingPlan();
+
+        // Рендерим форму
+        this.renderForm(formContainer);
+    }
+
+    async checkExistingPlan() {
+        try {
+            const token = this.getToken();
+            if (!token) return;
+
+            const response = await fetch('/api/v1/ai/training-plan/current', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const plan = await response.json();
+                if (plan && this.validatePlanData(plan)) {
+                    // Если план существует, отображаем его и скрываем форму
+                    const planResult = this.container.querySelector('.plan-result');
+                    const formContainer = this.container.querySelector('.form-container');
+                    
+                    // Создаем заголовок плана
+                    planResult.innerHTML = `
+                        <div class="training-plan-header">
+                            <div class="plan-info">
+                                <span class="plan-title">Ваш план тренировок</span>
+                            </div>
+                            <div class="plan-status ready">
+                                <span class="status-text">ready</span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Рендерим план
+                    this.renderPlan(plan, planResult);
+
+                    // Скрываем форму
+                    formContainer.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка при проверке существующего плана:', error);
+        }
+    }
+
+    renderForm(container) {
+        container.innerHTML = `
+            <div class="training-plan-form">
                 <h2>Получить план тренировок</h2>
-                <form id="trainingPlanForm" class="training-plan-form">
+                <form id="trainingPlanForm">
                     <div class="form-group">
                         <label>Основная цель</label>
                         <select name="goal_type" class="form-control" required>
@@ -64,16 +124,24 @@ class TrainingPlanForm {
                 </form>
             </div>
         `;
+
+        // Добавляем обработчики событий формы
+        this.attachFormHandlers(container);
     }
 
-    bindEvents() {
-        const form = this.container.querySelector('#trainingPlanForm');
-        form.addEventListener('submit', this.handleSubmit.bind(this));
+    attachFormHandlers(container) {
+        const form = container.querySelector('#trainingPlanForm');
+        form.addEventListener('submit', this.handleFormSubmit.bind(this));
     }
 
-    async handleSubmit(e) {
-        e.preventDefault();
-        const form = e.target;
+    async handleFormSubmit(event) {
+        event.preventDefault();
+        
+        // Скрываем форму при отправке
+        const formContainer = this.container.querySelector('.form-container');
+        formContainer.style.display = 'none';
+
+        const form = event.target;
         const formData = new FormData(form);
 
         // Проверяем, что выбран хотя бы один день тренировок

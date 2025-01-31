@@ -1,0 +1,100 @@
+.training-plan-form {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(107, 77, 230, 0.1);
+}
+
+.form-container {
+    transition: all 0.3s ease;
+}
+
+.form-container.hidden {
+    display: none;
+}
+
+.plan-result {
+    margin-bottom: 2rem;
+}
+
+.training-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(107, 77, 230, 0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.training-plan-header:hover {
+    background: var(--light-purple);
+}
+
+.plan-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.plan-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--primary-purple);
+}
+
+.plan-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.plan-status.preparing {
+    background: var(--light-purple);
+    color: var(--primary-purple);
+}
+
+.plan-status.ready {
+    background: #E6F4EA;
+    color: #1E8E3E;
+}
+
+.plan-status.error {
+    background: #FCE8E6;
+    color: #D93025;
+}
+
+.expand-button {
+    background: none;
+    border: none;
+    color: var(--primary-purple);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: transform 0.2s;
+}
+
+.expand-button.expanded {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+    .training-plan-form {
+        padding: 1rem;
+    }
+
+    .training-plan-header {
+        padding: 1rem;
+    }
+
+    .plan-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+} 
