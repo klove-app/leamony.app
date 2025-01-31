@@ -1,91 +1,36 @@
 class TrainingPlanForm {
     constructor(container) {
         this.container = container;
-        this.statusCheckInterval = null;
         this.init();
     }
 
     async init() {
-        // Очищаем контейнер перед инициализацией
-        this.container.innerHTML = '';
-
-        // Создаем контейнер для результата плана
-        const planResult = document.createElement('div');
-        planResult.className = 'plan-result';
-        this.container.appendChild(planResult);
-
-        // Создаем контейнер для формы
-        const formContainer = document.createElement('div');
-        formContainer.className = 'form-container';
-        this.container.appendChild(formContainer);
-
-        try {
-            // Проверяем наличие существующего плана
-            const plan = await this.checkExistingPlan();
-            
-            if (plan) {
-                // Если план существует, отображаем его и скрываем форму
-                this.displayExistingPlan(plan, planResult);
-                formContainer.style.display = 'none';
-            } else {
-                // Если плана нет, показываем форму
-                planResult.style.display = 'none';
-                this.renderForm(formContainer);
-            }
-        } catch (error) {
-            console.error('Ошибка при инициализации:', error);
-            // В случае ошибки показываем форму
-            planResult.style.display = 'none';
-            this.renderForm(formContainer);
+        // Сначала проверяем существующий план
+        const existingPlan = await this.checkExistingPlan();
+        
+        if (existingPlan === 'pending') {
+            // План в процессе генерации, форма уже скрыта в checkExistingPlan
+            return;
+        } else if (existingPlan) {
+            // План существует, показываем его
+            const resultContainer = document.createElement('div');
+            resultContainer.className = 'plan-result';
+            this.container.appendChild(resultContainer);
+            this.renderPlan(existingPlan, resultContainer);
+            // Скрываем форму
+            this.container.querySelector('.training-plan-form-container')?.classList.add('hidden');
+        } else {
+            // Плана нет, показываем форму
+            this.render();
+            this.bindEvents();
         }
     }
 
-    async checkExistingPlan() {
-        const token = this.getToken();
-        if (!token) return null;
-
-        try {
-            const response = await fetch('/api/v1/ai/training-plan/current', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const plan = await response.json();
-                if (plan && this.validatePlanData(plan)) {
-                    return plan;
-                }
-            }
-            return null;
-        } catch (error) {
-            console.error('Ошибка при проверке существующего плана:', error);
-            return null;
-        }
-    }
-
-    displayExistingPlan(plan, container) {
-        // Создаем заголовок плана
-        container.innerHTML = `
-            <div class="training-plan-header">
-                <div class="plan-info">
-                    <span class="plan-title">Ваш план тренировок</span>
-                </div>
-                <div class="plan-status ready">
-                    <span class="status-text">ready</span>
-                </div>
-            </div>
-        `;
-
-        // Рендерим план
-        this.renderPlan(plan, container);
-    }
-
-    renderForm(container) {
-        container.innerHTML = `
-            <div class="training-plan-form">
+    render() {
+        this.container.innerHTML = `
+            <div class="training-plan-form-container">
                 <h2>Получить план тренировок</h2>
-                <form id="trainingPlanForm">
+                <form id="trainingPlanForm" class="training-plan-form">
                     <div class="form-group">
                         <label>Основная цель</label>
                         <select name="goal_type" class="form-control" required>
@@ -140,24 +85,16 @@ class TrainingPlanForm {
                 </form>
             </div>
         `;
-
-        // Добавляем обработчики событий формы
-        this.attachFormHandlers(container);
     }
 
-    attachFormHandlers(container) {
-        const form = container.querySelector('#trainingPlanForm');
-        form.addEventListener('submit', this.handleFormSubmit.bind(this));
+    bindEvents() {
+        const form = this.container.querySelector('#trainingPlanForm');
+        form.addEventListener('submit', this.handleSubmit.bind(this));
     }
 
-    async handleFormSubmit(event) {
-        event.preventDefault();
-        
-        // Скрываем форму при отправке
-        const formContainer = this.container.querySelector('.form-container');
-        formContainer.style.display = 'none';
-
-        const form = event.target;
+    async handleSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
         const formData = new FormData(form);
 
         // Проверяем, что выбран хотя бы один день тренировок
@@ -441,85 +378,91 @@ class TrainingPlanForm {
     }
 
     renderPlan(plan, container) {
-        // Обновляем статус в заголовке
+        // Обновляем статус в заголовке на ready
         const header = container.querySelector('.training-plan-header');
         const statusElement = header.querySelector('.plan-status');
         statusElement.className = 'plan-status ready';
         statusElement.innerHTML = '<span class="status-text">ready</span>';
+        
+        // Добавляем кнопку для разворачивания/сворачивания
+        const expandButton = document.createElement('button');
+        expandButton.className = 'expand-button';
+        expandButton.innerHTML = '▼';
+        header.appendChild(expandButton);
 
         // Создаем контейнер для содержимого плана
         const planContent = document.createElement('div');
         planContent.className = 'training-plan-content';
-        planContent.style.display = 'none';
+        planContent.style.display = 'none'; // По умолчанию скрыт
+        
+        // Группируем тренировки по неделям
+        const workoutsByWeek = plan.plan.reduce((weeks, workout) => {
+            const date = new Date(workout.date);
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay() + 1);
+            const weekKey = weekStart.toISOString().split('T')[0];
+            
+            if (!weeks[weekKey]) {
+                weeks[weekKey] = [];
+            }
+            weeks[weekKey].push(workout);
+            return weeks;
+        }, {});
 
         planContent.innerHTML = `
             <div class="training-plan">
-                <!-- Общая информация о плане -->
-                <div class="plan-overview">
-                    <div class="overview-header">
+                <div class="plan-sections">
+                    <div class="plan-summary">
                         <h3>Общая информация</h3>
-                        <div class="overview-summary">${plan.summary}</div>
+                        <p>${plan.summary}</p>
                     </div>
-                    <div class="overview-stats">
-                        <div class="stat-block">
-                            <div class="stat-title">Километраж по неделям</div>
-                            <div class="weekly-stats">
-                                ${plan.weekly_mileage.map((km, index) => `
-                                    <div class="week-stat">
-                                        <span class="week-label">Неделя ${index + 1}</span>
-                                        <span class="week-value">${km} км</span>
-                                    </div>
-                                `).join('')}
-                            </div>
+
+                    <div class="plan-stats">
+                        <h3>Километраж по неделям</h3>
+                        <div class="weekly-mileage">
+                            ${plan.weekly_mileage.map((km, index) => `
+                                <div class="week-stat">
+                                    <span>Неделя ${index + 1}</span>
+                                    <span>${km} км</span>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
-                </div>
 
-                <!-- Ключевые тренировки -->
-                <div class="key-workouts-section">
-                    <h3>Ключевые тренировки</h3>
-                    <div class="key-workouts-list">
-                        ${plan.key_workouts_explanation.map(workout => `
-                            <div class="key-workout-item">
-                                <span class="workout-icon">🎯</span>
-                                <span class="workout-text">${workout}</span>
-                            </div>
-                        `).join('')}
+                    <div class="key-workouts">
+                        <h3>Ключевые тренировки</h3>
+                        <ul>
+                            ${plan.key_workouts_explanation.map(explanation => `
+                                <li>${explanation}</li>
+                            `).join('')}
+                        </ul>
                     </div>
-                </div>
 
-                <!-- Общие рекомендации -->
-                <div class="recommendations-section">
-                    <h3>Общие рекомендации</h3>
-                    <div class="recommendations-list">
-                        ${plan.recommendations.map(rec => `
-                            <div class="recommendation-item">
-                                <span class="recommendation-icon">✓</span>
-                                <span class="recommendation-text">${rec}</span>
-                            </div>
-                        `).join('')}
+                    <div class="plan-recommendations">
+                        <h3>Рекомендации</h3>
+                        <ul>
+                            ${plan.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
                     </div>
-                </div>
 
-                <!-- Стратегии питания и восстановления -->
-                <div class="strategies-section">
                     <div class="nutrition-strategy">
                         <h3>Стратегия питания</h3>
                         ${Object.entries(plan.nutrition_strategy).map(([phase, tips]) => `
-                            <div class="strategy-block">
+                            <div class="nutrition-phase">
                                 <h4>${this.translatePhase(phase)}</h4>
-                                <ul class="strategy-list">
+                                <ul>
                                     ${tips.map(tip => `<li>${tip}</li>`).join('')}
                                 </ul>
                             </div>
                         `).join('')}
                     </div>
+
                     <div class="recovery-strategy">
                         <h3>Стратегия восстановления</h3>
                         ${Object.entries(plan.recovery_strategy).map(([intensity, tips]) => `
-                            <div class="strategy-block">
+                            <div class="recovery-phase">
                                 <h4>${this.translateIntensity(intensity)}</h4>
-                                <ul class="strategy-list">
+                                <ul>
                                     ${tips.map(tip => `<li>${tip}</li>`).join('')}
                                 </ul>
                             </div>
@@ -527,16 +470,10 @@ class TrainingPlanForm {
                     </div>
                 </div>
 
-                <!-- Детальный план по неделям -->
-                <div class="weekly-plan-section">
-                    <h3>План тренировок по неделям</h3>
-                    ${Object.entries(this.groupWorkoutsByWeek(plan.plan)).map(([weekStart, workouts], weekIndex) => `
+                <div class="weeks-container">
+                    ${Object.entries(workoutsByWeek).map(([weekStart, workouts], weekIndex) => `
                         <div class="week-block">
-                            <div class="week-header">
-                                <h4>Неделя ${weekIndex + 1}</h4>
-                                <div class="week-focus">${plan.periodization[`week_${weekIndex + 1}`] || ''}</div>
-                                <div class="expand-icon" role="button" aria-label="Развернуть/свернуть неделю"></div>
-                            </div>
+                            <h3>Неделя ${weekIndex + 1} - ${plan.periodization[`week_${weekIndex + 1}`] || ''}</h3>
                             <div class="workouts-grid">
                                 ${workouts.map(workout => this.renderWorkout(workout)).join('')}
                             </div>
@@ -546,169 +483,73 @@ class TrainingPlanForm {
             </div>
         `;
 
-        // Добавляем стили
+        // Добавляем стили для разворачивания
         const style = document.createElement('style');
         style.textContent = `
+            .training-plan-header {
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .training-plan-header:hover {
+                background: var(--light-purple);
+            }
+
+            .expand-button {
+                background: none;
+                border: none;
+                color: var(--primary-purple);
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 0.5rem;
+                margin-left: 1rem;
+                transition: transform 0.2s;
+            }
+
+            .expand-button.expanded {
+                transform: rotate(180deg);
+            }
+
             .training-plan-content {
                 margin-top: 1rem;
                 padding: 1.5rem;
                 background: white;
                 border-radius: 12px;
-                box-shadow: 0 2px 8px rgba(107, 77, 230, 0.1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             }
 
-            .plan-overview {
-                background: var(--light-purple);
-                border-radius: 12px;
-                padding: 1.5rem;
+            .plan-sections {
+                display: grid;
+                gap: 2rem;
                 margin-bottom: 2rem;
             }
 
-            .overview-header {
-                margin-bottom: 1.5rem;
+            .plan-summary {
+                background: var(--light-purple);
+                padding: 1.5rem;
+                border-radius: 8px;
             }
 
-            .overview-header h3 {
-                color: var(--primary-purple);
-                margin: 0 0 1rem 0;
-            }
-
-            .overview-summary {
-                font-size: 1.1rem;
-                line-height: 1.5;
-                color: #444;
-            }
-
-            .weekly-stats {
+            .weekly-mileage {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                 gap: 1rem;
-                margin-top: 1rem;
             }
 
             .week-stat {
                 background: white;
                 padding: 1rem;
                 border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }
-
-            .week-value {
-                font-weight: 600;
-                color: var(--primary-purple);
-            }
-
-            .key-workouts-section,
-            .recommendations-section,
-            .strategies-section,
-            .weekly-plan-section {
-                background: white;
-                border-radius: 12px;
-                padding: 1.5rem;
-                margin-bottom: 1.5rem;
-                border: 1px solid var(--light-purple);
-            }
-
-            .key-workout-item,
-            .recommendation-item {
-                display: flex;
-                align-items: flex-start;
-                margin-bottom: 1rem;
-                padding: 0.75rem;
-                background: var(--light-purple);
-                border-radius: 8px;
-            }
-
-            .workout-icon,
-            .recommendation-icon {
-                flex-shrink: 0;
-                margin-right: 1rem;
-                font-size: 1.2rem;
-            }
-
-            .strategies-section {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.5rem;
-            }
-
-            .strategy-block {
-                background: var(--light-purple);
-                border-radius: 8px;
-                padding: 1rem;
-                margin-bottom: 1rem;
-            }
-
-            .strategy-block h4 {
-                color: var(--primary-purple);
-                margin: 0 0 0.75rem 0;
-            }
-
-            .strategy-list {
-                margin: 0;
-                padding-left: 1.5rem;
-            }
-
-            .strategy-list li {
-                margin-bottom: 0.5rem;
-            }
-
-            .week-block {
-                background: var(--light-purple);
-                border-radius: 12px;
-                padding: 1.5rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .week-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 1rem;
-            }
-
-            .week-header h4 {
-                color: var(--primary-purple);
-                margin: 0;
-            }
-
-            .week-focus {
-                color: var(--primary-pink);
-                font-weight: 500;
-            }
-
-            .workouts-grid {
-                display: grid;
-                gap: 1rem;
-            }
-
-            @media (max-width: 768px) {
-                .strategies-section {
-                    grid-template-columns: 1fr;
-                }
-
-                .week-header {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-
-                .week-focus {
-                    margin-top: 0.5rem;
-                }
             }
         `;
         document.head.appendChild(style);
 
         // Добавляем контейнер с содержимым после заголовка
         container.appendChild(planContent);
-
-        // Добавляем кнопку для разворачивания/сворачивания
-        const expandButton = document.createElement('button');
-        expandButton.className = 'expand-button';
-        expandButton.setAttribute('aria-label', 'Развернуть/свернуть план');
-        header.appendChild(expandButton);
 
         // Добавляем обработчик для разворачивания/сворачивания
         header.addEventListener('click', () => {
@@ -1011,20 +852,58 @@ class TrainingPlanForm {
         return phases[phase] || phase;
     }
 
-    // Вспомогательная функция для группировки тренировок по неделям
-    groupWorkoutsByWeek(workouts) {
-        return workouts.reduce((weeks, workout) => {
-            const date = new Date(workout.date);
-            const weekStart = new Date(date);
-            weekStart.setDate(date.getDate() - date.getDay() + 1);
-            const weekKey = weekStart.toISOString().split('T')[0];
-            
-            if (!weeks[weekKey]) {
-                weeks[weekKey] = [];
+    async checkExistingPlan() {
+        const token = this.getToken();
+        if (!token) return null;
+
+        try {
+            const response = await fetch('/training-plan/current', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                switch(data.status) {
+                    case 'completed':
+                        // План существует и готов
+                        if (data.plan && this.validatePlanData(data.plan)) {
+                            return data.plan;
+                        }
+                        return null;
+                        
+                    case 'pending':
+                        // План в процессе генерации
+                        this.showInProgress();
+                        this.startStatusCheck();
+                        return 'pending';
+                        
+                    case 'error':
+                        // Была ошибка при генерации
+                        this.showError(data.error || 'Произошла ошибка при генерации плана');
+                        return null;
+                        
+                    case 'not_found':
+                        // Плана нет
+                        return null;
+                        
+                    default:
+                        console.error('Неизвестный статус плана:', data.status);
+                        return null;
+                }
+            } else if (response.status === 202) {
+                // План еще генерируется
+                this.showInProgress();
+                this.startStatusCheck();
+                return 'pending';
             }
-            weeks[weekKey].push(workout);
-            return weeks;
-        }, {});
+            return null;
+        } catch (error) {
+            console.error('Ошибка при проверке существующего плана:', error);
+            return null;
+        }
     }
 }
 
