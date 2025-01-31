@@ -173,61 +173,55 @@ async function handleTelegramSync() {
 // Функция для создания базовой структуры контента
 function createBaseStructure() {
     return `
-        <h2 id="welcomeMessage"></h2>
-        <p id="lastRunInfo"></p>
-        
+        <div class="welcome-message"></div>
         <div class="period-selector">
             <button class="period-button" data-period="week">Неделя</button>
             <button class="period-button" data-period="month">Месяц</button>
             <button class="period-button active" data-period="year">Год</button>
         </div>
-
-        <div id="progressSection" class="progress-section"></div>
-        
         <div class="metrics-grid">
-            <div class="metric-card" id="totalDistanceCard">
-                <div class="metric-title">Общая дистанция</div>
+            <div class="metric-card">
+                <h3>Общая дистанция</h3>
                 <div class="metric-value">0 км</div>
             </div>
-            <div class="metric-card" id="avgDistanceCard">
-                <div class="metric-title">Средняя дистанция</div>
+            <div class="metric-card">
+                <h3>Средняя дистанция</h3>
                 <div class="metric-value">0 км</div>
             </div>
-            <div class="metric-card" id="totalRunsCard">
-                <div class="metric-title">Всего пробежек</div>
+            <div class="metric-card">
+                <h3>Всего пробежек</h3>
                 <div class="metric-value">0</div>
             </div>
         </div>
-
-        <div class="recent-runs" style="display: none;">
+        <div class="recent-runs">
             <h3>Недавние пробежки</h3>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Дата</th>
-                            <th>Дистанция (км)</th>
-                            <th>Время</th>
-                            <th>Заметки</th>
+                            <th>ДАТА</th>
+                            <th>ДИСТАНЦИЯ (КМ)</th>
+                            <th>ВРЕМЯ</th>
+                            <th>ЗАМЕТКИ</th>
                         </tr>
                     </thead>
-                    <tbody id="runsTableBody"></tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
-
+        <div class="all-runs">
+            <h3>История пробежек</h3>
+            <div class="months-container"></div>
+        </div>
         <div class="action-buttons">
             <button id="refreshButton" class="action-button">
-                <span class="button-icon">🔄</span>
-                Обновить данные
+                <span class="button-icon">🔄</span> Обновить данные
             </button>
             <button id="viewLogsButton" class="action-button">
-                <span class="button-icon">📋</span>
-                Просмотр логов
+                <span class="button-icon">📋</span> Просмотр логов
             </button>
             <button id="exportButton" class="action-button">
-                <span class="button-icon">📊</span>
-                Экспорт данных
+                <span class="button-icon">📊</span> Экспорт данных
             </button>
         </div>
     `;
@@ -375,7 +369,7 @@ async function loadUserData(forceCheck = false) {
         const currentTab = document.getElementById('currentTab');
         if (currentTab) {
             // Обновляем приветствие
-            const welcomeMessage = currentTab.querySelector('#welcomeMessage');
+            const welcomeMessage = currentTab.querySelector('.welcome-message');
             if (welcomeMessage) welcomeMessage.textContent = data.welcomeMessage;
 
             if (data.hasRuns) {
@@ -1413,5 +1407,137 @@ function setupEventListeners() {
     }
 
     console.log('Обработчики событий настроены');
+    console.groupEnd();
+}
+
+function updateDashboard(data) {
+    console.group('Обновление дашборда');
+    
+    try {
+        const currentTab = document.getElementById('currentTab');
+        if (!currentTab) {
+            console.error('Не найден контейнер для контента');
+            return;
+        }
+
+        // Обновляем приветственное сообщение
+        const welcomeMessage = currentTab.querySelector('.welcome-message');
+        if (welcomeMessage && data.welcomeMessage) {
+            welcomeMessage.textContent = data.welcomeMessage;
+        }
+
+        // Обновляем метрики
+        if (data.stats) {
+            updateMetrics(data.stats);
+        }
+
+        // Обновляем таблицу недавних пробежек
+        if (data.recentRuns) {
+            updateRecentRuns(data.recentRuns);
+        }
+
+        // Обновляем историю пробежек по месяцам
+        if (data.runs) {
+            updateMonthlyRuns(data.runs);
+        }
+
+        console.log('Дашборд успешно обновлен');
+    } catch (error) {
+        console.error('Ошибка при обновлении дашборда:', error);
+        showError('Произошла ошибка при обновлении данных');
+    }
+
+    console.groupEnd();
+}
+
+function updateMonthlyRuns(runs) {
+    console.group('Обновление истории пробежек');
+    
+    try {
+        const monthsContainer = document.querySelector('.months-container');
+        if (!monthsContainer) {
+            console.error('Не найден контейнер для месяцев');
+            return;
+        }
+
+        // Группируем пробежки по месяцам
+        const runsByMonth = {};
+        runs.forEach(run => {
+            const date = new Date(run.date_added);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            if (!runsByMonth[monthKey]) {
+                runsByMonth[monthKey] = [];
+            }
+            runsByMonth[monthKey].push(run);
+        });
+
+        // Сортируем месяцы в обратном хронологическом порядке
+        const sortedMonths = Object.keys(runsByMonth).sort().reverse();
+
+        // Создаем HTML для каждого месяца
+        const monthsHTML = sortedMonths.map(monthKey => {
+            const [year, month] = monthKey.split('-');
+            const monthName = new Date(year, month - 1).toLocaleString('ru', { month: 'long' });
+            const monthRuns = runsByMonth[monthKey];
+            const totalDistance = monthRuns.reduce((sum, run) => sum + (parseFloat(run.km) || 0), 0).toFixed(1);
+            
+            const runsHTML = monthRuns.map(run => `
+                <tr>
+                    <td>${new Date(run.date_added).toLocaleDateString()}</td>
+                    <td class="distance">${run.km}</td>
+                    <td>${run.time || '-'}</td>
+                    <td class="notes">${run.notes || '-'}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <div class="month-section">
+                    <div class="month-header" data-month="${monthKey}">
+                        <h4>${monthName} ${year}</h4>
+                        <div class="month-summary">
+                            <span>${monthRuns.length} пробежек</span>
+                            <span>${totalDistance} км</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="month-content" id="month-${monthKey}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ДАТА</th>
+                                    <th>ДИСТАНЦИЯ (КМ)</th>
+                                    <th>ВРЕМЯ</th>
+                                    <th>ЗАМЕТКИ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${runsHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        monthsContainer.innerHTML = monthsHTML;
+
+        // Добавляем обработчики для раскрытия/скрытия месяцев
+        const monthHeaders = monthsContainer.querySelectorAll('.month-header');
+        monthHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const monthKey = header.dataset.month;
+                const content = document.getElementById(`month-${monthKey}`);
+                const toggleIcon = header.querySelector('.toggle-icon');
+                
+                content.classList.toggle('expanded');
+                toggleIcon.textContent = content.classList.contains('expanded') ? '▼' : '▶';
+            });
+        });
+
+        console.log('История пробежек успешно обновлена');
+    } catch (error) {
+        console.error('Ошибка при обновлении истории пробежек:', error);
+    }
+
     console.groupEnd();
 } 
