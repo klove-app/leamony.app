@@ -15,16 +15,29 @@ function generateRequestId(): string {
   });
 }
 
+// Базовые заголовки для всех запросов
+function getBaseHeaders(includeAuth: boolean = true): HeadersInit {
+  const headers: HeadersInit = {
+    'Accept': 'application/json',
+    'X-Request-ID': generateRequestId()
+  };
+
+  if (includeAuth) {
+    const token = getCookie('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
+
 export async function checkAuth(): Promise<any> {
   const response = await fetch(`${API_BASE_URL}/users/me`, {
     method: 'GET',
+    mode: 'cors',
     credentials: 'include',
-    headers: {
-      'Accept': 'application/json',
-      'X-Request-ID': generateRequestId(),
-      'Authorization': `Bearer ${getCookie('access_token')}`,
-      'Origin': window.location.origin
-    }
+    headers: getBaseHeaders()
   });
 
   if (!response.ok) {
@@ -48,48 +61,61 @@ export async function login(username: string, password: string): Promise<LoginRe
   formData.append('username', username);
   formData.append('password', password);
 
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json',
-      'X-Request-ID': generateRequestId(),
-      'Origin': window.location.origin
-    },
-    body: formData
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+        ...getBaseHeaders(false),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (!response.ok) {
+    if (!response.ok) {
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: 'Неверное имя пользователя или пароль'
+        };
+      }
+      return {
+        success: false,
+        error: data.detail || 'Ошибка входа'
+      };
+    }
+
+    // Сохраняем токены
+    if (data.access_token) {
+      setCookie('access_token', data.access_token, 1);
+    }
+    if (data.refresh_token) {
+      setCookie('refresh_token', data.refresh_token, 30);
+    }
+
+    return {
+      success: true,
+      user: data.user
+    };
+  } catch (error) {
+    console.error('Login error:', error);
     return {
       success: false,
-      error: data.detail || 'Ошибка входа'
+      error: 'Произошла ошибка при попытке входа'
     };
   }
-
-  // Сохраняем токены
-  setCookie('access_token', data.access_token, 1); // 1 день
-  setCookie('refresh_token', data.refresh_token, 30); // 30 дней
-
-  return {
-    success: true,
-    user: data.user
-  };
 }
 
 export async function logout(): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/auth/logout`, {
       method: 'POST',
+      mode: 'cors',
       credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'X-Request-ID': generateRequestId(),
-        'Authorization': `Bearer ${getCookie('access_token')}`,
-        'Origin': window.location.origin
-      }
+      headers: getBaseHeaders()
     });
   } catch (error) {
     console.error('Logout error:', error);
@@ -109,12 +135,11 @@ export async function refreshToken(): Promise<boolean> {
 
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
+      mode: 'cors',
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-        'X-Request-ID': generateRequestId(),
-        'Origin': window.location.origin
+        ...getBaseHeaders(false),
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: formData
     });
@@ -124,8 +149,12 @@ export async function refreshToken(): Promise<boolean> {
     }
 
     const data = await response.json();
-    setCookie('access_token', data.access_token, 1);
-    setCookie('refresh_token', data.refresh_token, 30);
+    if (data.access_token) {
+      setCookie('access_token', data.access_token, 1);
+    }
+    if (data.refresh_token) {
+      setCookie('refresh_token', data.refresh_token, 30);
+    }
     return true;
   } catch (error) {
     console.error('Error refreshing token:', error);
@@ -137,7 +166,7 @@ export async function refreshToken(): Promise<boolean> {
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=lax`;
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=none`;
 }
 
 function getCookie(name: string): string | null {
@@ -148,7 +177,7 @@ function getCookie(name: string): string | null {
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=lax`;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=none`;
 }
 
 export interface RegisterResponse {
