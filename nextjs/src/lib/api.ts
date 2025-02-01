@@ -68,9 +68,8 @@ export async function login(username: string, password: string): Promise<LoginRe
       body: formData
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
+      const data = await response.json();
       if (response.status === 401) {
         return {
           success: false,
@@ -82,6 +81,8 @@ export async function login(username: string, password: string): Promise<LoginRe
         error: data.detail || 'Ошибка входа'
       };
     }
+
+    const data = await response.json();
 
     // Сохраняем токены
     if (data.access_token) {
@@ -156,7 +157,7 @@ export async function refreshToken(): Promise<boolean> {
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=lax`;
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=lax;domain=.runconnect.app`;
 }
 
 function getCookie(name: string): string | null {
@@ -167,5 +168,5 @@ function getCookie(name: string): string | null {
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=lax`;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=lax;domain=.runconnect.app`;
 } 
