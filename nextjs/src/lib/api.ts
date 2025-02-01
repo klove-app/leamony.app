@@ -17,10 +17,13 @@ function generateRequestId(): string {
 
 export async function checkAuth(): Promise<any> {
   const response = await fetch(`${API_BASE_URL}/users/me`, {
+    method: 'GET',
+    credentials: 'include',
     headers: {
-      'Authorization': `Bearer ${getCookie('access_token')}`,
       'Accept': 'application/json',
-      'X-Request-ID': generateRequestId()
+      'X-Request-ID': generateRequestId(),
+      'Authorization': `Bearer ${getCookie('access_token')}`,
+      'Origin': window.location.origin
     }
   });
 
@@ -47,10 +50,12 @@ export async function login(username: string, password: string): Promise<LoginRe
 
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json',
-      'X-Request-ID': generateRequestId()
+      'X-Request-ID': generateRequestId(),
+      'Origin': window.location.origin
     },
     body: formData
   });
@@ -60,7 +65,7 @@ export async function login(username: string, password: string): Promise<LoginRe
   if (!response.ok) {
     return {
       success: false,
-      error: data.detail || 'Failed to login'
+      error: data.detail || 'Ошибка входа'
     };
   }
 
@@ -75,9 +80,23 @@ export async function login(username: string, password: string): Promise<LoginRe
 }
 
 export async function logout(): Promise<void> {
-  // Удаляем токены
-  deleteCookie('access_token');
-  deleteCookie('refresh_token');
+  try {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'X-Request-ID': generateRequestId(),
+        'Authorization': `Bearer ${getCookie('access_token')}`,
+        'Origin': window.location.origin
+      }
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    deleteCookie('access_token');
+    deleteCookie('refresh_token');
+  }
 }
 
 export async function refreshToken(): Promise<boolean> {
@@ -90,10 +109,12 @@ export async function refreshToken(): Promise<boolean> {
 
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
-        'X-Request-ID': generateRequestId()
+        'X-Request-ID': generateRequestId(),
+        'Origin': window.location.origin
       },
       body: formData
     });
@@ -116,7 +137,7 @@ export async function refreshToken(): Promise<boolean> {
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=strict`;
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=lax`;
 }
 
 function getCookie(name: string): string | null {
@@ -127,7 +148,7 @@ function getCookie(name: string): string | null {
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=strict`;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=lax`;
 }
 
 export interface RegisterResponse {
