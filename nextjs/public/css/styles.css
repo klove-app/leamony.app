@@ -564,28 +564,51 @@ p {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .navbar .container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    .button {
+        width: auto;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    .hero-section {
+        padding-top: 10rem;
+    }
+
     h1 {
         font-size: 2.5rem;
     }
-    
-    h2 {
-        font-size: 2rem;
+
+    .hero-description {
+        font-size: 1.1rem;
+        padding: 0 1rem;
     }
-    
-    .nav-links {
-        display: none;
-    }
-    
-    .pricing-card.featured {
-        transform: none;
-    }
-    
+
     .hero-buttons {
         flex-direction: column;
+        align-items: stretch;
+        padding: 0 2rem;
     }
-    
+
     .button {
-        width: 100%;
+        text-align: center;
         justify-content: center;
     }
 }
@@ -842,5 +865,341 @@ p {
     to {
         transform: translate(-50%, 0);
         opacity: 1;
+    }
+}
+
+/* Стили для списка пробежек */
+.dashboard-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.stats-summary {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.stats-item {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.stats-item strong {
+    color: #2196F3;
+    font-size: 1.1em;
+}
+
+.runs-list {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.run-item {
+    display: grid;
+    grid-template-columns: 100px 80px 80px 1fr;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9em;
+    align-items: center;
+}
+
+.run-item:last-child {
+    border-bottom: none;
+}
+
+.run-item:hover {
+    background: #f8f9fa;
+}
+
+.run-date {
+    color: #666;
+}
+
+.run-distance {
+    color: #2196F3;
+    font-weight: 500;
+}
+
+.run-time {
+    color: #666;
+}
+
+.run-notes {
+    color: #888;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.auth-button {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    border-bottom: 2px dashed #666;
+    transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+    background-color: #e0e0e0;
+    border-bottom-style: solid;
+}
+
+/* Обновленные стили для тренировок */
+.workout-card {
+    background: white;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.workout-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.workout-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: var(--border-radius);
+    position: relative;
+}
+
+.workout-header::after {
+    content: "▼";
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+}
+
+.workout-header.expanded::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.workout-date {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.workout-info {
+    flex: 1;
+    margin-left: 1rem;
+    margin-right: 2rem;
+}
+
+.workout-type {
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.workout-main-stats {
+    display: flex;
+    gap: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.workout-details {
+    padding: 1rem;
+    border-top: 1px solid #eee;
+    display: none;
+}
+
+.raw-response {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.raw-data {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+}
+
+.raw-data h4 {
+    margin: 1rem 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.raw-data pre {
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.raw-data pre:last-child {
+    margin-bottom: 0;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin: 1rem 0;
+    text-align: center;
+    position: relative;
+}
+
+.loading-dots:after {
+    content: '';
+    animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80% { content: '...'; }
+    100% { content: ''; }
+}
+
+.loading-progress {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    margin: 1rem 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-progress-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--primary-color);
+    width: 0;
+    animation: progress 3s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+.loading-subtext {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.loading-retry {
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* Login styles */
+.login-wrapper {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+    background: #f3f4f6;
+}
+
+.login-content {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-content h1 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.login-description {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    text-align: left;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+/* Responsive styles */
+@media (max-width: 640px) {
+    .login-content {
+        margin: 0 1rem;
+        padding: 1.5rem;
     }
 }

@@ -4,59 +4,69 @@ import { login, register, checkAuth } from './api.js';
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Инициализация главной страницы...');
     
+    setupEventListeners();
+    
     try {
         // Проверяем авторизацию
-        const user = await checkAuth();
-        console.log('Результат проверки авторизации:', user);
-        
-        if (user) {
-            // Если пользователь авторизован, обновляем UI
-            updateAuthUI(true, user.username);
-        } else {
-            // Если не авторизован, показываем кнопку входа
-            updateAuthUI(false);
-        }
-
-        // Настраиваем обработчики событий
-        setupEventListeners();
-        
+        await updateAuthUI();
     } catch (error) {
-        console.error('Ошибка при инициализации:', error);
-        showError('Произошла ошибка при загрузке страницы');
+        // Если произошла ошибка, считаем что пользователь не авторизован
+        console.log('Ошибка при проверке авторизации:', error);
+        updateAuthUI();
     }
 });
 
 // Обновление UI в зависимости от состояния авторизации
-function updateAuthUI(isAuthenticated, username = '') {
-    const loginButton = document.getElementById('loginButton');
-    const userMenu = document.getElementById('userMenu');
-    
-    if (isAuthenticated && username) {
-        // Если пользователь авторизован
-        if (loginButton) loginButton.style.display = 'none';
-        if (userMenu) {
-            userMenu.style.display = 'flex';
-            const usernameElement = userMenu.querySelector('.username');
-            if (usernameElement) usernameElement.textContent = username;
+async function updateAuthUI() {
+    console.group('Update Auth UI');
+    try {
+        const user = await checkAuth();
+        console.log('Результат проверки авторизации:', user);
+        
+        const loginButton = document.getElementById('loginButton');
+        if (!loginButton) {
+            console.log('Кнопка входа не найдена');
+            console.groupEnd();
+            return;
         }
-    } else {
-        // Если пользователь не авторизован
-        if (loginButton) loginButton.style.display = 'block';
-        if (userMenu) userMenu.style.display = 'none';
+        
+        if (user && user.username) {
+            console.log('Пользователь авторизован, обновляем кнопку');
+            loginButton.textContent = user.username;
+            loginButton.href = '/dashboard.html';
+            loginButton.classList.add('auth-button');
+            // Удаляем обработчик открытия модального окна
+            loginButton.removeEventListener('click', openAuthModal);
+        } else {
+            console.log('Пользователь не авторизован, возвращаем кнопку входа');
+            loginButton.textContent = 'Sign In';
+            loginButton.href = '#';
+            loginButton.classList.remove('auth-button');
+            // Удаляем старый обработчик перед добавлением нового
+            loginButton.removeEventListener('click', openAuthModal);
+            // Добавляем обработчик открытия модального окна
+            loginButton.addEventListener('click', openAuthModal);
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении UI:', error);
+        // При ошибке также возвращаем состояние неавторизованного пользователя
+        const loginButton = document.getElementById('loginButton');
+        if (loginButton) {
+            console.log('Ошибка авторизации, возвращаем кнопку входа');
+            loginButton.textContent = 'Sign In';
+            loginButton.href = '#';
+            loginButton.classList.remove('auth-button');
+            // Удаляем старый обработчик перед добавлением нового
+            loginButton.removeEventListener('click', openAuthModal);
+            // Добавляем обработчик открытия модального окна
+            loginButton.addEventListener('click', openAuthModal);
+        }
     }
+    console.groupEnd();
 }
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Открытие модального окна
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.addEventListener('click', () => {
-            console.log('Открываем модальное окно авторизации');
-            openAuthModal();
-        });
-    }
-
     // Закрытие модального окна
     const closeButton = document.querySelector('.close-button');
     if (closeButton) {
@@ -73,6 +83,16 @@ function setupEventListeners() {
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
+    }
+
+    // Закрытие модального окна при клике вне его области
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeAuthModal();
+            }
+        });
     }
 }
 
@@ -106,6 +126,12 @@ async function handleLogin(event) {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const errorElement = document.querySelector('#loginForm .error-message');
+    const submitButton = document.querySelector('#loginForm button[type="submit"]');
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Вход...';
+    }
 
     try {
         const result = await login(username, password);
@@ -116,15 +142,40 @@ async function handleLogin(event) {
             window.location.href = '/dashboard.html';
         } else {
             if (errorElement) {
-                errorElement.textContent = result.error || 'Failed to login';
+                let errorMessage = 'Ошибка входа';
+                
+                switch(result.error) {
+                    case 'invalid_credentials':
+                        errorMessage = 'Неверное имя пользователя или пароль';
+                        break;
+                    case 'user_not_found':
+                        errorMessage = 'Пользователь не найден';
+                        break;
+                    case 'account_disabled':
+                        errorMessage = 'Аккаунт отключен';
+                        break;
+                    default:
+                        errorMessage = result.error || 'Произошла ошибка при входе';
+                }
+                
+                errorElement.textContent = errorMessage;
                 errorElement.style.display = 'block';
             }
+            // Явно обновляем UI для отображения неавторизованного состояния
+            await updateAuthUI();
         }
     } catch (error) {
         console.error('Ошибка при входе:', error);
         if (errorElement) {
-            errorElement.textContent = 'An error occurred during login';
+            errorElement.textContent = 'Произошла ошибка при попытке входа';
             errorElement.style.display = 'block';
+        }
+        // Явно обновляем UI при ошибке
+        await updateAuthUI();
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Войти';
         }
     }
 }

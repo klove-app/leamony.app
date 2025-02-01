@@ -1,130 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - RunConnect</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>RunConnect - Личный кабинет</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
-    
-    <!-- Наши модули -->
-    <script type="module" src="/js/config.js"></script>
-    <script type="module" src="/js/api.js"></script>
-    <script type="module" src="/js/dashboard.js"></script>
-
-    <!-- Обработка ошибок загрузки -->
-    <script>
-        window.addEventListener('error', function(e) {
-            console.error('Script error:', e);
-            if (e.target.src) {
-                console.error('Failed to load:', e.target.src);
-            }
-        });
-    </script>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="logo">RunConnect</a>
+            <a href="/" class="logo">
+                <img src="/images/logo.svg" alt="RunConnect" width="32" height="32">
+                RunConnect
+            </a>
             <div class="nav-links">
-                <span id="userName" class="nav-link">Loading...</span>
-                <button id="logoutButton" class="nav-link">Sign Out</button>
+                <button id="logoutButton" class="nav-link">Выйти</button>
             </div>
         </div>
     </nav>
 
-    <main class="dashboard">
+    <main class="dashboard-container">
         <div class="container">
-            <div class="dashboard-header">
-                <h1>Welcome back, <span id="userNameHeader">Runner</span>!</h1>
-                <p class="last-sync">Last updated: <span id="lastSync">Just now</span></p>
-            </div>
-
-            <div class="dashboard-grid">
-                <!-- Общий прогресс -->
-                <div class="card progress-card">
-                    <h2>Overall Progress</h2>
-                    <div class="progress-chart-container">
-                        <div id="progressChart"></div>
-                        <div class="progress-center">
-                            <div class="progress-value">0</div>
-                            <div class="progress-label">km</div>
-                        </div>
-                    </div>
-                    <div class="progress-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Completed</span>
-                            <span class="detail-value">0</span>
-                            <span class="detail-unit">km</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Goal</span>
-                            <span class="detail-value">1000</span>
-                            <span class="detail-unit">km</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Статистика за неделю -->
-                <div class="card activity-card">
-                    <h2>Weekly Activity</h2>
-                    <div class="chart-container">
-                        <div id="activityChart"></div>
-                    </div>
-                    <div class="activity-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="weekTotal">0</span>
-                            <span class="stat-label">km this week</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="weekAvg">0</span>
-                            <span class="stat-label">km/day avg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Месячная статистика -->
-                <div class="card monthly-card">
-                    <h2>Monthly Progress</h2>
-                    <div class="chart-container">
-                        <div id="monthlyChart"></div>
-                    </div>
-                    <div class="monthly-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="monthTotal">0</span>
-                            <span class="stat-label">km this month</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="monthAvg">0</span>
-                            <span class="stat-label">km/day avg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Достижения -->
-                <div class="card achievements-card">
-                    <h2>Recent Achievements</h2>
-                    <div class="achievements-list" id="achievementsList">
-                        <div class="achievement">
-                            <div class="achievement-icon">🎯</div>
-                            <div class="achievement-details">
-                                <h3>Loading achievements...</h3>
-                                <p>Please wait...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="errorLog" class="error" style="display: none;"></div>
+            <div class="dashboard-content">
+                <!-- Навигация и контент будут добавлены через JavaScript -->
             </div>
         </div>
     </main>
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 RunConnect. All rights reserved.</p>
-        </div>
-    </footer>
+    <!-- Загружаем скрипты в правильном порядке -->
+    <script src="/js/env.js"></script>
+    <script type="module" src="/js/config.js"></script>
+    <script type="module" src="/js/api.js"></script>
+    <script type="module" src="/js/dashboard.js"></script>
 </body>
 </html>
