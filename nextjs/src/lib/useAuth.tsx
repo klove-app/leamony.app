@@ -29,13 +29,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // Проверяем наличие токена перед запросом
+        const token = document.cookie.includes('access_token');
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
         const userData = await checkAuth();
         if (userData) {
           setUser(userData);
         }
       } catch (err) {
-        console.error('Auth check error:', err);
-        setError('Ошибка проверки авторизации');
+        // Если ошибка 401, значит просто пользователь не авторизован
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          console.log('User not authenticated');
+        } else {
+          console.error('Auth check error:', err);
+          setError('Ошибка проверки авторизации');
+        }
       } finally {
         setIsLoading(false);
       }

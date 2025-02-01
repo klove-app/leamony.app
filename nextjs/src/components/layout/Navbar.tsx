@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import AuthModal from './AuthModal';
+import { useAuth } from '@/lib/useAuth';
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
+
   return (
     <nav className="navbar">
       <div className="container">
@@ -33,7 +36,20 @@ export default function Navbar() {
           >
             Documentation
           </a>
-          <AuthModal />
+          
+          {user ? (
+            <>
+              <Link href="/dashboard" className="nav-link">
+                Личный кабинет
+              </Link>
+              <button onClick={logout} className="button button-secondary">
+                Выйти
+              </button>
+            </>
+          ) : (
+            <AuthModal />
+          )}
+          
           <a 
             href="https://t.me/sl_run_bot" 
             className="button button-primary"
