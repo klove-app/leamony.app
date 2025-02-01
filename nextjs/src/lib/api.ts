@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.runconnect.app/api/v1';
+const API_BASE_URL = '/api/v1';
 
 interface LoginResponse {
   success: boolean;
@@ -19,7 +19,8 @@ function generateRequestId(): string {
 function getBaseHeaders(includeAuth: boolean = true): HeadersInit {
   const headers: HeadersInit = {
     'Accept': 'application/json',
-    'X-Request-ID': generateRequestId()
+    'X-Request-ID': generateRequestId(),
+    'Content-Type': 'multipart/form-data'
   };
 
   if (includeAuth) {
@@ -64,9 +65,7 @@ export async function login(username: string, password: string): Promise<LoginRe
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        ...getBaseHeaders(false)
-      },
+      headers: getBaseHeaders(false),
       body: formData
     });
 
@@ -132,9 +131,7 @@ export async function refreshToken(): Promise<boolean> {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        ...getBaseHeaders(false)
-      },
+      headers: getBaseHeaders(false),
       body: formData
     });
 
