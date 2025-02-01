@@ -1,10 +1,133 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.runconnect.app';
+const API_BASE_URL = 'https://api.runconnect.app/api/v1';
 
-export interface LoginResponse {
+interface LoginResponse {
   success: boolean;
   user?: any;
   error?: string;
-  details?: any;
+}
+
+// Генерация уникального ID запроса
+function generateRequestId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+export async function checkAuth(): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
+    headers: {
+      'Authorization': `Bearer ${getCookie('access_token')}`,
+      'Accept': 'application/json',
+      'X-Request-ID': generateRequestId()
+    }
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Пробуем обновить токен
+      const refreshed = await refreshToken();
+      if (refreshed) {
+        // Повторяем запрос с новым токеном
+        return checkAuth();
+      }
+      throw new Error('Unauthorized');
+    }
+    throw new Error('Failed to check auth');
+  }
+
+  return response.json();
+}
+
+export async function login(username: string, password: string): Promise<LoginResponse> {
+  const formData = new URLSearchParams();
+  formData.append('username', username);
+  formData.append('password', password);
+
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+      'X-Request-ID': generateRequestId()
+    },
+    body: formData
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    return {
+      success: false,
+      error: data.detail || 'Failed to login'
+    };
+  }
+
+  // Сохраняем токены
+  setCookie('access_token', data.access_token, 1); // 1 день
+  setCookie('refresh_token', data.refresh_token, 30); // 30 дней
+
+  return {
+    success: true,
+    user: data.user
+  };
+}
+
+export async function logout(): Promise<void> {
+  // Удаляем токены
+  deleteCookie('access_token');
+  deleteCookie('refresh_token');
+}
+
+export async function refreshToken(): Promise<boolean> {
+  const refresh_token = getCookie('refresh_token');
+  if (!refresh_token) return false;
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append('refresh_token', refresh_token);
+
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        'X-Request-ID': generateRequestId()
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to refresh token');
+    }
+
+    const data = await response.json();
+    setCookie('access_token', data.access_token, 1);
+    setCookie('refresh_token', data.refresh_token, 30);
+    return true;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    return false;
+  }
+}
+
+// Вспомогательные функции для работы с куки
+function setCookie(name: string, value: string, days: number) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=strict`;
+}
+
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=strict`;
 }
 
 export interface RegisterResponse {
@@ -30,11 +153,11 @@ export async function register(
     };
 
     console.group('Registration Request');
-    console.log('URL:', `${API_URL}/auth/register`);
+    console.log('URL:', `${API_BASE_URL}/auth/register`);
     console.log('Body:', { ...requestBody, password: '***' });
     console.groupEnd();
 
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -86,130 +209,6 @@ export async function register(
   }
 }
 
-// Функция для входа
-export async function login(username: string, password: string): Promise<LoginResponse> {
-  try {
-    const formData = new URLSearchParams();
-    formData.append('username', username);
-    formData.append('password', password);
-
-    console.group('Login Request');
-    console.log('URL:', `${API_URL}/auth/login`);
-    console.log('Body:', { username, password: '***' });
-    console.groupEnd();
-
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-      },
-      body: formData
-    });
-
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (e) {
-      responseData = null;
-    }
-
-    console.group('Login Response');
-    console.log('Status:', response.status);
-    console.log('Data:', responseData);
-    console.groupEnd();
-
-    if (!response.ok) {
-      throw {
-        status: response.status,
-        data: responseData
-      };
-    }
-
-    return { success: true, user: responseData };
-  } catch (error: any) {
-    console.group('Login Error');
-    console.error('Status:', error.status);
-    console.error('Data:', error.data);
-    console.groupEnd();
-
-    return {
-      success: false,
-      error: error.data?.detail || error.data?.message || 'Login failed',
-      details: error.data
-    };
-  }
-}
-
-// Функция обновления токена
-export async function refreshToken() {
-  try {
-    // Получаем refresh_token из куки
-    const cookies = document.cookie.split(';');
-    const refreshTokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
-    if (!refreshTokenCookie) {
-      console.log('Refresh token не найден в куки');
-      return { success: false };
-    }
-
-    const refreshToken = refreshTokenCookie.split('=')[1].trim();
-    console.log('Отправляем запрос на обновление токена...');
-
-    const params = new URLSearchParams({ refresh_token: refreshToken });
-    const response = await fetch(`${API_URL}/auth/refresh?${params}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
-    });
-
-    console.log('Ответ на обновление токена:', response.status, response.statusText);
-
-    if (!response.ok) {
-      console.log('Не удалось обновить токен');
-      return { success: false };
-    }
-
-    const data = await response.json();
-    console.log('Токен успешно обновлен');
-    return { success: true, ...data };
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    return { success: false };
-  }
-}
-
-// Функция для выхода
-export async function logout() {
-  try {
-    const response = await fetch(`${API_URL}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('Logout error:', error);
-    return false;
-  }
-}
-
-// Функция для проверки авторизации
-export async function checkAuth() {
-  const response = await fetch(`${API_URL}/auth/check`, {
-    credentials: 'include',
-  });
-  if (!response.ok) {
-    return null;
-  }
-  return response.json();
-}
-
 // Получение списка пробежек
 export async function getRuns(startDate: string, endDate: string, limit = 50, offset = 0) {
   console.group('Запрос пробежек');
@@ -222,7 +221,7 @@ export async function getRuns(startDate: string, endDate: string, limit = 50, of
     offset: offset.toString()
   });
 
-  const url = `${API_URL}/runs/?${params}`;
+  const url = `${API_BASE_URL}/runs/?${params}`;
   console.log('URL запроса:', url);
 
   try {
@@ -249,7 +248,7 @@ export async function getRuns(startDate: string, endDate: string, limit = 50, of
     if (response.status === 401) {
       console.log('Требуется обновление токена');
       const refreshResult = await refreshToken();
-      if (refreshResult.success) {
+      if (refreshResult) {
         return getRuns(startDate, endDate, limit, offset);
       }
       throw new Error('Failed to refresh token');

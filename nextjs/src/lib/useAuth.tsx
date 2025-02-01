@@ -1,20 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { checkAuth, login as apiLogin, logout as apiLogout } from './api';
+import { checkAuth, logout } from './api';
 
 interface AuthContextType {
   user: any | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  error: string | null;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
-  login: async () => false,
-  logout: async () => {},
+  error: null,
+  logout: async () => {}
 });
 
 interface AuthProviderProps {
@@ -24,58 +24,51 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const initAuth = async () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const userData = await checkAuth();
+      try {
+        const userData = await checkAuth();
+        if (userData) {
           setUser(userData);
-        } catch (error) {
-          console.error('Auth initialization error:', error);
-        } finally {
-          setIsLoading(false);
         }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        setError('Ошибка проверки авторизации');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     initAuth();
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const handleLogout = async () => {
     try {
-      const result = await apiLogin(username, password);
-      if (result.success && result.user) {
-        setUser(result.user);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
-    }
-  };
-
-  const logout = async (): Promise<void> => {
-    try {
-      await apiLogout();
+      await logout();
       setUser(null);
-    } catch (error) {
-      console.error('Logout error:', error);
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError('Ошибка при выходе из системы');
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        error,
+        logout: handleLogout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 } 
