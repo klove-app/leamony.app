@@ -3,13 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getRuns } from '@/lib/api';
 import { useAuth } from '@/lib/useAuth';
-
-interface Run {
-  id: string;
-  distance: number;
-  duration: string;
-  date: string;
-}
+import { Run } from '@/types/run';
 
 export default function ClientDashboard() {
   const [runs, setRuns] = useState<Run[]>([]);
@@ -25,11 +19,14 @@ export default function ClientDashboard() {
   const loadRuns = async () => {
     try {
       const today = new Date();
-      const startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+      const startDate = today.toISOString().split('T')[0];
       const endDate = today.toISOString().split('T')[0];
       
-      const data = await getRuns(startDate, endDate);
-      setRuns(data.items || []);
+      const data = await getRuns({
+        start_date: startDate,
+        end_date: endDate
+      });
+      setRuns(data);
     } catch (error) {
       console.error('Error loading runs:', error);
     } finally {
@@ -53,7 +50,7 @@ export default function ClientDashboard() {
           <div className="bg-green-50 p-6 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Total Distance</h3>
             <p className="text-3xl font-bold text-green-600">
-              {runs.reduce((total, run) => total + run.distance, 0).toFixed(1)} km
+              {runs.reduce((total, run) => total + (run.km || run.distance_km || 0), 0).toFixed(1)} km
             </p>
           </div>
           <div className="bg-purple-50 p-6 rounded-lg">
@@ -90,15 +87,15 @@ export default function ClientDashboard() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {runs.map((run) => (
-                  <tr key={run.id}>
+                  <tr key={run.log_id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(run.date).toLocaleDateString()}
+                      {new Date(run.date_added).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {run.distance.toFixed(1)} km
+                      {(run.km || run.distance_km || 0).toFixed(1)} км
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {run.duration}
+                      {Math.floor((run.duration || 0) / 60)} мин
                     </td>
                   </tr>
                 ))}
