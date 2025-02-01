@@ -5,51 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import ClientWrapper from '@/components/ClientWrapper';
 import Image from 'next/image';
-
-interface TrainingPlan {
-  id: string;
-  status: string;
-  current_week: number;
-  summary: string;
-  weekly_structure: {
-    [key: string]: {
-      focus: string;
-      total_distance: number;
-      intensity_distribution: {
-        easy: string;
-        moderate: string;
-        hard: string;
-      }
-    }
-  };
-}
-
-interface UserStats {
-  yearly_goal: number;
-  yearly_progress: number;
-  recent_activities: Array<{
-    date: string;
-    distance: number;
-    duration: number;
-    type: string;
-  }>;
-}
-
-interface Run {
-  log_id: number;
-  user_id: string;
-  date_added: string;
-  distance_km: number;
-  duration: number;
-  notes?: string;
-  average_heartrate?: number;
-  splits?: {
-    [key: string]: {
-      distance: number;
-      pace: string;
-    }
-  };
-}
+import { Run } from '@/types/run';
+import { getRuns, getCurrentTrainingPlan, getUserStats } from '@/lib/api';
+import { UserStats } from '@/types/user';
+import { TrainingPlan } from '@/types/training-plan';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -68,27 +27,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const token = document.cookie.match(/access_token=([^;]+)/)?.[1];
-      if (!token) return;
-
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json'
-      };
-
       // Загружаем активный план
-      fetch('https://api.runconnect.app/api/v1/training-plan/current', { headers })
-        .then(res => res.json())
+      getCurrentTrainingPlan()
         .then(data => {
-          if (data.status === 'completed') {
+          if (data.status === 'completed' && data.plan) {
             setActivePlan(data.plan);
           }
         })
         .catch(console.error);
 
       // Загружаем статистику
-      fetch('https://api.runconnect.app/api/v1/users/me', { headers })
-        .then(res => res.json())
+      getUserStats()
         .then(setStats)
         .catch(console.error);
 
@@ -98,11 +47,11 @@ export default function DashboardPage() {
       const startDate = new Date();
       startDate.setMonth(today.getMonth() - 1); // За последний месяц
 
-      fetch(`https://api.runconnect.app/api/v1/runs?start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}&limit=10`, { headers })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to load runs');
-          return res.json();
-        })
+      getRuns({
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: today.toISOString().split('T')[0],
+        limit: 10
+      })
         .then(setRuns)
         .catch(error => {
           console.error('Error loading runs:', error);
@@ -244,9 +193,9 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">{run.distance_km} км</div>
+                        <div className="font-medium">{run.km || run.distance_km} км</div>
                         <div className="text-sm text-gray-500">
-                          {Math.floor(run.duration / 60)} мин
+                          {Math.floor((run.duration || 0) / 60)} мин
                         </div>
                         {run.average_heartrate && (
                           <div className="text-sm text-gray-500">

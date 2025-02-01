@@ -1,3 +1,7 @@
+import { Run } from '@/types/run';
+import { TrainingPlan } from '@/types/training-plan';
+import { UserStats } from '@/types/user';
+
 const API_BASE_URL = '/api/v1';
 
 interface LoginResponse {
@@ -251,61 +255,49 @@ export async function register(
 }
 
 // Получение списка пробежек
-export async function getRuns(startDate: string, endDate: string, limit = 50, offset = 0) {
-  console.group('Запрос пробежек');
-  console.log('Параметры запроса:', { startDate, endDate, limit, offset });
+export async function getRuns(params?: {
+  start_date?: string;
+  end_date?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<Run[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.start_date) searchParams.append('start_date', params.start_date);
+  if (params?.end_date) searchParams.append('end_date', params.end_date);
+  if (params?.limit) searchParams.append('limit', params.limit.toString());
+  if (params?.offset) searchParams.append('offset', params.offset.toString());
 
-  const params = new URLSearchParams({
-    start_date: startDate,
-    end_date: endDate,
-    limit: limit.toString(),
-    offset: offset.toString()
+  const response = await fetch(`${API_BASE_URL}/runs?${searchParams}`, {
+    headers: await getBaseHeaders(),
   });
 
-  const url = `${API_BASE_URL}/runs/?${params}`;
-  console.log('URL запроса:', url);
-
-  try {
-    // Получаем access_token из куки
-    const cookies = document.cookie.split(';');
-    const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
-    if (!accessTokenCookie) {
-      console.log('Access token не найден в куки');
-      throw new Error('Access token не найден');
-    }
-    const accessToken = accessTokenCookie.split('=')[1].trim();
-
-    const response = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      }
-    });
-
-    console.log('Статус ответа:', response.status, response.statusText);
-
-    if (response.status === 401) {
-      console.log('Требуется обновление токена');
-      const refreshResult = await refreshToken();
-      if (refreshResult) {
-        return getRuns(startDate, endDate, limit, offset);
-      }
-      throw new Error('Failed to refresh token');
-    }
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch runs');
-    }
-
-    const data = await response.json();
-    console.log('Получены данные о пробежках:', data);
-    console.groupEnd();
-    return data;
-  } catch (error) {
-    console.error('Error fetching runs:', error);
-    console.groupEnd();
-    throw error;
+  if (!response.ok) {
+    throw new Error('Failed to fetch runs');
   }
+
+  return response.json();
+}
+
+export async function getCurrentTrainingPlan(): Promise<{ status: string; plan?: TrainingPlan }> {
+  const response = await fetch(`${API_BASE_URL}/training-plan/current`, {
+    headers: await getBaseHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch current training plan');
+  }
+
+  return response.json();
+}
+
+export async function getUserStats(): Promise<UserStats> {
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
+    headers: await getBaseHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user stats');
+  }
+
+  return response.json();
 } 
