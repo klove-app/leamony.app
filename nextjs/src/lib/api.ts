@@ -19,8 +19,7 @@ function generateRequestId(): string {
 function getBaseHeaders(includeAuth: boolean = true): HeadersInit {
   const headers: HeadersInit = {
     'Accept': 'application/json',
-    'X-Request-ID': generateRequestId(),
-    'Content-Type': 'multipart/form-data'
+    'X-Request-ID': generateRequestId()
   };
 
   if (includeAuth) {
