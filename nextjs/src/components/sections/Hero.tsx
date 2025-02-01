@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Hero() {
@@ -20,15 +19,6 @@ export default function Hero() {
               Learn More
             </a>
           </div>
-        </div>
-        <div className="hero-image">
-          <Image 
-            src="/images/illustrations/Running.png"
-            alt="Runner using RunConnect app"
-            width={600}
-            height={400}
-            priority
-          />
         </div>
       </div>
     </section>
