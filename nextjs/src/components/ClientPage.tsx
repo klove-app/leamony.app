@@ -2,8 +2,8 @@
 
 import { ReactNode, Suspense } from 'react';
 import { useAuth } from '@/lib/useAuth';
-import Navbar from './Navbar';
-import Footer from './Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
