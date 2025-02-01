@@ -5,18 +5,37 @@ import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api';
 
 interface AuthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export default function AuthModal({ isOpen = false, onClose = () => {} }: AuthModalProps) {
+  const [isModalOpen, setIsModalOpen] = useState(isOpen);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  if (!isOpen) return null;
+  const openModal = () => {
+    setError(null);
+    setUsername('');
+    setPassword('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    onClose();
+  };
+
+  if (!isModalOpen) {
+    return (
+      <button onClick={openModal} className="button button-secondary">
+        Войти
+      </button>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +46,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const result = await login(username, password);
       
       if (result.success) {
-        onClose();
+        closeModal();
         router.push('/dashboard');
       } else {
         setError(result.error || 'Ошибка входа');
@@ -45,7 +64,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       <div className="modal">
         <div className="modal-header">
           <h2>Вход в систему</h2>
-          <button onClick={onClose} className="close-button">×</button>
+          <button onClick={closeModal} className="close-button">×</button>
         </div>
         <form onSubmit={handleSubmit} className="modal-content">
           <div className="form-group">
