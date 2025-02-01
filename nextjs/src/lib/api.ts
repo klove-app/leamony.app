@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.runconnect.app/api/v1';
+const API_BASE_URL = '/api/v1';
 
 interface LoginResponse {
   success: boolean;
@@ -19,7 +19,8 @@ function generateRequestId(): string {
 function getBaseHeaders(includeAuth: boolean = true): HeadersInit {
   const headers: HeadersInit = {
     'Accept': 'application/json',
-    'X-Request-ID': generateRequestId()
+    'X-Request-ID': generateRequestId(),
+    'Content-Type': 'multipart/form-data'
   };
 
   if (includeAuth) {
@@ -35,7 +36,6 @@ function getBaseHeaders(includeAuth: boolean = true): HeadersInit {
 export async function checkAuth(): Promise<any> {
   const response = await fetch(`${API_BASE_URL}/users/me`, {
     method: 'GET',
-    mode: 'cors',
     credentials: 'include',
     headers: getBaseHeaders()
   });
@@ -57,19 +57,15 @@ export async function checkAuth(): Promise<any> {
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  const formData = new URLSearchParams();
+  const formData = new FormData();
   formData.append('username', username);
   formData.append('password', password);
 
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
-      mode: 'cors',
       credentials: 'include',
-      headers: {
-        ...getBaseHeaders(false),
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: getBaseHeaders(false),
       body: formData
     });
 
@@ -113,7 +109,6 @@ export async function logout(): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/auth/logout`, {
       method: 'POST',
-      mode: 'cors',
       credentials: 'include',
       headers: getBaseHeaders()
     });
@@ -130,17 +125,13 @@ export async function refreshToken(): Promise<boolean> {
   if (!refresh_token) return false;
 
   try {
-    const formData = new URLSearchParams();
+    const formData = new FormData();
     formData.append('refresh_token', refresh_token);
 
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
-      mode: 'cors',
       credentials: 'include',
-      headers: {
-        ...getBaseHeaders(false),
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: getBaseHeaders(false),
       body: formData
     });
 
@@ -166,7 +157,7 @@ export async function refreshToken(): Promise<boolean> {
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=none`;
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=lax`;
 }
 
 function getCookie(name: string): string | null {
@@ -177,7 +168,7 @@ function getCookie(name: string): string | null {
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=none`;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=lax`;
 }
 
 export interface RegisterResponse {

@@ -14,7 +14,7 @@ package = "@netlify/plugin-nextjs"
 for = "/*"
 [headers.values]
 Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-X-Frame-Options = "ALLOW-FROM https://t.me/"
+X-Frame-Options = "ALLOW-FROM https://t.me/ https://web.telegram.org https://runconnect.app"
 X-XSS-Protection = "1; mode=block"
 X-Content-Type-Options = "nosniff"
 Referrer-Policy = "strict-origin-when-cross-origin"
@@ -22,10 +22,35 @@ Content-Security-Policy = "default-src 'self' https://fonts.googleapis.com https
 
 [[redirects]]
 from = "/webapp/*"
-to = "/webapp/index.html"
+to = "/webapp/:splat"
 status = 200
+force = true
 
+# Редирект с HTTP на HTTPS
+[[redirects]]
+from = "http://*"
+to = "https://:splat"
+status = 301
+force = true
+
+# Проксирование API запросов
+[[redirects]]
+from = "/api/*"
+to = "https://api.runconnect.app/api/:splat"
+status = 200
+force = true
+headers = {X-From = "Netlify", Access-Control-Allow-Origin = "https://runconnect.app", Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS", Access-Control-Allow-Headers = "Authorization, Content-Type, Accept, X-Request-ID", Access-Control-Allow-Credentials = "true"}
+
+# Редирект для API с HTTP на HTTPS
+[[redirects]]
+from = "http://api.runconnect.app/api/*"
+to = "https://api.runconnect.app/api/:splat"
+status = 301
+force = true
+
+# Обработка SPA роутинга
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
+force = false
