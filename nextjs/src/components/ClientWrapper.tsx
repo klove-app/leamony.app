@@ -42,8 +42,8 @@ interface ClientWrapperProps {
 }
 
 // Динамический импорт компонентов
-const DynamicNavbar = dynamic(() => import('@/components/Navbar'), { ssr: false });
-const DynamicFooter = dynamic(() => import('@/components/Footer'), { ssr: false });
+const DynamicNavbar = dynamic(() => import('@/components/layout/Navbar'), { ssr: false });
+const DynamicFooter = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
 
 const AuthContent = dynamic(() => import('@/lib/useAuth').then(mod => {
   const { useAuth } = mod;
