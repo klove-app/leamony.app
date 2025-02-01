@@ -29,8 +29,8 @@ async function updateAuthUI() {
             console.groupEnd();
             return;
         }
-
-        if (user) {
+        
+        if (user && user.username) {
             console.log('Пользователь авторизован, обновляем кнопку');
             loginButton.textContent = user.username;
             loginButton.href = '/dashboard.html';
@@ -42,11 +42,25 @@ async function updateAuthUI() {
             loginButton.textContent = 'Sign In';
             loginButton.href = '#';
             loginButton.classList.remove('auth-button');
+            // Удаляем старый обработчик перед добавлением нового
+            loginButton.removeEventListener('click', openAuthModal);
             // Добавляем обработчик открытия модального окна
             loginButton.addEventListener('click', openAuthModal);
         }
     } catch (error) {
         console.error('Ошибка при обновлении UI:', error);
+        // При ошибке также возвращаем состояние неавторизованного пользователя
+        const loginButton = document.getElementById('loginButton');
+        if (loginButton) {
+            console.log('Ошибка авторизации, возвращаем кнопку входа');
+            loginButton.textContent = 'Sign In';
+            loginButton.href = '#';
+            loginButton.classList.remove('auth-button');
+            // Удаляем старый обработчик перед добавлением нового
+            loginButton.removeEventListener('click', openAuthModal);
+            // Добавляем обработчик открытия модального окна
+            loginButton.addEventListener('click', openAuthModal);
+        }
     }
     console.groupEnd();
 }
@@ -147,6 +161,8 @@ async function handleLogin(event) {
                 errorElement.textContent = errorMessage;
                 errorElement.style.display = 'block';
             }
+            // Явно обновляем UI для отображения неавторизованного состояния
+            await updateAuthUI();
         }
     } catch (error) {
         console.error('Ошибка при входе:', error);
@@ -154,6 +170,8 @@ async function handleLogin(event) {
             errorElement.textContent = 'Произошла ошибка при попытке входа';
             errorElement.style.display = 'block';
         }
+        // Явно обновляем UI при ошибке
+        await updateAuthUI();
     } finally {
         if (submitButton) {
             submitButton.disabled = false;
