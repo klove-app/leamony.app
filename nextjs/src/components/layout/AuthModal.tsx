@@ -27,51 +27,57 @@ export default function AuthModal() {
         closeModal();
         window.location.href = '/dashboard';
       } else {
-        setError('Неверное имя пользователя или пароль');
+        setError('Invalid username or password');
       }
     } catch (err) {
-      setError('Произошла ошибка при входе');
+      setError('An error occurred during login');
     }
   };
 
   return (
     <>
-      <button onClick={openModal} className="nav-link">
-        Войти
+      <button onClick={openModal} className="button button-secondary">
+        Sign In
       </button>
 
       {isOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Вход в систему</h2>
-              <button className="modal-close" onClick={closeModal}>×</button>
+              <h2>Sign In</h2>
+              <button className="modal-close" onClick={closeModal} aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
             </div>
             <div className="modal-content">
-              <form onSubmit={handleSubmit}>
-                {error && <div className="error-message">{error}</div>}
+              <form onSubmit={handleSubmit} className="auth-form">
+                {error && <div className="error-message" role="alert">{error}</div>}
                 <div className="form-group">
-                  <label htmlFor="username">Имя пользователя</label>
+                  <label htmlFor="username">Username</label>
                   <input
                     type="text"
                     id="username"
+                    className="form-input"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter your username"
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="password">Пароль</label>
+                  <label htmlFor="password">Password</label>
                   <input
                     type="password"
                     id="password"
+                    className="form-input"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
                     required
                   />
                 </div>
-                <button type="submit" className="button button-primary">
-                  Войти
+                <button type="submit" className="button button-primary w-full">
+                  Sign In
                 </button>
               </form>
             </div>
