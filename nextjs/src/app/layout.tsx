@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import '@/styles/globals.css'
+import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'RunConnect',
-  description: 'Connect with runners worldwide',
-  viewport: 'width=device-width, initial-scale=1',
+  title: 'RunConnect - AI-Powered Running Assistant',
+  description: 'Transform your running journey with personalized AI training plans, progress tracking, and goal achievement.',
 }
 
 export default function RootLayout({

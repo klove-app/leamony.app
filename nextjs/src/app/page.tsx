@@ -1,24 +1,25 @@
 'use client';
 
-import ClientWrapper from '@/components/ClientWrapper';
-import Hero from '@/components/Hero';
-import Features from '@/components/Features';
-import Stats from '@/components/Stats';
-import Pricing from '@/components/Pricing';
-
-// Отключаем статическую генерацию для этой страницы
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import Navbar from '@/components/layout/Navbar';
+import Hero from '@/components/sections/Hero';
+import Features from '@/components/sections/Features';
+import Stats from '@/components/sections/Stats';
+import Pricing from '@/components/sections/Pricing';
+import Footer from '@/components/layout/Footer';
+import AuthModal from '@/components/layout/AuthModal';
 
 export default function Home() {
   return (
-    <ClientWrapper>
-      <main className="flex min-h-screen flex-col items-center justify-between">
+    <>
+      <Navbar />
+      <main>
         <Hero />
         <Features />
         <Stats />
         <Pricing />
       </main>
-    </ClientWrapper>
+      <Footer />
+      <AuthModal />
+    </>
   );
 }
