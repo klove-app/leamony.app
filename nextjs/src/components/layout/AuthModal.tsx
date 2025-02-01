@@ -2,16 +2,25 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
+import Cookies from 'js-cookie';
+
+interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+}
 
 export default function AuthModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const openModal = () => {
     setError('');
+    setUsername('');
+    setPassword('');
     setIsOpen(true);
   };
 
@@ -20,17 +29,54 @@ export default function AuthModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
-      const success = await login(username, password);
-      if (success) {
-        closeModal();
-        window.location.href = '/dashboard';
-      } else {
-        setError('Invalid username or password');
+      const response = await fetch('https://api.runconnect.app/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Неверное имя пользователя или пароль');
+        } else if (response.status === 429) {
+          throw new Error('Слишком много попыток входа. Пожалуйста, подождите немного');
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Произошла ошибка при входе');
+        }
       }
+
+      const data: LoginResponse = await response.json();
+      
+      // Сохраняем токены в куки
+      Cookies.set('access_token', data.access_token, { 
+        secure: true, 
+        sameSite: 'strict',
+        expires: 1 // 1 день
+      });
+      
+      Cookies.set('refresh_token', data.refresh_token, {
+        secure: true,
+        sameSite: 'strict',
+        expires: 30 // 30 дней
+      });
+
+      closeModal();
+      window.location.href = '/dashboard';
     } catch (err) {
-      setError('An error occurred during login');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Произошла неизвестная ошибка');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -45,13 +91,22 @@ export default function AuthModal() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Sign In</h2>
-              <button className="modal-close" onClick={closeModal} aria-label="Close">
+              <button 
+                className="modal-close" 
+                onClick={closeModal} 
+                aria-label="Close"
+                disabled={isLoading}
+              >
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div className="modal-content">
               <form onSubmit={handleSubmit} className="auth-form">
-                {error && <div className="error-message" role="alert">{error}</div>}
+                {error && (
+                  <div className="error-message" role="alert">
+                    {error}
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="username">Username</label>
                   <input
@@ -62,6 +117,8 @@ export default function AuthModal() {
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your username"
                     required
+                    disabled={isLoading}
+                    minLength={1}
                   />
                 </div>
                 <div className="form-group">
@@ -74,10 +131,16 @@ export default function AuthModal() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
+                    disabled={isLoading}
+                    minLength={8}
                   />
                 </div>
-                <button type="submit" className="button button-primary w-full">
-                  Sign In
+                <button 
+                  type="submit" 
+                  className="button button-primary w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
             </div>
