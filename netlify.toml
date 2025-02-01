@@ -54,3 +54,34 @@ from = "/*"
 to = "/index.html"
 status = 200
 force = false
+
+# Редиректы для статических страниц
+[[redirects]]
+from = "/blog"
+to = "/"
+status = 302
+force = true
+
+[[redirects]]
+from = "/privacy"
+to = "/"
+status = 302
+force = true
+
+[[redirects]]
+from = "/careers"
+to = "/"
+status = 302
+force = true
+
+[[redirects]]
+from = "/terms"
+to = "/"
+status = 302
+force = true
+
+[[redirects]]
+from = "/about"
+to = "/"
+status = 302
+force = true
